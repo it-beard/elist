@@ -11,7 +11,7 @@ import ResultList from './components/ResultList.jsx';
 export default function App() {
   const { status, error, meta, items, chunkSize } = useIndex();
   const [query, setQuery] = useUrlParam('q');
-  const [opts, setOpts] = useState({ any: false, onlyNew: false, sort: 'source' });
+  const [opts, setOpts] = useState({ any: false, onlyNew: false, sort: 'newest' });
   const deferredQuery = useDeferredValue(query);
 
   const tokens = useMemo(() => parseQuery(deferredQuery), [deferredQuery]);
@@ -43,18 +43,27 @@ export default function App() {
           <>
             <p className="summary" aria-live="polite">
               {!active
-                ? `Усяго запісаў: ${results.length}. Увядзіце запыт для пошуку.`
+                ? `Усяго запісаў: ${results.length}`
                 : results.length
                   ? `Знойдзена: ${results.length}`
-                  : 'Нічога не знойдзена — паспрабуйце карацейшае слова або ўключыце «любое са словаў».'}
+                  : 'Нічога не знойдзена. Паспрабуйце карацейшае слова або «Любое са словаў».'}
             </p>
             <ResultList results={results} tokens={tokens} chunkSize={chunkSize} />
           </>
         )}
       </main>
       <footer className="wrap foot">
-        Неафіцыйны пошук. Даныя — з афіцыйнага спісу, які публікуе газета «Звязда» (Мінінфарм).
-        База абнаўляецца аўтаматычна раз на суткі праз GitHub Actions.
+        <p>
+          Неафіцыйны пошук па спісе, які публікуе газета «Звязда» (Мінінфарм)
+          {meta && <> — <a href={meta.sourcePage} target="_blank" rel="noopener">крыніца</a></>}. База абнаўляецца аўтаматычна раз на суткі.
+        </p>
+        <p>
+          Сайт нічога не захоўвае: ні запыты, ні cookies, ні статыстыку. Усё працуе ў вашым браўзэры.
+        </p>
+        <p>
+          <a href="https://github.com/it-beard/extremist-by" target="_blank" rel="noopener">Код сайта на GitHub</a>
+          {' · '}Падказка: фраза ў лапках <code>"словы запар"</code>, клавіша <code>/</code> — у поле пошуку.
+        </p>
       </footer>
     </>
   );

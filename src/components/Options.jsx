@@ -1,20 +1,22 @@
 export default function Options({ value, onChange }) {
   const set = (patch) => onChange({ ...value, ...patch });
+  const Chip = ({ k, children }) => (
+    <button type="button" className={`chip${value[k] ? ' on' : ''}`} aria-pressed={value[k]} onClick={() => set({ [k]: !value[k] })}>
+      {children}
+    </button>
+  );
   return (
     <div className="options">
-      <label className="opt"><input type="checkbox" checked={value.any} onChange={(e) => set({ any: e.target.checked })} /> любое са словаў</label>
-      <label className="opt"><input type="checkbox" checked={value.onlyNew} onChange={(e) => set({ onlyNew: e.target.checked })} /> толькі новыя (30 дзён)</label>
-      <label className="opt">
-        сартаваць{' '}
+      <Chip k="onlyNew">Новыя за 30 дзён</Chip>
+      <Chip k="any">Любое са словаў</Chip>
+      <label className="sort">
+        <span className="vh">Сартаваць</span>
         <select value={value.sort} onChange={(e) => set({ sort: e.target.value })}>
-          <option value="source">як у крыніцы</option>
-          <option value="newest">спачатку новыя рашэньні</option>
-          <option value="oldest">спачатку старыя рашэньні</option>
+          <option value="newest">Спачатку новыя</option>
+          <option value="oldest">Спачатку старыя</option>
+          <option value="source">Як у крыніцы</option>
         </select>
       </label>
-      <span className="hint">
-        Пошук па ўваходжаньні; рэгістр, «ё/е» і лапкі не ўлічваюцца. Фразу бярыце ў лапкі: <code>"словы запар"</code>. Клавіша <code>/</code> — у поле пошуку.
-      </span>
     </div>
   );
 }
