@@ -4,7 +4,7 @@ import { useLang } from '../hooks/useLang.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import LangToggle from './LangToggle.jsx';
 
-export default function Header({ meta, items, online }) {
+export default function Header({ meta, items, online, onHelp }) {
   const { t, lang } = useLang();
   const recent = items ? items.filter((it) => isRecent(it.added)).length : 0;
   const next = nextUpdate();
@@ -14,13 +14,14 @@ export default function Header({ meta, items, online }) {
     <header className="top wrap">
       <div className="top-row">
         <h1>{t.title}</h1>
+        <button type="button" className="theme help-btn" title={t.help} aria-label={t.help} onClick={onHelp}>?</button>
         <LangToggle />
         <ThemeToggle />
       </div>
       <p className="sub">
         {meta ? (
           <>
-            <span className="num">{meta.total.toLocaleString(lang)}</span> {t.records} · {t.updated} <time dateTime={meta.updated}>{fmtDate(meta.updated)}</time>
+            {t.updated} <time dateTime={meta.updated}>{fmtDate(meta.updated)}</time>
             {' · '}<span className="next" title={next.toLocaleString(lang)}>{t.nextUpdate(nextStr)}</span>
             {recent > 0 && <span className="badge-new">{t.recent(recent, NEW_DAYS)}</span>}
           </>

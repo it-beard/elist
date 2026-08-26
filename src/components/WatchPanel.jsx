@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../hooks/useLang.jsx';
 import { fmtDate } from '../lib/format.js';
+import { useLocalStorage } from '../hooks/useLocalStorage.js';
 
 /**
  * Сьпіс назіраньня: статус («супадзеньняў няма» / «новыя супадзеньні»),
@@ -13,7 +14,9 @@ export default function WatchPanel({ watch, meta, refreshing, refreshError, chec
   const fresh = checks.reduce((n, c) => n + c.fresh.length, 0);
   const empty = entries.length === 0;
   const tone = empty ? 'idle' : fresh ? 'alert' : hits ? 'warn' : 'ok';
-  const [open, setOpen] = useState(() => fresh > 0 || empty);
+  const [stored, setStored] = useLocalStorage('watchOpen', true);
+  const [open, setOpenState] = useState(() => fresh > 0 || (empty ? true : stored));
+  const setOpen = (f) => setOpenState((o) => { const n = typeof f === 'function' ? f(o) : f; setStored(n); return n; });
   const opened = useRef(false);
   useEffect(() => { if (fresh > 0 && !opened.current) { setOpen(true); opened.current = true; } }, [fresh]);
 

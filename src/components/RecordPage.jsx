@@ -6,7 +6,7 @@ import ResultItem from './ResultItem.jsx';
 import Consequences from './Consequences.jsx';
 
 /** Старонка аднаго запісу (#/r/<id>): пастаянная спасылка, крыніца, «падзяліцца». */
-export default function RecordPage({ id, items, chunkSize, meta, watch }) {
+export default function RecordPage({ id, items, chunkSize, watch }) {
   const { t } = useLang();
   const item = items.find((it) => it.id === id);
   const rec = useRecord(item ? item.i : 0, chunkSize);
@@ -37,11 +37,7 @@ export default function RecordPage({ id, items, chunkSize, meta, watch }) {
               </button>
             )}
           </div>
-          {meta?.sourceFile && (
-            <p className="hint">
-              <a href={meta.sourceFile} target="_blank" rel="noopener">{t.sourceDoc}</a> — {t.sourceDocHint(item.i + 1)}.
-            </p>
-          )}
+          <p className="hint">{t.position(item.i + 1)}</p>
           <Consequences open />
         </>
       )}

@@ -166,3 +166,21 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
   .watch-actions .chip { flex: 1 1 auto; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } .chev { transition: none; } }
+
+/* ---- даведка ---- */
+.help-btn { font-weight: 700; font-size: 1rem; }
+.help { width: min(640px, calc(100vw - 24px)); max-height: min(85vh, 100dvh - 24px); margin: auto; padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); color: var(--text); box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+.help::backdrop { background: rgba(0,0,0,.45); }
+.help-inner { padding: 6px 20px 20px; font-size: .92rem; }
+.help-head { display: flex; align-items: center; gap: 8px; position: sticky; top: 0; background: var(--card); padding: 12px 0 6px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.help-head h2 { flex: 1; margin: 0; font-size: 1.15rem; }
+.help-head .clear { position: static; }
+.help h3 { font-size: 1rem; margin: 18px 0 6px; }
+.help h4 { font-size: .92rem; margin: 10px 0 2px; }
+.help p { margin: 0; }
+.help-steps { margin: 0; padding-left: 20px; }
+.help-steps li { margin-bottom: 6px; }
+@media (max-width: 600px) {
+  .help { width: calc(100vw - 16px); }
+  .help-inner { padding: 4px 14px 16px; }
+}

@@ -20,6 +20,7 @@ import WatchPanel from './components/WatchPanel.jsx';
 import WhatsNew from './components/WhatsNew.jsx';
 import RecordPage from './components/RecordPage.jsx';
 import Consequences from './components/Consequences.jsx';
+import HelpDialog from './components/HelpDialog.jsx';
 
 /** Дакладны пошук; калі пуста — трансьлітарацыя + прыблізныя словы. */
 function runSearch(items, tokens, opts) {
@@ -42,6 +43,7 @@ export default function App() {
   const [query, setQuery] = useUrlParam('q');
   const [sort, setSort] = useLocalStorage('sort', 'newest');
   const [flags, setFlags] = useState({ any: false, onlyNew: false });
+  const [help, setHelp] = useState(false);
   const opts = useMemo(() => ({ ...flags, sort }), [flags, sort]);
   const setOpts = ({ sort: s, ...rest }) => { if (s !== sort) setSort(s); setFlags(rest); };
   const deferredQuery = useDeferredValue(query);
@@ -94,19 +96,20 @@ export default function App() {
 
   return (
     <>
-      <Header meta={meta} items={items} online={online} />
+      <Header meta={meta} items={items} online={online} onHelp={() => setHelp(true)} />
+      <HelpDialog open={help} onClose={() => setHelp(false)} />
       <Nav route={route.name === 'new' ? 'new' : route.name === 'r' ? 'r' : ''} newCount={newCount} />
       <main className="wrap">
-        {status === 'loading' && <p className="summary">{t.loading}</p>}
-        {status === 'error' && <p className="summary error">{t.loadError(error)}</p>}
         {status === 'ready' && route.name === 'new' && <WhatsNew items={items} chunkSize={chunkSize} />}
-        {status === 'ready' && route.name === 'r' && <RecordPage id={route.arg} items={items} chunkSize={chunkSize} meta={meta} watch={watch} />}
+        {status === 'ready' && route.name === 'r' && <RecordPage id={route.arg} items={items} chunkSize={chunkSize} watch={watch} />}
         {route.name !== 'new' && route.name !== 'r' && (
           <>
             <div className="search">
               <SearchBar value={query} onChange={setQuery} />
               <Options value={opts} onChange={setOpts} watch={watchChip} />
             </div>
+            {status === 'loading' && <p className="summary">{t.loading}</p>}
+            {status === 'error' && <p className="summary error">{t.loadError(error)}</p>}
             {status === 'ready' && (
               <>
                 {!active && (
@@ -126,10 +129,7 @@ export default function App() {
         )}
       </main>
       <footer className="wrap foot">
-        <p>
-          {t.footSource}
-          {meta && <> — <a href={meta.sourcePage} target="_blank" rel="noopener">{t.source}</a></>}. {t.footUpdate}
-        </p>
+        <p>{t.footSource} {t.footUpdate}</p>
         <p>{t.footNew1(NEW_DAYS)}<em>{t.footNew2}</em>{t.footNew3}</p>
         <p>{t.privacy} <button type="button" className="linklike" onClick={clearAll}>{t.clearAll}</button>.</p>
         <p>{t.mirror}</p>
