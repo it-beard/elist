@@ -36,7 +36,7 @@ function runSearch(items, tokens, opts) {
 }
 
 export default function App() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { status, error, meta, items, chunkSize, reload, refreshing, refreshError, checkedAt } = useIndex();
   const route = useHashRoute();
   const online = useOnline();
@@ -142,7 +142,8 @@ export default function App() {
         <p>{t.mirror}</p>
         <p>{t.issues1}<a href="https://github.com/it-beard/extremist-by/issues" target="_blank" rel="noopener">{t.issues2}</a>{t.issues3}</p>
         <p>
-          <a href="https://github.com/it-beard/extremist-by" target="_blank" rel="noopener">{t.code}</a>
+          <a href={`${import.meta.env.BASE_URL}${lang === 'en' ? 'faq-en.html' : 'faq.html'}`}>{t.faq}</a>
+          {' · '}<a href="https://github.com/it-beard/extremist-by" target="_blank" rel="noopener">{t.code}</a>
           {' · '}<a href={LINKS.telegram} target="_blank" rel="noopener">Telegram</a>
           {' · '}<a href={`${import.meta.env.BASE_URL}feed.xml`}>RSS</a>
           {' · '}{t.tip1}<code>{t.tipPhrase}</code>{t.tip2}<code>/</code>{t.tip3}

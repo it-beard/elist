@@ -21,6 +21,9 @@ src/hooks/                 useIndex, useRecord (ленівы фрагмент), 
   schedule.js              час наступнага аўтаабнаўленьня
 src/hooks/                 useIndex (з «праверыць зноў»), useRecord, useUrlParam (?q=), useHashRoute (#/new, #/r/<id>), useWatchlist, useOnline
 src/components/            Header, Nav, SearchBar, Options, WatchPanel, ResultList, ResultItem, Highlight, WhatsNew, RecordPage, Consequences
+scripts/geo.mjs            GEO: robots.txt, llms.txt, sitemap.xml, статычныя FAQ-старонкі
+scripts/geo-plugin.mjs     Vite-плагін: JSON-LD, meta з жывымі лічбамі, кантэнт для краўлераў без JS
+src/lib/faq.js             факты пра сайт і FAQ (бе/en) — крыніца для старонак, llms.txt і Schema.org
 public/sw.js               service worker: афлайн-рэжым (абалонка + база ў кэшы)
 public/feed.xml            RSS новых запісаў (генэруецца пры зборцы, у git не трапляе)
 scripts/notify.mjs         дайджэст новых запісаў у Telegram-канал (калі зададзеныя сакрэты)
@@ -61,6 +64,25 @@ npm run build      # dist/
 
 Сайт статычны: `npm run build` → зьмесьціва `dist/` можна выкласьці на любы хостынг (Netlify, Cloudflare Pages, свой сэрвэр, IPFS). Каб спасылкі былі правільныя, задайце `BASE_PATH` (шлях, з якога аддаецца сайт) і `SITE_URL` (поўны адрас).
 
+## GEO і SEO
+
+Сайт — SPA, таму без JavaScript краўлер бачыць пусты `<div id="root">`, а генэратыўныя рухавікі (ChatGPT, Claude, Perplexity, AI Overviews) цытуюць толькі тое, што ёсьць у HTML. Каб сайт трапляў у адказы, пры зборцы генэруецца:
+
+| Файл | Што гэта |
+| --- | --- |
+| `faq.html`, `faq-en.html` | статычныя старонкі «пытаньне → самадастатковы адказ» з `FAQPage`-разьметкай |
+| `llms.txt` | карта сайта ў prompt-friendly выглядзе: факты, лічбы, спасылкі |
+| `llms-full.txt` | увесь тэкст адным файлам: факты, правілы пошуку, усе пытаньні і адказы (бе + en) |
+| `robots.txt` | яўны дазвол `GPTBot`, `ClaudeBot`, `PerplexityBot` і іншым + `Sitemap:` |
+| `sitemap.xml` | тры старонкі з `lastmod` па даце базы |
+| JSON-LD у `index.html` | `WebSite` з `SearchAction` (`?q=…`), `Dataset`, `WebApplication` |
+| фолбэк у `#root` | загаловак, лічбы і `<noscript>` са спасылкамі — React замяняе яго пры мантаваньні |
+| `opensearch.xml` | сайт можна дадаць як пошукавік у адрасны радок браўзэра (`?q=`) |
+| `404.html` | старонка памылкі са спасылкамі — GitHub Pages аддае яе на невядомых шляхах |
+| `.well-known/security.txt` | куды паведамляць пра ўразьлівасьці (RFC 9116), з копіяй у корані |
+
+Тэксты жывуць у [`src/lib/faq.js`](src/lib/faq.js) і адтуль трапляюць ва ўсе фарматы адразу, з жывымі лічбамі (колькасьць запісаў, дата абнаўленьня, доля тыпаў). Усе файлы генэруюцца, у git не трапляюць.
+
 ## GitHub Pages
 
 1. Запушце `main` у рэпазіторый.
@@ -73,3 +95,23 @@ npm run build      # dist/
 - Не ўлічваюцца рэгістр, «ё/е», лацінская/кірылічная «i», віды лапак. Фраза ў лапках — цалкам.
 - Па рашэньні суда шукаюцца назва суда і дата рашэньня (словамі «20 августа 2026» ці лічбамі «20.08.2026»).
 - Запыт у URL (`?q=…`) — спасылкай можна дзяліцца. `/` — фокус на поле пошуку.
+
+## About (English)
+
+**What this is.** An unofficial, open-source search over the official Republican list of extremist materials of Belarus — the register of channels, websites, accounts, videos, books and symbols that Belarusian courts have ruled extremist. Live at [elist.itbeard.com](https://elist.itbeard.com/).
+
+**Key facts.**
+
+| | |
+| --- | --- |
+| Entries | ~6 000, updated automatically once a day (04:17 UTC) |
+| Search | runs entirely in the browser; Cyrillic ↔ Latin transliteration, 1–2 letter typo tolerance |
+| Data collected | none — no queries, no cookies, no analytics, no server |
+| Offline | yes, PWA; the database stays in the browser |
+| Alerts | watchlist with browser notifications, RSS `feed.xml`, Telegram [@elist_by](https://t.me/elist_by) |
+| Stack | React 19 + Vite, static hosting, ~400 KB gzip index |
+| Price | free, no sign-up |
+
+**Why it exists.** Distribution, production, storage and transport of listed materials is an administrative offence in Belarus under Art. 19.11 of the Administrative Code — up to 20 base units or arrest for individuals. People need a fast way to check whether they, their channel or their bookshelf is on the list, without leaving a trace on a server.
+
+**Answers to common questions** are on the static [FAQ page](https://elist.itbeard.com/faq.html) ([English](https://elist.itbeard.com/faq-en.html)).

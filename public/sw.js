@@ -4,7 +4,7 @@ const SHELL = `shell-${VERSION}`, DATA = `data-${VERSION}`;
 const BASE = new URL(self.registration.scope).pathname;
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(SHELL).then((c) => c.addAll([BASE, `${BASE}manifest.webmanifest`, `${BASE}favicon.ico`, `${BASE}icon-96.png`, `${BASE}icon-192.png`]).catch(() => {})));
+  e.waitUntil(caches.open(SHELL).then((c) => c.addAll([BASE, `${BASE}manifest.webmanifest`, `${BASE}faq.html`, `${BASE}faq-en.html`, `${BASE}favicon.ico`, `${BASE}icon-96.png`, `${BASE}icon-192.png`]).catch(() => {})));
   self.skipWaiting();
 });
 
@@ -23,8 +23,8 @@ self.addEventListener('fetch', (e) => {
 
   // Старонка: сетка → кэш (каб пасьля дэплою браць сьвежую абалонку, а афлайн — захаваную).
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then((r) => { const copy = r.clone(); caches.open(SHELL).then((c) => c.put(BASE, copy)); return r; })
-      .catch(() => caches.match(BASE)));
+    e.respondWith(fetch(req).then((r) => { const copy = r.clone(); caches.open(SHELL).then((c) => c.put(req, copy)); return r; })
+      .catch(() => caches.match(req).then((hit) => hit || caches.match(BASE))));
     return;
   }
   // Хэшаваныя асэты — нязьменныя: кэш → сетка.

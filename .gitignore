@@ -24,3 +24,13 @@ Thumbs.db
 # Vite
 .vite/
 public/feed.xml
+public/robots.txt
+public/sitemap.xml
+public/llms.txt
+public/faq.html
+public/faq-en.html
+public/llms-full.txt
+public/opensearch.xml
+public/404.html
+public/security.txt
+public/.well-known/

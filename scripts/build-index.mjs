@@ -9,12 +9,15 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalizeCompact } from '../src/lib/normalize.js';
 import { courtName, dateWords } from '../src/lib/court.js';
+import { writeGeo } from './geo.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'public', 'data');
 const CHUNK = 200;
 // адрас сайта для RSS і пастаянных спасылак (у CI — GitHub Pages)
 const SITE = (process.env.SITE_URL || 'https://elist.itbeard.com/').replace(/\/?$/, '/');
+// шлях, з якога аддаецца сайт (GitHub Pages праекта — падтэчка)
+const BASE = (process.env.BASE_PATH || '/').replace(/\/?$/, '/');
 
 const dict = () => {
   const map = new Map();
@@ -51,8 +54,11 @@ for (let c = 0; c * CHUNK < db.length; c++) {
 const { sourcePage, sourceFile, ...publicMeta } = meta;
 await fs.writeFile(path.join(OUT, 'meta.json'), JSON.stringify(publicMeta, null, 2));
 await fs.writeFile(path.join(ROOT, 'public', 'feed.xml'), feed(db, meta));
+// GEO: robots.txt, llms.txt, sitemap.xml і статычныя FAQ-старонкі
+const geoFiles = await writeGeo({ root: ROOT, site: SITE, base: BASE, db, meta });
 const size = (await fs.stat(path.join(OUT, 'index.json'))).size;
 console.log(`Індэкс: ${db.length} запісаў, ${(size / 1e6).toFixed(2)} MB, фрагментаў: ${Math.ceil(db.length / CHUNK)}`);
+console.log(`GEO: ${geoFiles.join(', ')}`);
 
 // ---------- RSS: апошнія даданыя запісы (або па даце рашэньня, пакуль няма гісторыі абнаўленьняў) ----------
 function esc(s) { return String(s).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c])); }
