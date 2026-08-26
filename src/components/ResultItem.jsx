@@ -1,6 +1,7 @@
 import { useRecord } from '../hooks/useRecord.js';
 import { fmtDate, isRecent } from '../lib/format.js';
 import { useLang } from '../hooks/useLang.jsx';
+import { href } from '../hooks/useHashRoute.js';
 import Highlight from './Highlight.jsx';
 
 export default function ResultItem({ item, tokens, chunkSize }) {
@@ -13,7 +14,7 @@ export default function ResultItem({ item, tokens, chunkSize }) {
         {item.date && <span className="num">{fmtDate(item.date)}</span>}
         {isRecent(item.added) && <span className="badge-new" title={t.addedTitle}>{t.isNew} · {fmtDate(item.added)}</span>}
         {item.removed && <span className="gone">{t.removed} {fmtDate(item.removed)}</span>}
-        <span className="num idx">№{item.i + 1}</span>
+        <a className="num idx" href={href(`r/${item.id}`)} title={t.permalink}>№{item.i + 1}</a>
       </div>
       {rec?.error ? (
         <p className="name error">{t.recError(rec.error)}</p>

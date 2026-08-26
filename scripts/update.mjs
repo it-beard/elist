@@ -111,8 +111,16 @@ async function main() {
   if (localFile) {
     buf = await fs.readFile(localFile);
   } else {
-    const urls = await findDocUrls();
-    ({ url: sourceUrl, buf } = await download(urls));
+    try {
+      const urls = await findDocUrls();
+      ({ url: sourceUrl, buf } = await download(urls));
+    } catch (e) {
+      // Крыніца недаступная — база застаецца, а сайт пакажа папярэджаньне «магла састарэць».
+      const meta = await readJson(META_FILE, {});
+      await fs.writeFile(META_FILE, JSON.stringify({ ...meta, checked: today, sourceError: e.message }, null, 2));
+      console.warn(`Крыніца недаступная: ${e.message}. meta.sourceError запісаны, база не зьменена.`);
+      return;
+    }
   }
   await fs.mkdir(CACHE_DIR, { recursive: true });
   await fs.writeFile(path.join(CACHE_DIR, 'latest.doc'), buf);
@@ -154,6 +162,8 @@ async function main() {
   const meta = await readJson(META_FILE, {});
   const newMeta = {
     updated: today,
+    checked: today,
+    sourceError: null,
     sourcePage: PAGE_URL,
     sourceFile: sourceUrl,
     total: out.filter((x) => !x.removed).length,

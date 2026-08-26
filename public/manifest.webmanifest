@@ -1,0 +1,12 @@
+{
+  "name": "Спіс экстрэмісцкіх матэрыялаў Беларусі — пошук",
+  "short_name": "Спіс ЭМ",
+  "description": "Пошук і сьпіс назіраньня па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў. Працуе афлайн, нічога не зьбірае.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f5f7",
+  "theme_color": "#b3261e",
+  "lang": "be",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

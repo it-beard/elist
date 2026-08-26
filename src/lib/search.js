@@ -1,11 +1,16 @@
 import { isRecent } from './format.js';
 
-/** Фільтруе і сартуе запісы індэкса. Кожны item мае: i, date, added, removed, h (радок для пошуку). */
+const has = (h, t) => (Array.isArray(t) ? t.some((v) => v && h.includes(v)) : h.includes(t));
+
+/**
+ * Фільтруе і сартуе запісы індэкса. Кожны item мае: i, id, date, added, removed, h (радок для пошуку).
+ * Токен — радок або масіў варыянтаў (дастаткова любога з іх).
+ */
 export function search(items, tokens, { any = false, onlyNew = false, sort = 'newest' } = {}) {
   const hit = tokens.length
     ? any
-      ? (it) => tokens.some((t) => it.h.includes(t))
-      : (it) => tokens.every((t) => it.h.includes(t))
+      ? (it) => tokens.some((t) => has(it.h, t))
+      : (it) => tokens.every((t) => has(it.h, t))
     : () => true;
   const out = items.filter((it) => hit(it) && (!onlyNew || isRecent(it.added)));
   if (sort === 'newest') out.sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.i - a.i);

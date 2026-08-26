@@ -1,7 +1,7 @@
 import { NEW_DAYS } from '../lib/format.js';
 import { useLang } from '../hooks/useLang.jsx';
 
-export default function Options({ value, onChange }) {
+export default function Options({ value, onChange, watch }) {
   const { t } = useLang();
   const set = (patch) => onChange({ ...value, ...patch });
   const Chip = ({ k, children }) => (
@@ -11,6 +11,11 @@ export default function Options({ value, onChange }) {
   );
   return (
     <div className="options">
+      {watch && (
+        <button type="button" className={`chip star${watch.on ? ' on' : ''}`} aria-pressed={watch.on} title={t.watchAddTitle} onClick={watch.toggle}>
+          {watch.on ? '★ ' : '☆ '}{watch.on ? t.watchOn : t.watchAdd}
+        </button>
+      )}
       <Chip k="onlyNew">{t.onlyNew(NEW_DAYS)}</Chip>
       <Chip k="any">{t.any}</Chip>
       <label className="sort">

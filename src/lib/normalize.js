@@ -22,20 +22,37 @@ export function normalize(text) {
 /** Кампактная нармалізацыя для індэкса (прабелы сьціснутыя). */
 export const normalizeCompact = (text) => normalize(text).replace(/ {2,}/g, ' ').trim();
 
+/**
+ * Прыбірае «шум» са спасылак і нікаў, каб «https://t.me/foo/», «www.foo.by»,
+ * «@foo» шукаліся як «t.me/foo», «foo.by», «foo».
+ */
+export function cleanToken(t) {
+  const s = t
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .replace(/^@/, '')
+    .replace(/[/.,;:!?)]+$/, '');
+  return s || t;
+}
+
 /** Разьбівае запыт на токены; фраза ў лапках — адзін токен. */
 export function parseQuery(query) {
   const tokens = [];
   const re = /"([^"]+)"|(\S+)/g;
   let m;
-  while ((m = re.exec(normalizeCompact(query)))) tokens.push((m[1] || m[2]).trim());
+  while ((m = re.exec(normalizeCompact(query)))) tokens.push(cleanToken((m[1] || m[2]).trim()));
   return tokens.filter(Boolean);
 }
 
-/** Дыяпазоны [пачатак, канец) супадзеньняў токенаў у тэксьце (зьлітыя). */
+/**
+ * Дыяпазоны [пачатак, канец) супадзеньняў токенаў у тэксьце (зьлітыя).
+ * Токен можа быць радком або масівам варыянтаў (трансьлітарацыя, прыблізныя словы).
+ */
 export function matchRanges(text, tokens) {
   const n = normalize(text);
   const ranges = [];
-  for (const t of tokens) {
+  for (const t of tokens.flat()) {
+    if (!t) continue;
     let i = 0;
     while ((i = n.indexOf(t, i)) !== -1) { ranges.push([i, i + t.length]); i += t.length; }
   }
