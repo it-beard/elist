@@ -74,6 +74,12 @@ export default function App() {
     try { new Notification(t.notifyTitle(freshTotal), { body: watch.checks.filter((c) => c.fresh.length).map((c) => c.entry.q).join(', ') }); } catch { /* iOS без PWA */ }
   }, [freshTotal, watch.notify, watch.checks, t]);
 
+  // Калі карыстальнік сам шукае запыт са сьпісу назіраньня — ён бачыць вынікі, пазначаем іх бачанымі.
+  const watchedNow = watch.checks.find((c) => c.entry.q === deferredQuery.trim());
+  useEffect(() => {
+    if (watchedNow && route.name === '') watch.markSeen(watchedNow.entry.q, watchedNow.matches.map((m) => m.id));
+  }, [watchedNow, route.name, watch.markSeen]);
+
   const openWatch = (entry, matches) => {
     watch.markSeen(entry.q, matches.map((m) => m.id));
     setFlags({ any: false, onlyNew: false });
@@ -88,7 +94,7 @@ export default function App() {
   };
   const watchChip = query.trim() && status === 'ready' ? {
     on: watch.has(query),
-    toggle: () => (watch.has(query) ? watch.remove(query) : watch.add(query, results.map((r) => r.id))),
+    toggle: () => (watch.has(query) ? watch.remove(query) : watch.add(query)),
   } : null;
 
   const active = tokens.length > 0 || opts.onlyNew;
@@ -133,6 +139,7 @@ export default function App() {
         <p>{t.footNew1(NEW_DAYS)}<em>{t.footNew2}</em>{t.footNew3}</p>
         <p>{t.privacy} <button type="button" className="linklike" onClick={clearAll}>{t.clearAll}</button>.</p>
         <p>{t.mirror}</p>
+        <p>{t.issues1}<a href="https://github.com/it-beard/extremist-by/issues" target="_blank" rel="noopener">{t.issues2}</a>{t.issues3}</p>
         <p>
           <a href="https://github.com/it-beard/extremist-by" target="_blank" rel="noopener">{t.code}</a>
           {' · '}<a href={`${import.meta.env.BASE_URL}feed.xml`}>RSS</a>

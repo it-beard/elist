@@ -32,7 +32,7 @@ export default function RecordPage({ id, items, chunkSize, watch }) {
             <button type="button" className="chip" onClick={copy}>{copied ? t.copied : t.copyLink}</button>
             {typeof navigator !== 'undefined' && navigator.share && <button type="button" className="chip" onClick={share}>{t.share}</button>}
             {watchQuery && (
-              <button type="button" className={`chip${watch.has(watchQuery) ? ' on' : ''}`} onClick={() => (watch.has(watchQuery) ? watch.remove(watchQuery) : watch.add(watchQuery, [item.id]))}>
+              <button type="button" className={`chip${watch.has(watchQuery) ? ' on' : ''}`} onClick={() => (watch.has(watchQuery) ? watch.remove(watchQuery) : watch.add(watchQuery))}>
                 {watch.has(watchQuery) ? `★ ${t.watchOn}` : `☆ ${t.watchThis}`}
               </button>
             )}

@@ -8,7 +8,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import WordExtractor from 'word-extractor';
-import { normalizeCompact } from '../src/lib/normalize.js';
+import { recordKey } from '../src/lib/identity.js';
 import { extractDate } from '../src/lib/court.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -90,11 +90,8 @@ function parseRows(body) {
       court = '';
     }
     if (!name) continue;
-    const id = crypto
-      .createHash('sha1')
-      .update([type, name, court].map(normalizeCompact).join('|'))
-      .digest('hex')
-      .slice(0, 12);
+    // id = sha1 ад замарожанай нармалізацыі (src/lib/identity.js) — стабільны між зборкамі
+    const id = crypto.createHash('sha1').update(recordKey(type, name, court)).digest('hex').slice(0, 12);
     items.push({ id, type, name, court, date: extractDate(court) });
   }
   return items;
