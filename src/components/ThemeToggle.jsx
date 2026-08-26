@@ -2,11 +2,11 @@ import { useEffect } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 import { useLang } from '../hooks/useLang.jsx';
 
-const MODES = ['system', 'light', 'dark'];
+const MODES = ['light', 'dark', 'system'];
 
 export default function ThemeToggle() {
   const { t } = useLang();
-  const [mode, setMode] = useLocalStorage('theme', 'system');
+  const [mode, setMode] = useLocalStorage('theme', 'light');
   useEffect(() => {
     const root = document.documentElement;
     if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
