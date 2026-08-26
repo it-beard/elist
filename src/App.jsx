@@ -2,14 +2,17 @@ import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useIndex } from './hooks/useIndex.js';
 import { useUrlParam } from './hooks/useUrlParam.js';
 import { useLocalStorage } from './hooks/useLocalStorage.js';
+import { useLang } from './hooks/useLang.jsx';
 import { search } from './lib/search.js';
 import { parseQuery } from './lib/normalize.js';
+import { NEW_DAYS } from './lib/format.js';
 import Header from './components/Header.jsx';
 import SearchBar from './components/SearchBar.jsx';
 import Options from './components/Options.jsx';
 import ResultList from './components/ResultList.jsx';
 
 export default function App() {
+  const { t } = useLang();
   const { status, error, meta, items, chunkSize } = useIndex();
   const [query, setQuery] = useUrlParam('q');
   const [sort, setSort] = useLocalStorage('sort', 'newest');
@@ -41,16 +44,12 @@ export default function App() {
           <SearchBar value={query} onChange={setQuery} />
           <Options value={opts} onChange={setOpts} />
         </div>
-        {status === 'loading' && <p className="summary">Загрузка індэкса…</p>}
-        {status === 'error' && <p className="summary error">Не ўдалося загрузіць базу: {error}</p>}
+        {status === 'loading' && <p className="summary">{t.loading}</p>}
+        {status === 'error' && <p className="summary error">{t.loadError(error)}</p>}
         {status === 'ready' && (
           <>
             <p className="summary" aria-live="polite">
-              {!active
-                ? `Усяго запісаў: ${results.length}`
-                : results.length
-                  ? `Знойдзена: ${results.length}`
-                  : 'Нічога не знойдзена. Паспрабуйце карацейшае слова або «Любое са словаў».'}
+              {!active ? t.total(results.length) : results.length ? t.found(results.length) : t.nothing}
             </p>
             <ResultList results={results} tokens={tokens} chunkSize={chunkSize} />
           </>
@@ -58,19 +57,14 @@ export default function App() {
       </main>
       <footer className="wrap foot">
         <p>
-          Неафіцыйны пошук па спісе, які публікуе газета «Звязда» (Мінінфарм)
-          {meta && <> — <a href={meta.sourcePage} target="_blank" rel="noopener">крыніца</a></>}. База абнаўляецца аўтаматычна раз на суткі.
+          {t.footSource}
+          {meta && <> — <a href={meta.sourcePage} target="_blank" rel="noopener">{t.source}</a></>}. {t.footUpdate}
         </p>
+        <p>{t.footNew1(NEW_DAYS)}<em>{t.footNew2}</em>{t.footNew3}</p>
+        <p>{t.privacy}</p>
         <p>
-          «Новыя за 30 дзён» — запісы, якія за гэты час <em>з'явіліся ў самім спісе</em> (яны пазначаныя бэйджам «новае»).
-          Сартыроўка «спачатку новыя» — па даце судовага рашэння, а яна можа быць на месяцы ранейшай за публікацыю.
-        </p>
-        <p>
-          Сайт не зьбірае ніякіх даных: ні запытаў, ні cookies, ні статыстыкі. Усё працуе ў вашым браўзэры; у localStorage захоўваюцца толькі абраная тэма і сартаваньне.
-        </p>
-        <p>
-          <a href="https://github.com/it-beard/extremist-by" target="_blank" rel="noopener">Код сайта на GitHub</a>
-          {' · '}Падказка: фраза ў лапках <code>"словы запар"</code>, клавіша <code>/</code> — у поле пошуку.
+          <a href="https://github.com/it-beard/extremist-by" target="_blank" rel="noopener">{t.code}</a>
+          {' · '}{t.tip1}<code>{t.tipPhrase}</code>{t.tip2}<code>/</code>{t.tip3}
         </p>
       </footer>
     </>

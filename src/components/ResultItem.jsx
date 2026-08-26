@@ -1,20 +1,22 @@
 import { useRecord } from '../hooks/useRecord.js';
 import { fmtDate, isRecent } from '../lib/format.js';
+import { useLang } from '../hooks/useLang.jsx';
 import Highlight from './Highlight.jsx';
 
 export default function ResultItem({ item, tokens, chunkSize }) {
+  const { t } = useLang();
   const rec = useRecord(item.i, chunkSize);
   return (
     <li className={`item${item.removed ? ' removed' : ''}`}>
       <div className="meta">
         {rec?.type && <span className="type"><Highlight text={rec.type} tokens={tokens} /></span>}
         {item.date && <span className="num">{fmtDate(item.date)}</span>}
-        {isRecent(item.added) && <span className="badge-new" title="Дададзена ў спіс">новае · {fmtDate(item.added)}</span>}
-        {item.removed && <span className="gone">выдалена {fmtDate(item.removed)}</span>}
+        {isRecent(item.added) && <span className="badge-new" title={t.addedTitle}>{t.isNew} · {fmtDate(item.added)}</span>}
+        {item.removed && <span className="gone">{t.removed} {fmtDate(item.removed)}</span>}
         <span className="num idx">№{item.i + 1}</span>
       </div>
       {rec?.error ? (
-        <p className="name error">Памылка загрузкі: {rec.error}</p>
+        <p className="name error">{t.recError(rec.error)}</p>
       ) : rec ? (
         <>
           <p className="name"><Highlight text={rec.name} tokens={tokens} /></p>

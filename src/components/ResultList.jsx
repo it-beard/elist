@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useLang } from '../hooks/useLang.jsx';
 import ResultItem from './ResultItem.jsx';
 
 const PAGE = 50;
 
 export default function ResultList({ results, tokens, chunkSize }) {
+  const { t } = useLang();
   const [limit, setLimit] = useState(PAGE);
   useEffect(() => setLimit(PAGE), [results]);
   const rest = results.length - limit;
@@ -14,7 +16,7 @@ export default function ResultList({ results, tokens, chunkSize }) {
       </ol>
       {rest > 0 && (
         <button type="button" className="more" onClick={() => setLimit((l) => l + PAGE)}>
-          Паказаць яшчэ (засталося {rest})
+          {t.more(rest)}
         </button>
       )}
     </>

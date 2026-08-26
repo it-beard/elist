@@ -93,3 +93,4 @@ h1 { font-size: 1.25rem; }
   .sort { margin-left: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+.theme.lang { font-size: .8rem; font-weight: 700; letter-spacing: .03em; }

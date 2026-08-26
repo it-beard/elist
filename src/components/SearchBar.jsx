@@ -1,4 +1,7 @@
+import { useLang } from '../hooks/useLang.jsx';
+
 export default function SearchBar({ value, onChange }) {
+  const { t } = useLang();
   return (
     <div className="field">
       <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -10,15 +13,15 @@ export default function SearchBar({ value, onChange }) {
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Назва, аўтар, канал, спасылка, суд…"
+        placeholder={t.placeholder}
         autoFocus
         autoComplete="off"
         spellCheck={false}
         enterKeyHint="search"
-        aria-label="Пошук"
+        aria-label={t.search}
       />
       {value && (
-        <button type="button" className="clear" title="Ачысьціць" aria-label="Ачысьціць" onClick={() => { onChange(''); document.getElementById('q')?.focus(); }}>
+        <button type="button" className="clear" title={t.clear} aria-label={t.clear} onClick={() => { onChange(''); document.getElementById('q')?.focus(); }}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
         </button>
       )}
