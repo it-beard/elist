@@ -1,10 +1,14 @@
 import { fmtDate, isRecent, NEW_DAYS } from '../lib/format.js';
+import ThemeToggle from './ThemeToggle.jsx';
 
 export default function Header({ meta, items }) {
   const recent = items ? items.filter((it) => isRecent(it.added)).length : 0;
   return (
     <header className="top wrap">
-      <h1>Спіс экстрэмісцкіх матэрыялаў</h1>
+      <div className="top-row">
+        <h1>Спіс экстрэмісцкіх матэрыялаў</h1>
+        <ThemeToggle />
+      </div>
       <p className="sub">
         {meta ? (
           <>

@@ -1,6 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useIndex } from './hooks/useIndex.js';
 import { useUrlParam } from './hooks/useUrlParam.js';
+import { useLocalStorage } from './hooks/useLocalStorage.js';
 import { search } from './lib/search.js';
 import { parseQuery } from './lib/normalize.js';
 import Header from './components/Header.jsx';
@@ -11,7 +12,10 @@ import ResultList from './components/ResultList.jsx';
 export default function App() {
   const { status, error, meta, items, chunkSize } = useIndex();
   const [query, setQuery] = useUrlParam('q');
-  const [opts, setOpts] = useState({ any: false, onlyNew: false, sort: 'newest' });
+  const [sort, setSort] = useLocalStorage('sort', 'newest');
+  const [flags, setFlags] = useState({ any: false, onlyNew: false });
+  const opts = useMemo(() => ({ ...flags, sort }), [flags, sort]);
+  const setOpts = ({ sort: s, ...rest }) => { if (s !== sort) setSort(s); setFlags(rest); };
   const deferredQuery = useDeferredValue(query);
 
   const tokens = useMemo(() => parseQuery(deferredQuery), [deferredQuery]);
@@ -62,7 +66,7 @@ export default function App() {
           Сартыроўка «спачатку новыя» — па даце судовага рашэння, а яна можа быць на месяцы ранейшай за публікацыю.
         </p>
         <p>
-          Сайт нічога не захоўвае: ні запыты, ні cookies, ні статыстыку. Усё працуе ў вашым браўзэры.
+          Сайт не зьбірае ніякіх даных: ні запытаў, ні cookies, ні статыстыкі. Усё працуе ў вашым браўзэры; у localStorage захоўваюцца толькі абраная тэма і сартаваньне.
         </p>
         <p>
           <a href="https://github.com/it-beard/extremist-by" target="_blank" rel="noopener">Код сайта на GitHub</a>
