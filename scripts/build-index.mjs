@@ -65,7 +65,7 @@ function feed(rows, meta) {
     return `<item><title>${esc(title)}</title><link>${SITE}#/r/${x.id}</link><guid isPermaLink="false">${x.id}</guid><pubDate>${when}</pubDate><category>${esc(x.type)}</category><description>${esc(`${x.name}\n\n${x.court}`)}</description></item>`;
   }).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0"><channel><title>Спіс экстрэмісцкіх матэрыялаў Беларусі — новыя запісы</title><link>${SITE}</link><description>Неафіцыйная стужка новых запісаў у Рэспубліканскім спісе экстрэмісцкіх матэрыялаў. Абнаўляецца штодня.</description><language>be</language><image><url>${SITE}icon-192.png</url><title>Спіс экстрэмісцкіх матэрыялаў Беларусі</title><link>${SITE}</link></image><lastBuildDate>${new Date(meta.updated).toUTCString()}</lastBuildDate>
+<rss version="2.0"><channel><title>Сьпіс экстрэмісцкіх матэрыялаў Беларусі — новыя запісы</title><link>${SITE}</link><description>Неафіцыйная стужка новых запісаў у Рэспубліканскім сьпісе экстрэмісцкіх матэрыялаў. Абнаўляецца штодня.</description><language>be</language><image><url>${SITE}icon-192.png</url><title>Сьпіс экстрэмісцкіх матэрыялаў Беларусі</title><link>${SITE}</link></image><lastBuildDate>${new Date(meta.updated).toUTCString()}</lastBuildDate>
 ${items}
 </channel></rss>`;
 }

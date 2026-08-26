@@ -1,4 +1,4 @@
-name: Абнаўленьне спісу і публікацыя
+name: Абнаўленьне сьпісу і публікацыя
 
 on:
   schedule:
@@ -41,7 +41,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "Зьменаў няма"
           else
-            git commit -m "data: абнаўленьне спісу $(date -u +%F)"
+            git commit -m "data: абнаўленьне сьпісу $(date -u +%F)"
             git push
           fi
       - name: Дайджэст у Telegram (калі наладжаны сакрэты)
