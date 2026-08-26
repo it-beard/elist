@@ -9,7 +9,7 @@ export default function ResultItem({ item, tokens, chunkSize }) {
       <div className="meta">
         {rec?.type && <span className="type"><Highlight text={rec.type} tokens={tokens} /></span>}
         {item.date && <span className="num">{fmtDate(item.date)}</span>}
-        {isRecent(item.added) && <span className="badge-new">новае</span>}
+        {isRecent(item.added) && <span className="badge-new" title="Дададзена ў спіс">новае · {fmtDate(item.added)}</span>}
         {item.removed && <span className="gone">выдалена {fmtDate(item.removed)}</span>}
         <span className="num idx">№{item.i + 1}</span>
       </div>

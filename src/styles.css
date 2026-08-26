@@ -23,7 +23,7 @@ code { font-size: .85em; background: var(--line); padding: 1px 5px; border-radiu
 .top { padding: 32px 16px 8px; }
 h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6px; }
 .sub { margin: 0; color: var(--muted); font-size: .9rem; }
-.badge-new { display: inline-block; margin-left: 8px; padding: 1px 9px; border-radius: 99px; background: var(--new-soft); color: var(--new); font-weight: 600; font-size: .78rem; }
+.badge-new { display: inline-block; margin-left: 8px; padding: 1px 9px; border-radius: 99px; background: var(--new); color: #fff; font-weight: 600; font-size: .78rem; }
 
 .search { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 0 10px; }
 .search::after { content: ""; position: absolute; left: 0; right: 0; bottom: -12px; height: 12px; background: linear-gradient(var(--bg), transparent); pointer-events: none; }
