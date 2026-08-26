@@ -2,6 +2,7 @@ export const LANGS = ['be', 'en'];
 export const DEFAULT_LANG = 'be';
 
 export const LINKS = {
+  telegram: 'https://t.me/extremist_by',
   mvd: 'https://www.mvd.gov.by/',
   viasna: 'https://spring96.org/',
   humanConstanta: 'https://humanconstanta.org/',
@@ -23,6 +24,10 @@ export const STRINGS = {
     navSearch: 'Пошук',
     navNew: 'Што новага',
     navRss: 'RSS-стужка новых запісаў',
+    navTg: 'Telegram-канал з новымі запісамі',
+    tgHint1: 'Каб даведвацца пра новыя запісы першым — ',
+    tgHint2: 'Telegram-канал @extremist_by',
+    tgHint3: '.',
     placeholder: 'Нік, канал, спасылка, назва, суд…',
     search: 'Пошук',
     clear: 'Ачысьціць',
@@ -78,7 +83,8 @@ export const STRINGS = {
     newRemovedGroup: (n) => `Зьніклі са сьпісу · ${n}`,
     newFallback: 'Гісторыі абнаўленьняў пакуль няма (база толькі што створаная). Ніжэй — апошнія запісы па даце судовага рашэньня.',
     newNone: 'За гэты час новых запісаў не было.',
-    newRss: 'Падпісацца на RSS',
+    newTg: 'Telegram-канал',
+    newRss: 'RSS',
     newRssHint: 'у любым чытачы стужак; можна фільтраваць па сваіх словах',
     // запіс
     recTitle: 'Запіс',
@@ -99,7 +105,7 @@ export const STRINGS = {
     helpHow: [
       'Увядзіце нік, назву канала, спасылку, імя ці назву — усё, што можа быць у сьпісе. Рэгістар, «ё/е», лацінка/кірыліца і памылкі ў пары літар не перашкодзяць.',
       'Націсьніце «☆ Сачыць» — запыт трапіць у сьпіс назіраньня. Пры кожным адкрыцьці сайт праверыць усе такія запыты і пакажа зьверху, ці зьявілася нешта новае.',
-      'Укладка «Што новага» — усё, што дадалі ў сьпіс апошнім часам; ёсьць RSS, каб сачыць у сваім чытачы.',
+      'Укладка «Што новага» — усё, што дадалі ў сьпіс апошнім часам. Каб не прапусьціць — Telegram-канал @extremist_by або RSS.',
       'Кожны запіс мае пастаянную спасылку (нумар «№» справа) — яе можна пераслаць.',
       'Перад паездкай у Беларусь ці мяжой націсьніце «Ачысьціць усё» — сьпіс назіраньня зьнікне з прылады.',
     ],
@@ -150,6 +156,10 @@ export const STRINGS = {
     navSearch: 'Search',
     navNew: "What's new",
     navRss: 'RSS feed of new entries',
+    navTg: 'Telegram channel with new entries',
+    tgHint1: 'To learn about new entries first, follow the ',
+    tgHint2: 'Telegram channel @extremist_by',
+    tgHint3: '.',
     placeholder: 'Handle, channel, link, title, court…',
     search: 'Search',
     clear: 'Clear',
@@ -203,7 +213,8 @@ export const STRINGS = {
     newRemovedGroup: (n) => `Disappeared from the list · ${n}`,
     newFallback: 'No update history yet (the database was just created). Below are the latest entries by court decision date.',
     newNone: 'No new entries in this period.',
-    newRss: 'Subscribe via RSS',
+    newTg: 'Telegram channel',
+    newRss: 'RSS',
     newRssHint: 'in any feed reader; filter by your own keywords',
     recTitle: 'Entry',
     recNotFound: 'No entry with this identifier. The link may be outdated.',
@@ -222,7 +233,7 @@ export const STRINGS = {
     helpHow: [
       'Type a handle, channel name, link, name or title — anything that may be on the list. Case, “ё/е”, Latin/Cyrillic and a couple of typos do not matter.',
       'Press “☆ Watch” — the query goes to your watchlist. Every time you open the site it re-checks all such queries and shows at the top whether anything new appeared.',
-      'The “What’s new” tab lists everything recently added; there is an RSS feed to follow in your reader.',
+      'The “What’s new” tab lists everything recently added. To never miss an update, follow the Telegram channel @extremist_by or the RSS feed.',
       'Every entry has a permanent link (the “№” on the right) that you can share.',
       'Before travelling to Belarus or crossing the border press “Clear everything” — the watchlist disappears from the device.',
     ],

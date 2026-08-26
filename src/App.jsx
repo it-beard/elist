@@ -21,6 +21,7 @@ import WhatsNew from './components/WhatsNew.jsx';
 import RecordPage from './components/RecordPage.jsx';
 import Consequences from './components/Consequences.jsx';
 import HelpDialog from './components/HelpDialog.jsx';
+import { LINKS } from './lib/i18n.js';
 
 /** Дакладны пошук; калі пуста — трансьлітарацыя + прыблізныя словы. */
 function runSearch(items, tokens, opts) {
@@ -142,6 +143,7 @@ export default function App() {
         <p>{t.issues1}<a href="https://github.com/it-beard/extremist-by/issues" target="_blank" rel="noopener">{t.issues2}</a>{t.issues3}</p>
         <p>
           <a href="https://github.com/it-beard/extremist-by" target="_blank" rel="noopener">{t.code}</a>
+          {' · '}<a href={LINKS.telegram} target="_blank" rel="noopener">Telegram</a>
           {' · '}<a href={`${import.meta.env.BASE_URL}feed.xml`}>RSS</a>
           {' · '}{t.tip1}<code>{t.tipPhrase}</code>{t.tip2}<code>/</code>{t.tip3}
         </p>

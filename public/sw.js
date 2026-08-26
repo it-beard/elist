@@ -1,10 +1,10 @@
 /* Service worker: сайт і база працуюць афлайн. Ніякай аналітыкі, ніякіх зьнешніх запытаў. */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL = `shell-${VERSION}`, DATA = `data-${VERSION}`;
 const BASE = new URL(self.registration.scope).pathname;
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(SHELL).then((c) => c.addAll([BASE, `${BASE}manifest.webmanifest`, `${BASE}icon.svg`]).catch(() => {})));
+  e.waitUntil(caches.open(SHELL).then((c) => c.addAll([BASE, `${BASE}manifest.webmanifest`, `${BASE}favicon.ico`, `${BASE}icon-96.png`, `${BASE}icon-192.png`]).catch(() => {})));
   self.skipWaiting();
 });
 
