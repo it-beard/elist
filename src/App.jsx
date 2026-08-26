@@ -140,10 +140,10 @@ export default function App() {
         <p>{t.footNew1(NEW_DAYS)}<em>{t.footNew2}</em>{t.footNew3}</p>
         <p>{t.privacy} <button type="button" className="linklike" onClick={clearAll}>{t.clearAll}</button>.</p>
         <p>{t.mirror}</p>
-        <p>{t.issues1}<a href="https://github.com/it-beard/extremist-by/issues" target="_blank" rel="noopener">{t.issues2}</a>{t.issues3}</p>
+        <p>{t.issues1}<a href="https://github.com/it-beard/elist/issues" target="_blank" rel="noopener">{t.issues2}</a>{t.issues3}</p>
         <p>
           <a href={`${import.meta.env.BASE_URL}${lang === 'en' ? 'faq-en.html' : 'faq.html'}`}>{t.faq}</a>
-          {' · '}<a href="https://github.com/it-beard/extremist-by" target="_blank" rel="noopener">{t.code}</a>
+          {' · '}<a href="https://github.com/it-beard/elist" target="_blank" rel="noopener">{t.code}</a>
           {' · '}<a href={LINKS.telegram} target="_blank" rel="noopener">Telegram</a>
           {' · '}<a href={`${import.meta.env.BASE_URL}feed.xml`}>RSS</a>
           {' · '}{t.tip1}<code>{t.tipPhrase}</code>{t.tip2}<code>/</code>{t.tip3}

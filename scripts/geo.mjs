@@ -284,7 +284,7 @@ ${sections}
 
 <footer>
 <p>${en ? 'Unofficial search over the Republican list of extremist materials. The database updates automatically once a day; entry text, court name and date are kept exactly as in the official source.' : 'Неафіцыйны пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў. База абнаўляецца аўтаматычна раз на суткі; тэкст запісу, назва суда і дата захоўваюцца як у афіцыйнай крыніцы.'}</p>
-<p><a href="${base}">${en ? 'Search' : 'Пошук'}</a> · <a href="${base}${en ? 'faq.html' : 'faq-en.html'}">${en ? 'Па-беларуску' : 'English'}</a> · <a href="https://github.com/it-beard/extremist-by" rel="noopener">GitHub</a> · <a href="${base}llms.txt">llms.txt</a></p>
+<p><a href="${base}">${en ? 'Search' : 'Пошук'}</a> · <a href="${base}${en ? 'faq.html' : 'faq-en.html'}">${en ? 'Па-беларуску' : 'English'}</a> · <a href="https://github.com/it-beard/elist" rel="noopener">GitHub</a> · <a href="${base}llms.txt">llms.txt</a></p>
 </footer>
 </div>
 </body>
@@ -363,11 +363,11 @@ export function openSearchXml({ site }) {
 export function securityTxt({ site, now = new Date() }) {
   const expires = new Date(now.getTime() + 365 * 864e5).toISOString().replace(/\.\d{3}Z$/, 'Z');
   return `# Паведаміць пра ўразлівасць можна праз GitHub Issues.
-Contact: https://github.com/it-beard/extremist-by/issues
+Contact: https://github.com/it-beard/elist/issues
 Expires: ${expires}
 Preferred-Languages: be, en, ru
 Canonical: ${abs(site, '.well-known/security.txt')}
-Policy: https://github.com/it-beard/extremist-by#readme
+Policy: https://github.com/it-beard/elist#readme
 `;
 }
 
@@ -392,7 +392,7 @@ export function notFoundPage({ site, base = '/' }) {
 <p class="lead">Пошук па спісе экстрэмісцкіх матэрыялаў працуе на галоўнай старонцы. Запісы маюць пастаянныя спасылкі выгляду <code>#/r/&lt;id&gt;</code> — калі запіс знік са спісу, спасылка на яго ўсё роўна застаецца.</p>
 <p><a class="cta solid" href="${base}">На галоўную</a><a class="cta" href="${base}faq.html">Пытанні і адказы</a><a class="cta" href="${base}feed.xml">RSS</a></p>
 </main>
-<footer><p><a href="${base}">Пошук</a> · <a href="${base}faq.html">Пытанні і адказы</a> · <a href="${base}faq-en.html">English</a> · <a href="https://github.com/it-beard/extremist-by" rel="noopener">GitHub</a></p></footer>
+<footer><p><a href="${base}">Пошук</a> · <a href="${base}faq.html">Пытанні і адказы</a> · <a href="${base}faq-en.html">English</a> · <a href="https://github.com/it-beard/elist" rel="noopener">GitHub</a></p></footer>
 </div>
 </body>
 </html>

@@ -42,7 +42,7 @@ function fallback(base, f) {
             <li><a href="${base}faq-en.html">FAQ in English</a></li>
             <li><a href="${base}feed.xml">RSS-стужка новых запісаў</a></li>
             <li><a href="https://t.me/elist_by">Telegram-канал @elist_by</a></li>
-            <li><a href="https://github.com/it-beard/extremist-by">Адкрыты код на GitHub</a></li>
+            <li><a href="https://github.com/it-beard/elist">Адкрыты код на GitHub</a></li>
           </ul>
         </noscript>
       </main>`;
