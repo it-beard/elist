@@ -47,7 +47,9 @@ for (let c = 0; c * CHUNK < db.length; c++) {
   const slice = db.slice(c * CHUNK, (c + 1) * CHUNK).map(({ id, type, name, court, order }) => ({ id, type, name, court, order }));
   await fs.writeFile(path.join(OUT, 'chunks', `${c}.json`), JSON.stringify(slice));
 }
-await fs.writeFile(path.join(OUT, 'meta.json'), JSON.stringify(meta, null, 2));
+// адрас крыніцы ў публічны meta.json не трапляе
+const { sourcePage, sourceFile, ...publicMeta } = meta;
+await fs.writeFile(path.join(OUT, 'meta.json'), JSON.stringify(publicMeta, null, 2));
 await fs.writeFile(path.join(ROOT, 'public', 'feed.xml'), feed(db, meta));
 const size = (await fs.stat(path.join(OUT, 'index.json'))).size;
 console.log(`Індэкс: ${db.length} запісаў, ${(size / 1e6).toFixed(2)} MB, фрагментаў: ${Math.ceil(db.length / CHUNK)}`);
