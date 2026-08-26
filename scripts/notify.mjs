@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID;
-const SITE = (process.env.SITE_URL || 'https://it-beard.github.io/extremist-by/').replace(/\/?$/, '/');
+const SITE = (process.env.SITE_URL || 'https://elist.itbeard.com/').replace(/\/?$/, '/');
 if (!token || !chat) { console.log('Telegram не наладжаны — прапускаю.'); process.exit(0); }
 
 const meta = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'meta.json'), 'utf8'));

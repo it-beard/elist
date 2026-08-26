@@ -44,7 +44,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          SITE_URL: https://elist.itbeard.com/
 
   deploy:
     name: Сабраць і апублікаваць
@@ -64,8 +64,9 @@ jobs:
       - name: Зборка (індэкс + Vite)
         run: npm run build
         env:
-          BASE_PATH: /${{ github.event.repository.name }}/
-          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          # уласны дамен: сайт аддаецца з кораня
+          BASE_PATH: /
+          SITE_URL: https://elist.itbeard.com/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: { path: dist }

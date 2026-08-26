@@ -14,7 +14,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'public', 'data');
 const CHUNK = 200;
 // адрас сайта для RSS і пастаянных спасылак (у CI — GitHub Pages)
-const SITE = (process.env.SITE_URL || 'https://it-beard.github.io/extremist-by/').replace(/\/?$/, '/');
+const SITE = (process.env.SITE_URL || 'https://elist.itbeard.com/').replace(/\/?$/, '/');
 
 const dict = () => {
   const map = new Map();
