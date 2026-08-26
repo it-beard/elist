@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Дайджэст новых запісаў у Telegram-канал (запускаецца ў CI пасьля абнаўленьня).
+ * Дайджэст новых запісаў у Telegram-канал (запускаецца ў CI пасля абнаўлення).
  * Патрабуе TELEGRAM_BOT_TOKEN і TELEGRAM_CHAT_ID; без іх проста выходзіць.
- * TELEGRAM_TEST=1 — дасылае пробнае паведамленьне з апошнімі запісамі, нават калі новых няма.
+ * TELEGRAM_TEST=1 — дасылае пробнае паведамленне з апошнімі запісамі, нават калі новых няма.
  *
- * Фарматаваньне — HTML-рэжым Bot API (дазволеныя толькі b/i/u/s/code/a/blockquote):
- * https://core.telegram.org/bots/api#html-style. Ліміт — 4096 сымбалі на паведамленьне,
- * таму доўгі дайджэст разьбіваецца на некалькі частак.
+ * Фарматаванне — HTML-рэжым Bot API (дазволеныя толькі b/i/u/s/code/a/blockquote):
+ * https://core.telegram.org/bots/api#html-style. Ліміт — 4096 сімвалаў на паведамленне,
+ * таму доўгі дайджэст разбіваецца на некалькі частак.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -18,7 +18,7 @@ const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_I
 const SITE = (process.env.SITE_URL || 'https://elist.itbeard.com/').replace(/\/?$/, '/');
 const test = ['1', 'true'].includes(process.env.TELEGRAM_TEST);
 const LIMIT = 3900;      // запас да 4096
-const NAME_MAX = 220;    // даўжыня назвы ў дайджэсьце
+const NAME_MAX = 220;    // даўжыня назвы ў дайджэсце
 
 if (!token || !chat) { console.log('Telegram не наладжаны — прапускаю.'); process.exit(0); }
 
@@ -28,17 +28,17 @@ const today = new Date().toISOString().slice(0, 10);
 
 let fresh = db.filter((x) => x.added === today);
 if (test && !fresh.length) fresh = [...db].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 4);
-if (!test && (meta.lastAdded !== today || !fresh.length)) { console.log('Новых запісаў няма — паведамленьне не патрэбнае.'); process.exit(0); }
+if (!test && (meta.lastAdded !== today || !fresh.length)) { console.log('Новых запісаў няма — паведамленне не патрэбнае.'); process.exit(0); }
 
-// ---------- фарматаваньне ----------
+// ---------- фарматаванне ----------
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const MONTHS = ['студзеня', 'лютага', 'сакавіка', 'красавіка', 'траўня', 'чэрвеня', 'ліпеня', 'жніўня', 'верасьня', 'кастрычніка', 'лістапада', 'сьнежня'];
+const MONTHS = ['студзеня', 'лютага', 'сакавіка', 'красавіка', 'мая', 'чэрвеня', 'ліпеня', 'жніўня', 'верасня', 'кастрычніка', 'лістапада', 'снежня'];
 const dateBe = (iso) => { const [y, m, d] = iso.split('-'); return `${+d} ${MONTHS[+m - 1]} ${y}`; };
 const dateShort = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
 const plural = (n, one, few, many) => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 10 || b >= 20) ? few : many; };
 const num = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '\u2009'); // тонкі прабел між тысячамі
 
-/** Эмодзі паводле тыпу рэсурсу — бяром той, што згадваецца ў назьве першым. */
+/** Эмодзі паводле тыпу рэсурсу — бяром той, што згадваецца ў назве першым. */
 const KINDS = [
   [/telegram|t\.me|телеграм/, '✈️'], [/youtube/, '📺'], [/tiktok/, '🎵'], [/instagram/, '📷'],
   [/facebook|вконтакте|vk\.com|одноклассники|twitter|x\.com/, '👥'], [/книг|брошюр|печатн|журнал|газет/, '📚'],
@@ -71,13 +71,13 @@ function entry(x, n) {
 
 const n = fresh.length;
 const header = test
-  ? `🧪 <b>Пробнае паведамленьне</b> — так будуць выглядаць дайджэсты\n<i>${dateBe(today)} · ${num(meta.total)} ${plural(meta.total, 'запіс', 'запісы', 'запісаў')} у сьпісе</i>`
-  : `🔴 <b>Сьпіс экстрэмісцкіх матэрыялаў: +${n} ${plural(n, 'новы запіс', 'новыя запісы', 'новых запісаў')}</b>\n<i>${dateBe(today)} · усяго ў сьпісе ${num(meta.total)}</i>`;
+  ? `🧪 <b>Пробнае паведамленне</b> — так будуць выглядаць дайджэсты\n<i>${dateBe(today)} · ${num(meta.total)} ${plural(meta.total, 'запіс', 'запісы', 'запісаў')} у спісе</i>`
+  : `🔴 <b>Спіс экстрэмісцкіх матэрыялаў: +${n} ${plural(n, 'новы запіс', 'новыя запісы', 'новых запісаў')}</b>\n<i>${dateBe(today)} · усяго ў спісе ${num(meta.total)}</i>`;
 const footer =
-  `🔎 <a href="${SITE}">Праверыць сябе і свой сьпіс назіраньня</a>\n` +
+  `🔎 <a href="${SITE}">Праверыць сябе і свой спіс назірання</a>\n` +
   `📰 <a href="${SITE}#/new">Усе новыя запісы</a> · <a href="${SITE}feed.xml">RSS</a>`;
 
-// ---------- разьбіцьцё на паведамленьні (≤ 4096) ----------
+// ---------- разбіццё на паведамленні (≤ 4096) ----------
 const blocks = fresh.map((x, i) => entry(x, i + 1));
 const messages = [];
 let cur = header, count = 0;
@@ -101,4 +101,4 @@ for (const [i, text] of messages.entries()) {
   });
   if (!r.ok) { console.error(`Telegram: HTTP ${r.status} ${await r.text()}`); process.exit(1); }
 }
-console.log(`Адпраўлена ў Telegram${test ? ' (тэст)' : ''}: ${n} ${plural(n, 'запіс', 'запісы', 'запісаў')}, ${messages.length} ${plural(messages.length, 'паведамленьне', 'паведамленьні', 'паведамленьняў')}.`);
+console.log(`Адпраўлена ў Telegram${test ? ' (тэст)' : ''}: ${n} ${plural(n, 'запіс', 'запісы', 'запісаў')}, ${messages.length} ${plural(messages.length, 'паведамленне', 'паведамленні', 'паведамленняў')}.`);

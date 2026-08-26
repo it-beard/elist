@@ -16,7 +16,7 @@ export default function RecordPage({ id, items, chunkSize, watch }) {
     try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* няма доступу */ }
   };
   const share = () => navigator.share({ title: t.title, url }).catch(() => {});
-  // назіраць за назвай запісу — бяром першыя словы назвы як запыт (спасылку, калі яна ёсьць)
+  // назіраць за назвай запісу — бяром першыя словы назвы як запыт (спасылку, калі яна ёсць)
   const watchQuery = rec?.name ? (rec.name.match(/(?:https?:\/\/|t\.me\/|@)[^\s,;"]+/) || [rec.name.replace(/\s+/g, ' ').slice(0, 60)])[0] : null;
 
   return (

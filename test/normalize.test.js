@@ -9,20 +9,20 @@ describe('normalize', () => {
     expect(normalize(s)).toHaveLength(s.length);
     expect(normalize(s)).toBe('радые "свабода" і ў x');
   });
-  it('compact сьціскае прабелы', () => {
+  it('compact сціскае прабелы', () => {
     expect(normalizeCompact('  A   B\n\nC ')).toBe('a b c');
   });
 });
 
 describe('parseQuery', () => {
   it('фраза ў лапках — адзін токен', () => {
-    expect(parseQuery('Радыё "Свабода зь" t.me/X')).toEqual(['радые', 'свабода зь', 't.me/x']);
+    expect(parseQuery('Радыё "Свабода з" t.me/X')).toEqual(['радые', 'свабода з', 't.me/x']);
   });
   it('пусты запыт', () => expect(parseQuery('   ')).toEqual([]));
 });
 
 describe('matchRanges', () => {
-  it('знаходзіць і зьлівае перакрыцьці', () => {
+  it('знаходзіць і злівае перакрыцці', () => {
     expect(matchRanges('Свабода свабоды', ['свабод', 'абода'])).toEqual([[0, 7], [8, 14]]);
   });
 });
@@ -41,6 +41,6 @@ describe('search', () => {
     { i: 1, date: '2024-05-05', added: '', removed: '', h: 'канал пра гродна' },
   ];
   it('усе словы', () => expect(search(items, ['пра', 'свабоду']).map((x) => x.i)).toEqual([0]));
-  it('любое са словаў', () => expect(search(items, ['свабоду', 'гродна'], { any: true })).toHaveLength(2));
-  it('сартаваньне', () => expect(search(items, [], { sort: 'newest' }).map((x) => x.i)).toEqual([1, 0]));
+  it('любое са слоў', () => expect(search(items, ['свабоду', 'гродна'], { any: true })).toHaveLength(2));
+  it('сартаванне', () => expect(search(items, [], { sort: 'newest' }).map((x) => x.i)).toEqual([1, 0]));
 });

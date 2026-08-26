@@ -1,6 +1,6 @@
-/** Прыблізны пошук: словы індэкса, што адрозьніваюцца ад токена на 1–2 літары. */
+/** Прыблізны пошук: словы індэкса, што адрозніваюцца ад токена на 1–2 літары. */
 
-/** Абмежаваная адлегласьць Левенштэйна (вяртае max+1, калі большая за max). */
+/** Абмежаваная адлегласць Левенштэйна (вяртае max+1, калі большая за max). */
 export function levenshtein(a, b, max = Infinity) {
   if (Math.abs(a.length - b.length) > max) return max + 1;
   let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
@@ -19,7 +19,7 @@ export function levenshtein(a, b, max = Infinity) {
 }
 
 const cache = new WeakMap();
-/** Унікальныя словы (≥3 сымбалі) з усіх запісаў індэкса; кэшуецца на масіў. */
+/** Унікальныя словы (≥3 сімвалаў) з усіх запісаў індэкса; кэшуецца на масіў. */
 export function corpusWords(items) {
   if (!cache.has(items)) {
     const set = new Set();

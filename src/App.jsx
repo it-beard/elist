@@ -23,7 +23,7 @@ import Consequences from './components/Consequences.jsx';
 import HelpDialog from './components/HelpDialog.jsx';
 import { LINKS } from './lib/i18n.js';
 
-/** Дакладны пошук; калі пуста — трансьлітарацыя + прыблізныя словы. */
+/** Дакладны пошук; калі пуста — транслітарацыя + прыблізныя словы. */
 function runSearch(items, tokens, opts) {
   const vTokens = tokens.map(variants);
   const exact = search(items, vTokens, opts);
@@ -66,7 +66,7 @@ export default function App() {
     return () => document.removeEventListener('keydown', onKey);
   }, []);
 
-  // Апавяшчэньне пра новыя супадзеньні — раз на загрузку, толькі калі карыстальнік уключыў.
+  // Апавяшчэнне пра новыя супадзенні — раз на загрузку, толькі калі карыстальнік уключыў.
   const notified = useRef(false);
   const freshTotal = watch.checks.reduce((n, c) => n + c.fresh.length, 0);
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function App() {
     try { new Notification(t.notifyTitle(freshTotal), { body: watch.checks.filter((c) => c.fresh.length).map((c) => c.entry.q).join(', ') }); } catch { /* iOS без PWA */ }
   }, [freshTotal, watch.notify, watch.checks, t]);
 
-  // Калі карыстальнік сам шукае запыт са сьпісу назіраньня — ён бачыць вынікі, пазначаем іх бачанымі.
+  // Калі карыстальнік сам шукае запыт са спісу назірання — ён бачыць вынікі, пазначаем іх бачанымі.
   const watchedNow = watch.checks.find((c) => c.entry.q === deferredQuery.trim());
   useEffect(() => {
     if (watchedNow && route.name === '') watch.markSeen(watchedNow.entry.q, watchedNow.matches.map((m) => m.id));

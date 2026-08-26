@@ -5,7 +5,7 @@ import { search } from '../lib/search.js';
 
 const norm = (q) => q.trim();
 
-/** Сьпіс назіраньня — толькі ў localStorage гэтага браўзэра. */
+/** Спіс назірання — толькі ў localStorage гэтага браўзера. */
 export function useWatchlist(items) {
   const [rawEntries, setEntries] = useLocalStorage('watch', []);
   // міграцыя: у старых зборках id не было, seen мог захавацца як [null, …]
@@ -15,7 +15,7 @@ export function useWatchlist(items) {
   const checks = useMemo(() => (items ? checkWatchlist(items, entries) : []), [items, entries]);
 
   const has = useCallback((q) => entries.some((e) => e.q === norm(q)), [entries]);
-  /** Дадаць запыт; бягучыя супадзеньні адразу лічацца бачанымі. */
+  /** Дадаць запыт; бягучыя супадзенні адразу лічацца бачанымі. */
   /** Бачанымі лічым тое, што панэль сама знойдзе па гэтым запыце (а не вынікі магчыма састарэлага пошуку). */
   const add = useCallback((q) => {
     const v = norm(q);
@@ -28,7 +28,7 @@ export function useWatchlist(items) {
     const e = list.find((x) => x.q === q);
     const seen = Array.isArray(e?.seen) ? e.seen : [];
     const same = e && seen.length === ids.length && ids.every((id) => seen.includes(id));
-    // нічога не зьмянілася — вяртаем той самы масіў, інакш эфект у App зацыкліцца
+    // нічога не змянілася — вяртаем той самы масіў, інакш эфект у App зацыкліцца
     return !e || same ? list : list.map((x) => (x.q === q ? { ...x, seen: ids } : x));
   }), [setEntries]);
   const clear = useCallback(() => setEntries([]), [setEntries]);

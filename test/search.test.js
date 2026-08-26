@@ -39,7 +39,7 @@ describe('variants', () => {
 });
 
 describe('fuzzy', () => {
-  it('levenshtein з абмежаваньнем', () => {
+  it('levenshtein з абмежаваннем', () => {
     expect(levenshtein('свобода', 'свабода')).toBe(1);
     expect(levenshtein('abc', 'xyz', 1)).toBe(2);
   });
@@ -62,7 +62,7 @@ describe('search з варыянтамі', () => {
 });
 
 describe('checkWatchlist', () => {
-  it('адрозьнівае новыя супадзеньні ад бачаных', () => {
+  it('адрознівае новыя супадзенні ад бачаных', () => {
     const [r] = checkWatchlist(items, [{ q: 'svaboda', seen: [] }]);
     expect(r.matches).toHaveLength(1);
     expect(r.fresh).toHaveLength(1);
@@ -72,7 +72,7 @@ describe('checkWatchlist', () => {
 });
 
 describe('nextUpdate', () => {
-  it('сёньня, калі яшчэ не было; інакш заўтра', () => {
+  it('сёння, калі яшчэ не было; інакш заўтра', () => {
     expect(nextUpdate(new Date('2026-08-26T01:00:00Z')).toISOString()).toBe('2026-08-26T04:30:00.000Z');
     expect(nextUpdate(new Date('2026-08-26T05:00:00Z')).toISOString()).toBe('2026-08-27T04:30:00.000Z');
   });

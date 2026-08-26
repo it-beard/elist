@@ -1,4 +1,4 @@
-name: Абнаўленьне сьпісу і публікацыя
+name: Абнаўленне спісу і публікацыя
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       telegram_test:
-        description: 'Даслаць пробнае паведамленьне ў Telegram (праверка бота)'
+        description: 'Даслаць пробнае паведамленне ў Telegram (праверка бота)'
         type: boolean
         default: false
   push:
@@ -31,17 +31,17 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
-      - name: Спампаваць і разабраць сьвежы .doc
+      - name: Спампаваць і разабраць свежы .doc
         run: npm run update
-      - name: Закамітаваць зьмены ў базе
+      - name: Закамітаваць змены ў базе
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add data
           if git diff --cached --quiet; then
-            echo "Зьменаў няма"
+            echo "Зменаў няма"
           else
-            git commit -m "data: абнаўленьне сьпісу $(date -u +%F)"
+            git commit -m "data: абнаўленне спісу $(date -u +%F)"
             git push
           fi
       - name: Дайджэст у Telegram (калі наладжаны сакрэты)

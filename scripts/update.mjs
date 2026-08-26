@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Спампоўвае актуальны файл сьпісу з старонкі-крыніцы (PAGE_URL), разбірае табліцу
+ * Спампоўвае актуальны файл спісу з старонкі-крыніцы (PAGE_URL), разбірае табліцу
  * і даўносіць новыя запісы ў data/materials.json (тэкставая база).
  */
 import fs from 'node:fs/promises';
@@ -78,7 +78,7 @@ function parseRows(body) {
     if (cells.length < 2) continue;
     let [type, ...rest] = cells;
     if (/вид экстремистских материалов/i.test(type)) continue; // загаловак табліцы
-    // калі ячэйка «тып» адсутнічае і ў першай ячэйцы апісаньне — пераносім у назву
+    // калі ячэйка «тып» адсутнічае і ў першай ячэйцы апісанне — пераносім у назву
     if (rest.length < 2 && type.length > 80) { rest.unshift(type); type = ''; }
     if (/^республиканский список/i.test(type) && rest.length < 2) continue;
     let name, court;
@@ -97,7 +97,7 @@ function parseRows(body) {
   return items;
 }
 
-// ---------- крок 3: зьліцьцё з базай ----------
+// ---------- крок 3: зліццё з базай ----------
 async function readJson(file, fallback) {
   try { return JSON.parse(await fs.readFile(file, 'utf8')); } catch { return fallback; }
 }
@@ -112,10 +112,10 @@ async function main() {
       const urls = await findDocUrls();
       ({ url: sourceUrl, buf } = await download(urls));
     } catch (e) {
-      // Крыніца недаступная — база застаецца, а сайт пакажа папярэджаньне «магла састарэць».
+      // Крыніца недаступная — база застаецца, а сайт пакажа папярэджанне «магла састарэць».
       const meta = await readJson(META_FILE, {});
       await fs.writeFile(META_FILE, JSON.stringify({ ...meta, checked: today, sourceError: e.message }, null, 2));
-      console.warn(`Крыніца недаступная: ${e.message}. meta.sourceError запісаны, база не зьменена.`);
+      console.warn(`Крыніца недаступная: ${e.message}. meta.sourceError запісаны, база не зменена.`);
       return;
     }
   }
@@ -125,7 +125,7 @@ async function main() {
   const doc = await new WordExtractor().extract(buf);
   const parsed = parseRows(doc.getBody());
   console.log(`Разабрана запісаў у крыніцы: ${parsed.length}`);
-  if (parsed.length < 100) throw new Error('Занадта мала запісаў — магчыма, зьмяніўся фармат файла');
+  if (parsed.length < 100) throw new Error('Занадта мала запісаў — магчыма, змяніўся фармат файла');
 
   await fs.mkdir(DATA_DIR, { recursive: true });
   const db = await readJson(DB_FILE, []);
@@ -137,7 +137,7 @@ async function main() {
     seen.add(it.id);
     const ex = byId.get(it.id);
     if (ex) {
-      ex.order = i; // сьвежы парадак з крыніцы
+      ex.order = i; // свежы парадак з крыніцы
     } else {
       byId.set(it.id, { ...it, order: i, added: initial ? null : today });
       added++;
@@ -148,10 +148,10 @@ async function main() {
   for (const it of byId.values()) {
     if (!seen.has(it.id) && !it.removed) { it.removed = today; removed++; }
   }
-  // Засьцярога: сьпіс амаль ніколі не скарачаецца. Калі «зьнікла» болей за 5%
-  // базы — хутчэй за ўсё зьмянілася формула id або фармат файла. Не псуем базу.
+  // Засцярога: спіс амаль ніколі не скарачаецца. Калі «знікла» болей за 5%
+  // базы — хутчэй за ўсё змянілася формула id або фармат файла. Не псуем базу.
   if (!initial && removed > Math.max(50, db.length * 0.05)) {
-    throw new Error(`Падазрона: ${removed} запісаў зьнікла з крыніцы, ${added} дададзена. Абнаўленьне спынена — праверце формулу id / фармат файла.`);
+    throw new Error(`Падазрона: ${removed} запісаў знікла з крыніцы, ${added} дададзена. Абнаўленне спынена — праверце формулу id / фармат файла.`);
   }
   const out = [...byId.values()].sort((a, b) => a.order - b.order);
   await fs.writeFile(DB_FILE, JSON.stringify(out));
@@ -168,7 +168,7 @@ async function main() {
     lastAddedCount: initial ? 0 : added || meta.lastAddedCount || 0,
   };
   await fs.writeFile(META_FILE, JSON.stringify(newMeta, null, 2));
-  console.log(`Дададзена новых: ${added}, зьнікла з крыніцы: ${removed}, усяго ў базе: ${out.length}`);
+  console.log(`Дададзена новых: ${added}, знікла з крыніцы: ${removed}, усяго ў базе: ${out.length}`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

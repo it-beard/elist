@@ -1,7 +1,7 @@
 import { useLang } from '../hooks/useLang.jsx';
 import { LINKS } from '../lib/i18n.js';
 
-/** «Што гэта значыць для мяне» — згорнуты блок з тлумачэньнем наступстваў. */
+/** «Што гэта значыць для мяне» — згорнуты блок з тлумачэннем наступстваў. */
 export default function Consequences({ open = false }) {
   const { t } = useLang();
   return (

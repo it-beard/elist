@@ -5,8 +5,8 @@ import { LINKS } from '../lib/i18n.js';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 
 /**
- * Сьпіс назіраньня: статус («супадзеньняў няма» / «новыя супадзеньні»),
- * запыты, праверка зноў, апавяшчэньні, ачыстка. Усё — толькі ў localStorage.
+ * Спіс назірання: статус («супадзенняў няма» / «новыя супадзенні»),
+ * запыты, праверка зноў, апавяшчэнні, ачыстка. Усё — толькі ў localStorage.
  */
 export default function WatchPanel({ watch, meta, refreshing, refreshError, checkedAt, onReload, onOpen, onClearAll }) {
   const { t, lang } = useLang();

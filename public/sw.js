@@ -1,4 +1,4 @@
-/* Service worker: сайт і база працуюць афлайн. Ніякай аналітыкі, ніякіх зьнешніх запытаў. */
+/* Service worker: сайт і база працуюць афлайн. Ніякай аналітыкі, ніякіх знешніх запытаў. */
 const VERSION = 'v2';
 const SHELL = `shell-${VERSION}`, DATA = `data-${VERSION}`;
 const BASE = new URL(self.registration.scope).pathname;
@@ -21,18 +21,18 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
 
-  // Старонка: сетка → кэш (каб пасьля дэплою браць сьвежую абалонку, а афлайн — захаваную).
+  // Старонка: сетка → кэш (каб пасля дэплою браць свежую абалонку, а афлайн — захаваную).
   if (req.mode === 'navigate') {
     e.respondWith(fetch(req).then((r) => { const copy = r.clone(); caches.open(SHELL).then((c) => c.put(req, copy)); return r; })
       .catch(() => caches.match(req).then((hit) => hit || caches.match(BASE))));
     return;
   }
-  // Хэшаваныя асэты — нязьменныя: кэш → сетка.
+  // Хэшаваныя асеты — нязменныя: кэш → сетка.
   if (isAsset(url)) {
     e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((r) => { const copy = r.clone(); caches.open(SHELL).then((c) => c.put(req, copy)); return r; })));
     return;
   }
-  // База: сетка → кэш; фрагменты нязьменныя, пакуль не зьменіцца індэкс, але для прастаты — тая ж стратэгія.
+  // База: сетка → кэш; фрагменты нязменныя, пакуль не зменіцца індэкс, але для прастаты — тая ж стратэгія.
   if (isData(url)) {
     e.respondWith(fetch(req).then((r) => { if (r.ok) { const copy = r.clone(); caches.open(DATA).then((c) => c.put(req, copy)); } return r; })
       .catch(() => caches.match(req)));

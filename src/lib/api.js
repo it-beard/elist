@@ -6,12 +6,12 @@ async function getJson(name, init) {
   return r.json();
 }
 
-/** fresh=true — абысьці кэш (кнопка «праверыць зноў»). */
+/** fresh=true — абысці кэш (кнопка «праверыць зноў»). */
 const opts = (fresh) => (fresh ? { cache: 'reload' } : undefined);
 
 export const fetchMeta = (fresh) => getJson('meta.json', opts(fresh));
 
-/** Індэкс → масіў зручных для пошуку аб'ектаў. */
+/** Індэкс → масіў зручных для пошуку аб’ектаў. */
 export async function fetchIndex(fresh) {
   const idx = await getJson('index.json', opts(fresh));
   const items = idx.items.map(([t, c, date, added, removed, name, id], i) => ({

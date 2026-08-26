@@ -2,7 +2,7 @@
 /**
  * data/materials.json → public/data/{index.json, meta.json, chunks/N.json}
  * Індэкс: кампактныя нармалізаваныя радкі для пошуку; фрагменты: поўныя запісы,
- * якія браўзэр падцягвае ленiва толькі для паказу.
+ * якія браўзер падцягвае ляніва толькі для паказу.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -60,7 +60,7 @@ const size = (await fs.stat(path.join(OUT, 'index.json'))).size;
 console.log(`Індэкс: ${db.length} запісаў, ${(size / 1e6).toFixed(2)} MB, фрагментаў: ${Math.ceil(db.length / CHUNK)}`);
 console.log(`GEO: ${geoFiles.join(', ')}`);
 
-// ---------- RSS: апошнія даданыя запісы (або па даце рашэньня, пакуль няма гісторыі абнаўленьняў) ----------
+// ---------- RSS: апошнія даданыя запісы (або па даце рашэння, пакуль няма гісторыі абнаўленняў) ----------
 function esc(s) { return String(s).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c])); }
 function feed(rows, meta) {
   const withAdded = rows.filter((x) => x.added && !x.removed);
@@ -71,7 +71,7 @@ function feed(rows, meta) {
     return `<item><title>${esc(title)}</title><link>${SITE}#/r/${x.id}</link><guid isPermaLink="false">${x.id}</guid><pubDate>${when}</pubDate><category>${esc(x.type)}</category><description>${esc(`${x.name}\n\n${x.court}`)}</description></item>`;
   }).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0"><channel><title>Сьпіс экстрэмісцкіх матэрыялаў Беларусі — новыя запісы</title><link>${SITE}</link><description>Неафіцыйная стужка новых запісаў у Рэспубліканскім сьпісе экстрэмісцкіх матэрыялаў. Абнаўляецца штодня.</description><language>be</language><image><url>${SITE}icon-192.png</url><title>Сьпіс экстрэмісцкіх матэрыялаў Беларусі</title><link>${SITE}</link></image><lastBuildDate>${new Date(meta.updated).toUTCString()}</lastBuildDate>
+<rss version="2.0"><channel><title>Спіс экстрэмісцкіх матэрыялаў Беларусі — новыя запісы</title><link>${SITE}</link><description>Неафіцыйная стужка новых запісаў у Рэспубліканскім спісе экстрэмісцкіх матэрыялаў. Абнаўляецца штодня.</description><language>be</language><image><url>${SITE}icon-192.png</url><title>Спіс экстрэмісцкіх матэрыялаў Беларусі</title><link>${SITE}</link></image><lastBuildDate>${new Date(meta.updated).toUTCString()}</lastBuildDate>
 ${items}
 </channel></rss>`;
 }

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useLang } from '../hooks/useLang.jsx';
 import { LINKS } from '../lib/i18n.js';
 
-/** Попап-даведка: што гэта за сайт, як карыстацца, што значыць трапіць у сьпіс, прыватнасьць. */
+/** Попап-даведка: што гэта за сайт, як карыстацца, што значыць трапіць у спіс, прыватнасць. */
 export default function HelpDialog({ open, onClose }) {
   const { t } = useLang();
   const ref = useRef(null);

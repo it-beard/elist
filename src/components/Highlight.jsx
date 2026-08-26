@@ -2,7 +2,7 @@ import { matchRanges } from '../lib/normalize.js';
 
 const URL_RE = /(https?:\/\/[^\s"<>)]+|(?<![\w/.@])(?:t\.me|www\.)[^\s"<>)]+)/g;
 
-/** Тэкст з клікабельнымі спасылкамі і падсьветкай супадзеньняў (у тым ліку ўнутры спасылак). */
+/** Тэкст з клікабельнымі спасылкамі і падсветкай супадзенняў (у тым ліку ўнутры спасылак). */
 export default function Highlight({ text, tokens }) {
   const marks = matchRanges(text, tokens);
   const out = [];
@@ -22,7 +22,7 @@ export default function Highlight({ text, tokens }) {
   return out;
 }
 
-/** Адрэзак text[from, to) з <mark> там, дзе ён перасякаецца з дыяпазонамі супадзеньняў. */
+/** Адрэзак text[from, to) з <mark> там, дзе ён перасякаецца з дыяпазонамі супадзенняў. */
 function marked(text, from, to, marks) {
   const parts = [];
   let pos = from;

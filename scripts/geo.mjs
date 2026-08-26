@@ -1,17 +1,17 @@
 /**
- * GEO (Generative Engine Optimization): робіць сайт бачным для генэратыўных
+ * GEO (Generative Engine Optimization): робіць сайт бачным для генератыўных
  * рухавікоў — ChatGPT, Claude, Perplexity, Google AI Overviews.
  *
- * Генэруе (у public/, адкуль Vite капіюе ў dist/):
+ * Генеруе (у public/, адкуль Vite капіюе ў dist/):
  *   robots.txt      — яўны дазвол ИИ-краўлерам + спасылка на sitemap
  *   llms.txt         — карта сайта ў prompt-friendly выглядзе
- *   llms-full.txt    — поўны тэкст (усе пытаньні і адказы) адным файлам
- *   sitemap.xml      — старонкі з датай абнаўленьня
- *   faq.html         — статычная старонка «Пытаньні і адказы» (бе)
- *   faq-en.html      — тое самае па-ангельску
- *   opensearch.xml   — сайт як пошукавік у адрасным радку браўзэра
+ *   llms-full.txt    — поўны тэкст (усе пытанні і адказы) адным файлам
+ *   sitemap.xml      — старонкі з датай абнаўлення
+ *   faq.html         — статычная старонка «Пытанні і адказы» (бе)
+ *   faq-en.html      — тое самае па-англійску
+ *   opensearch.xml   — сайт як пошукавік у адрасным радку браўзера
  *   404.html         — старонка памылкі са спасылкамі (GitHub Pages аддае яе сам)
- *   .well-known/security.txt — куды паведамляць пра ўразьлівасьці (RFC 9116)
+ *   .well-known/security.txt — куды паведамляць пра ўразлівасці (RFC 9116)
  *
  * Статычныя старонкі патрэбныя таму, што сам сайт — SPA: без JS краўлер
  * бачыць пусты <div id="root">, і цытаваць яму няма чаго.
@@ -23,7 +23,7 @@ import { FAQ, KEY_FACTS, SUMMARY, dataStats, siteFacts } from '../src/lib/faq.js
 const esc = (s) => String(s).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
 const abs = (site, p) => new URL(p, site).href;
 
-/** Краўлеры генэратыўных рухавікоў — дазваляем яўна, каб сайт трапляў у адказы. */
+/** Краўлеры генератыўных рухавікоў — дазваляем яўна, каб сайт трапляў у адказы. */
 export const AI_BOTS = [
   'GPTBot', 'OAI-SearchBot', 'ChatGPT-User',
   'ClaudeBot', 'Claude-User', 'Claude-SearchBot', 'anthropic-ai',
@@ -33,7 +33,7 @@ export const AI_BOTS = [
 
 export function robotsTxt({ site }) {
   const allow = AI_BOTS.map((ua) => `User-agent: ${ua}\nAllow: /`).join('\n\n');
-  return `# Сайт адкрыты і для звычайных пошукавікаў, і для генэратыўных рухавікоў.
+  return `# Сайт адкрыты і для звычайных пошукавікаў, і для генератыўных рухавікоў.
 # Даныя публічныя, аналітыкі няма — прычын закрываць краўлераў таксама няма.
 
 User-agent: *
@@ -60,38 +60,38 @@ export function sitemapXml({ site, updated }) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
 
-/** llms.txt — кароткая карта сайта для моўных мадэляў (markdown, без разьметкі старонак). */
+/** llms.txt — кароткая карта сайта для моўных мадэляў (markdown, без разметкі старонак). */
 export function llmsTxt({ site, facts, stats }) {
   const f = { ...facts, ...stats };
   const years = (stats.byYear || []).slice(0, 6).map(([y, n]) => `- ${y}: ${n} запісаў`).join('\n');
   const faq = FAQ.be.slice(0, 6).map((x) => `- **${x.q}** ${x.a(f)}`).join('\n');
-  return `# Сьпіс экстрэмісцкіх матэрыялаў Беларусі — пошук
+  return `# Спіс экстрэмісцкіх матэрыялаў Беларусі — пошук
 
 > ${SUMMARY.be(f)}
 
-Неафіцыйны сайт з адкрытым кодам. Даныя аўтаматычна бяруцца з афіцыйнай публікацыі Рэспубліканскага сьпісу экстрэмісцкіх матэрыялаў і не рэдагуюцца. Сайт статычны, без сэрвэрнай часткі: уся база спампоўваецца ў браўзэр, запыты нікуды не адпраўляюцца.
+Неафіцыйны сайт з адкрытым кодам. Даныя аўтаматычна бяруцца з афіцыйнай публікацыі Рэспубліканскага спісу экстрэмісцкіх матэрыялаў і не рэдагуюцца. Сайт статычны, без сервернай часткі: уся база спампоўваецца ў браўзер, запыты нікуды не адпраўляюцца.
 
 ## Ключавыя факты
 
 ${KEY_FACTS.be(f).map(([k, v]) => `- **${k}:** ${v}`).join('\n')}
 
-## Запісы па годзе судовага рашэньня
+## Запісы па годзе судовага рашэння
 
 ${years}
 
 ## Старонкі
 
 - [Пошук](${abs(site, '')}): галоўная старонка; запыт можна перадаць у URL — \`?q=запыт\`.
-- [Пытаньні і адказы](${abs(site, 'faq.html')}): што такое сьпіс, што пагражае за рэпост, чым ён адрозьніваецца ад сьпісу экстрэмісцкіх фарміраваньняў.
-- [FAQ (English)](${abs(site, 'faq-en.html')}): тое самае па-ангельску.
-- [Што новага](${abs(site, '#/new')}): запісы, згрупаваныя па даце зьяўленьня ў сьпісе.
+- [Пытанні і адказы](${abs(site, 'faq.html')}): што такое спіс, што пагражае за рэпост, чым ён адрозніваецца ад спісу экстрэмісцкіх фарміраванняў.
+- [FAQ (English)](${abs(site, 'faq-en.html')}): тое самае па-англійску.
+- [Што новага](${abs(site, '#/new')}): запісы, згрупаваныя па даце з’яўлення ў спісе.
 - [RSS](${abs(site, 'feed.xml')}): стужка новых запісаў.
 
 ## Часта пытаюць
 
 ${faq}
 
-## Умовы выкарыстаньня
+## Умовы выкарыстання
 
 Кантэнт можна цытаваць і пераказваць са спасылкай на ${abs(site, '')}. Тэксты саміх запісаў — афіцыйныя даныя і падаюцца як у крыніцы. Гэта не юрыдычная кансультацыя.
 `;
@@ -100,7 +100,7 @@ ${faq}
 /** Schema.org для галоўнай: WebSite + SearchAction, Dataset, WebApplication. */
 export function siteJsonLd({ site, facts, lang = 'be' }) {
   const f = facts;
-  const name = lang === 'en' ? 'List of extremist materials of Belarus — search' : 'Сьпіс экстрэмісцкіх матэрыялаў Беларусі — пошук';
+  const name = lang === 'en' ? 'List of extremist materials of Belarus — search' : 'Спіс экстрэмісцкіх матэрыялаў Беларусі — пошук';
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -121,7 +121,7 @@ export function siteJsonLd({ site, facts, lang = 'be' }) {
       {
         '@type': 'Dataset',
         '@id': `${abs(site, '')}#dataset`,
-        name: lang === 'en' ? 'Republican list of extremist materials of Belarus' : 'Рэспубліканскі сьпіс экстрэмісцкіх матэрыялаў Беларусі',
+        name: lang === 'en' ? 'Republican list of extremist materials of Belarus' : 'Рэспубліканскі спіс экстрэмісцкіх матэрыялаў Беларусі',
         description: SUMMARY[lang](f),
         url: abs(site, ''),
         inLanguage: 'ru',
@@ -132,7 +132,7 @@ export function siteJsonLd({ site, facts, lang = 'be' }) {
           { '@type': 'DataDownload', encodingFormat: 'application/rss+xml', contentUrl: abs(site, 'feed.xml') },
           { '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: abs(site, 'data/index.json') },
         ],
-        variableMeasured: ['тып матэрыялу', 'апісаньне', 'суд', 'дата рашэньня', 'дата зьяўленьня ў сьпісе'],
+        variableMeasured: ['тып матэрыялу', 'апісанне', 'суд', 'дата рашэння', 'дата з’яўлення ў спісе'],
       },
       {
         '@type': 'WebApplication',
@@ -141,11 +141,11 @@ export function siteJsonLd({ site, facts, lang = 'be' }) {
         url: abs(site, ''),
         applicationCategory: 'ReferenceApplication',
         operatingSystem: 'Any (PWA)',
-        browserRequirements: 'JavaScript; працуе афлайн пасьля першага адкрыцьця',
+        browserRequirements: 'JavaScript; працуе афлайн пасля першага адкрыцця',
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         featureList: lang === 'en'
           ? ['Instant search over the whole list', 'Watchlist with change alerts', 'RSS and Telegram digest', 'Offline PWA', 'No tracking']
-          : ['Імгненны пошук па ўсім сьпісе', 'Сьпіс назіраньня з апавяшчэньнямі', 'RSS і дайджэст у Telegram', 'Афлайн-рэжым (PWA)', 'Без сачэньня і аналітыкі'],
+          : ['Імгненны пошук па ўсім спісе', 'Спіс назірання з апавяшчэннямі', 'RSS і дайджэст у Telegram', 'Афлайн-рэжым (PWA)', 'Без сачэння і аналітыкі'],
       },
     ],
   };
@@ -171,7 +171,7 @@ function faqJsonLd({ site, facts, lang, page }) {
         '@type': 'BreadcrumbList',
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: lang === 'en' ? 'Search' : 'Пошук', item: abs(site, '') },
-          { '@type': 'ListItem', position: 2, name: lang === 'en' ? 'FAQ' : 'Пытаньні і адказы', item: page },
+          { '@type': 'ListItem', position: 2, name: lang === 'en' ? 'FAQ' : 'Пытанні і адказы', item: page },
         ],
       },
     ],
@@ -215,15 +215,15 @@ export function faqPage({ site, facts, stats, lang, base = '/' }) {
   const page = abs(site, en ? 'faq-en.html' : 'faq.html');
   const title = en
     ? 'FAQ: the list of extremist materials of Belarus'
-    : 'Пытаньні і адказы: сьпіс экстрэмісцкіх матэрыялаў Беларусі';
+    : 'Пытанні і адказы: спіс экстрэмісцкіх матэрыялаў Беларусі';
   const lead = en
     ? `This page answers the most common questions about the Republican list of extremist materials of Belarus and about this search site: what the list is, how to check a channel or handle, what the penalties are, and what data the site stores. As of ${f.updatedStr} the database holds ${f.totalStr} entries and refreshes once a day.`
-    : `Гэтая старонка адказвае на самыя частыя пытаньні пра Рэспубліканскі сьпіс экстрэмісцкіх матэрыялаў Беларусі і пра гэты сайт: што такое сьпіс, як праверыць канал ці нік, што пагражае за рэпост і якія даныя сайт захоўвае. На ${f.updatedStr} у базе ${f.totalStr} запісаў, яна абнаўляецца раз на суткі.`;
+    : `Гэтая старонка адказвае на самыя частыя пытанні пра Рэспубліканскі спіс экстрэмісцкіх матэрыялаў Беларусі і пра гэты сайт: што такое спіс, як праверыць канал ці нік, што пагражае за рэпост і якія даныя сайт захоўвае. На ${f.updatedStr} у базе ${f.totalStr} запісаў, яна абнаўляецца раз на суткі.`;
   const years = (stats.byYear || []).slice(0, 6);
-  const yearsTitle = en ? 'Entries by year of the court decision' : 'Запісы па годзе судовага рашэньня';
+  const yearsTitle = en ? 'Entries by year of the court decision' : 'Запісы па годзе судовага рашэння';
   const factsTitle = en ? 'Key facts' : 'Ключавыя факты';
-  const sourcesTitle = en ? 'Where to get help' : 'Куды зьвяртацца па дапамогу';
-  const backLabel = en ? 'Search the list' : 'Шукаць па сьпісе';
+  const sourcesTitle = en ? 'Where to get help' : 'Куды звяртацца па дапамогу';
+  const backLabel = en ? 'Search the list' : 'Шукаць па спісе';
 
   const rows = KEY_FACTS[lang](f).map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join('\n');
   const yearRows = years.map(([y, n]) => `<tr><th>${y}</th><td>${en ? `${n} entries` : `${n} запісаў`}</td></tr>`).join('\n');
@@ -235,7 +235,7 @@ export function faqPage({ site, facts, stats, lang, base = '/' }) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
-<meta name="description" content="${esc(en ? `FAQ about the Republican list of extremist materials of Belarus: ${f.totalStr} entries as of ${f.updatedStr}, penalties under Art. 19.11, how to check a channel or handle, what data the site stores.` : `Пытаньні і адказы пра Рэспубліканскі сьпіс экстрэмісцкіх матэрыялаў Беларусі: ${f.totalStr} запісаў на ${f.updatedStr}, адказнасьць паводле арт. 19.11 КаАП, як праверыць канал ці нік, якія даныя захоўвае сайт.`)}">
+<meta name="description" content="${esc(en ? `FAQ about the Republican list of extremist materials of Belarus: ${f.totalStr} entries as of ${f.updatedStr}, penalties under Art. 19.11, how to check a channel or handle, what data the site stores.` : `Пытанні і адказы пра Рэспубліканскі спіс экстрэмісцкіх матэрыялаў Беларусі: ${f.totalStr} запісаў на ${f.updatedStr}, адказнасць паводле арт. 19.11 КаАП, як праверыць канал ці нік, якія даныя захоўвае сайт.`)}">
 <link rel="canonical" href="${esc(page)}">
 <link rel="alternate" hreflang="be" href="${esc(abs(site, 'faq.html'))}">
 <link rel="alternate" hreflang="en" href="${esc(abs(site, 'faq-en.html'))}">
@@ -276,14 +276,14 @@ ${sections}
 <ul class="links">
 <li><a href="https://spring96.org/" rel="noopener">${en ? 'Viasna Human Rights Centre' : 'Праваабарончы цэнтр «Вясна»'}</a></li>
 <li><a href="https://humanconstanta.org/" rel="noopener">Human Constanta</a></li>
-<li><a href="https://www.mvd.gov.by/" rel="noopener">${en ? 'List of extremist formations (Interior Ministry)' : 'Сьпіс экстрэмісцкіх фарміраваньняў (МУС)'}</a></li>
+<li><a href="https://www.mvd.gov.by/" rel="noopener">${en ? 'List of extremist formations (Interior Ministry)' : 'Спіс экстрэмісцкіх фарміраванняў (МУС)'}</a></li>
 </ul>
 <p>${en ? 'This page is not legal advice.' : 'Гэтая старонка — не юрыдычная кансультацыя.'}</p>
 </div>
 </main>
 
 <footer>
-<p>${en ? 'Unofficial search over the Republican list of extremist materials. The database updates automatically once a day; entry text, court name and date are kept exactly as in the official source.' : 'Неафіцыйны пошук па Рэспубліканскім сьпісе экстрэмісцкіх матэрыялаў. База абнаўляецца аўтаматычна раз на суткі; тэкст запісу, назва суда і дата захоўваюцца як у афіцыйнай крыніцы.'}</p>
+<p>${en ? 'Unofficial search over the Republican list of extremist materials. The database updates automatically once a day; entry text, court name and date are kept exactly as in the official source.' : 'Неафіцыйны пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў. База абнаўляецца аўтаматычна раз на суткі; тэкст запісу, назва суда і дата захоўваюцца як у афіцыйнай крыніцы.'}</p>
 <p><a href="${base}">${en ? 'Search' : 'Пошук'}</a> · <a href="${base}${en ? 'faq.html' : 'faq-en.html'}">${en ? 'Па-беларуску' : 'English'}</a> · <a href="https://github.com/it-beard/extremist-by" rel="noopener">GitHub</a> · <a href="${base}llms.txt">llms.txt</a></p>
 </footer>
 </div>
@@ -298,7 +298,7 @@ export function llmsFullTxt({ site, facts, stats }) {
   const f = { ...facts, ...stats };
   const block = (lang) => FAQ[lang].map((x) => `### ${x.q}\n\n${x.a(f)}`).join('\n\n');
   const years = (stats.byYear || []).map(([y, n]) => `- ${y}: ${n}`).join('\n');
-  return `# Сьпіс экстрэмісцкіх матэрыялаў Беларусі — поўны даведнік
+  return `# Спіс экстрэмісцкіх матэрыялаў Беларусі — поўны даведнік
 
 > ${SUMMARY.be(f)}
 
@@ -308,21 +308,21 @@ export function llmsFullTxt({ site, facts, stats }) {
 
 ${KEY_FACTS.be(f).map(([k, v]) => `- **${k}:** ${v}`).join('\n')}
 
-## Запісы па годзе судовага рашэньня
+## Запісы па годзе судовага рашэння
 
 ${years}
 
 ## Як уладкаваны пошук
 
-- Індэкс (~400 КБ gzip) спампоўваецца ў браўзэр цалкам, таму запыты нікуды не адпраўляюцца.
+- Індэкс (~400 КБ gzip) спампоўваецца ў браўзер цалкам, таму запыты нікуды не адпраўляюцца.
 - Не ўлічваюцца рэгістар, «ё/е», лацінская і кірылічная «i», віды лапак; фраза ў лапках шукаецца цалкам.
 - «@nick», «t.me/nick», «https://nick.by/» і «nick» зводзяцца да аднаго выгляду.
-- Кірыліца ↔ лацінка ў абодва бакі: расейская трансьлітарацыя і беларуская лацінка без дыякрытыкі.
-- Калі дакладных супадзеньняў няма — прыблізны пошук па словах з памылкамі ў 1–2 літары.
-- Па рашэньні суда шукаюцца назва суда і дата — словамі («20 августа 2026») і лічбамі («20.08.2026»).
+- Кірыліца ↔ лацінка ў абодва бакі: руская транслітарацыя і беларуская лацінка без дыякрытыкі.
+- Калі дакладных супадзенняў няма — прыблізны пошук па словах з памылкамі ў 1–2 літары.
+- Па рашэнні суда шукаюцца назва суда і дата — словамі («20 августа 2026») і лічбамі («20.08.2026»).
 - Запыт трапляе ва URL: \`?q=запыт\` — спасылкай можна дзяліцца.
 
-## Пытаньні і адказы (беларуская)
+## Пытанні і адказы (беларуская)
 
 ${block('be')}
 
@@ -334,21 +334,21 @@ ${block('en')}
 
 - RSS новых запісаў: ${abs(site, 'feed.xml')}
 - Індэкс базы (JSON): ${abs(site, 'data/index.json')}
-- Мэтаданыя (дата абнаўленьня, колькасьць): ${abs(site, 'data/meta.json')}
+- Метаданыя (дата абнаўлення, колькасць): ${abs(site, 'data/meta.json')}
 
 ## Умовы
 
-Кантэнт можна цытаваць і пераказваць са спасылкай на ${abs(site, '')}. Тэксты саміх запісаў — афіцыйныя даныя і падаюцца як у крыніцы, без рэдагаваньня. Гэта не юрыдычная кансультацыя.
+Кантэнт можна цытаваць і пераказваць са спасылкай на ${abs(site, '')}. Тэксты саміх запісаў — афіцыйныя даныя і падаюцца як у крыніцы, без рэдагавання. Гэта не юрыдычная кансультацыя.
 `;
 }
 
-/** OpenSearch — браўзэр можа дадаць сайт як пошукавік (і гэта яшчэ адзін сігнал пра ?q=). */
+/** OpenSearch — браўзер можа дадаць сайт як пошукавік (і гэта яшчэ адзін сігнал пра ?q=). */
 export function openSearchXml({ site }) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">
-  <ShortName>Сьпіс ЭМ</ShortName>
-  <LongName>Пошук па сьпісе экстрэмісцкіх матэрыялаў Беларусі</LongName>
-  <Description>Пошук па Рэспубліканскім сьпісе экстрэмісцкіх матэрыялаў Беларусі</Description>
+  <ShortName>Спіс ЭМ</ShortName>
+  <LongName>Пошук па спісе экстрэмісцкіх матэрыялаў Беларусі</LongName>
+  <Description>Пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў Беларусі</Description>
   <InputEncoding>UTF-8</InputEncoding>
   <Language>be</Language>
   <Image width="16" height="16" type="image/x-icon">${esc(abs(site, 'favicon.ico'))}</Image>
@@ -359,10 +359,10 @@ export function openSearchXml({ site }) {
 `;
 }
 
-/** security.txt (RFC 9116): куды пісаць пра ўразьлівасьці. */
+/** security.txt (RFC 9116): куды пісаць пра ўразлівасці. */
 export function securityTxt({ site, now = new Date() }) {
   const expires = new Date(now.getTime() + 365 * 864e5).toISOString().replace(/\.\d{3}Z$/, 'Z');
-  return `# Паведаміць пра ўразьлівасьць можна праз GitHub Issues.
+  return `# Паведаміць пра ўразлівасць можна праз GitHub Issues.
 Contact: https://github.com/it-beard/extremist-by/issues
 Expires: ${expires}
 Preferred-Languages: be, en, ru
@@ -378,7 +378,7 @@ export function notFoundPage({ site, base = '/' }) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Старонка не знойдзеная — Сьпіс экстрэмісцкіх матэрыялаў Беларусі</title>
+<title>Старонка не знойдзеная — Спіс экстрэмісцкіх матэрыялаў Беларусі</title>
 <meta name="robots" content="noindex, follow">
 <link rel="icon" href="${base}favicon.ico" sizes="any">
 <script>${THEME_BOOT}</script>
@@ -389,10 +389,10 @@ export function notFoundPage({ site, base = '/' }) {
 <header class="top"><h1>Такой старонкі няма</h1>
 <p class="sub">Спасылка магла састарэць або быць набранай з памылкай.</p></header>
 <main>
-<p class="lead">Пошук па сьпісе экстрэмісцкіх матэрыялаў працуе на галоўнай старонцы. Запісы маюць пастаянныя спасылкі выгляду <code>#/r/&lt;id&gt;</code> — калі запіс зьнік са сьпісу, спасылка на яго ўсё роўна застаецца.</p>
-<p><a class="cta solid" href="${base}">На галоўную</a><a class="cta" href="${base}faq.html">Пытаньні і адказы</a><a class="cta" href="${base}feed.xml">RSS</a></p>
+<p class="lead">Пошук па спісе экстрэмісцкіх матэрыялаў працуе на галоўнай старонцы. Запісы маюць пастаянныя спасылкі выгляду <code>#/r/&lt;id&gt;</code> — калі запіс знік са спісу, спасылка на яго ўсё роўна застаецца.</p>
+<p><a class="cta solid" href="${base}">На галоўную</a><a class="cta" href="${base}faq.html">Пытанні і адказы</a><a class="cta" href="${base}feed.xml">RSS</a></p>
 </main>
-<footer><p><a href="${base}">Пошук</a> · <a href="${base}faq.html">Пытаньні і адказы</a> · <a href="${base}faq-en.html">English</a> · <a href="https://github.com/it-beard/extremist-by" rel="noopener">GitHub</a></p></footer>
+<footer><p><a href="${base}">Пошук</a> · <a href="${base}faq.html">Пытанні і адказы</a> · <a href="${base}faq-en.html">English</a> · <a href="https://github.com/it-beard/extremist-by" rel="noopener">GitHub</a></p></footer>
 </div>
 </body>
 </html>
@@ -414,7 +414,7 @@ export async function writeGeo({ root, site, base = '/', db, meta }) {
     'faq-en.html': faqPage({ site, facts, stats, lang: 'en', base }),
     'opensearch.xml': openSearchXml({ site }),
     '404.html': notFoundPage({ site, base }),
-    // RFC 9116 патрабуе .well-known; копія ў корані — для старых сканэраў
+    // RFC 9116 патрабуе .well-known; копія ў корані — для старых сканераў
     '.well-known/security.txt': sec,
     'security.txt': sec,
   };

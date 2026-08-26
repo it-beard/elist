@@ -32,11 +32,11 @@ describe('факты', () => {
 });
 
 describe('FAQ', () => {
-  it('аднолькавы набор пытаньняў у абедзвюх мовах', () => {
+  it('аднолькавы набор пытанняў у абедзвюх мовах', () => {
     expect(FAQ.be).toHaveLength(FAQ.en.length);
     expect(FAQ.be.length).toBeGreaterThanOrEqual(10);
   });
-  it('пытаньне — сапраўднае пытаньне, адказ самадастатковы', () => {
+  it('пытанне — сапраўднае пытанне, адказ самадастатковы', () => {
     for (const lang of ['be', 'en']) {
       for (const { q, a } of FAQ[lang]) {
         expect(q.endsWith('?')).toBe(true);
@@ -50,7 +50,7 @@ describe('FAQ', () => {
     expect(FAQ.be[0].a(facts)).toContain('5 989');
     expect(FAQ.be[0].a(facts)).toContain('26.08.2026');
   });
-  it('ключавыя факты — пары «назва — значэньне»', () => {
+  it('ключавыя факты — пары «назва — значэнне»', () => {
     for (const lang of ['be', 'en']) {
       for (const row of KEY_FACTS[lang](facts)) {
         expect(row).toHaveLength(2);
@@ -68,7 +68,7 @@ describe('GEO-файлы', () => {
     expect(r).not.toMatch(/^Disallow: \/$/m);
     expect(AI_BOTS.length).toBeGreaterThan(5);
   });
-  it('sitemap.xml валідны і зьмяшчае абедзьве FAQ-старонкі', () => {
+  it('sitemap.xml валідны і змяшчае абедзве FAQ-старонкі', () => {
     const s = sitemapXml({ site: SITE, updated: META.updated });
     expect(s).toContain('http://www.sitemaps.org/schemas/sitemap/0.9');
     expect(s).toContain(`<loc>${SITE}faq.html</loc>`);
@@ -96,7 +96,7 @@ describe('Schema.org', () => {
     expect(g['@graph'][1].dateModified).toBe(META.updated);
     expect(() => JSON.parse(JSON.stringify(g))).not.toThrow();
   });
-  it('FAQ-старонка нясе FAQPage з усімі пытаньнямі', () => {
+  it('FAQ-старонка нясе FAQPage з усімі пытаннямі', () => {
     for (const [lang, file] of [['be', 'faq.html'], ['en', 'faq-en.html']]) {
       const html = faqPage({ site: SITE, facts: siteFacts(META), stats: dataStats(DB), lang, base: '/' });
       const ld = JSON.parse(html.match(/<script type="application\/ld\+json">(.+?)<\/script>/s)[1]);
@@ -114,7 +114,7 @@ describe('Schema.org', () => {
 });
 
 describe('дадатковыя файлы', () => {
-  it('llms-full.txt нясе ўсе пытаньні абедзьвюх моваў', () => {
+  it('llms-full.txt нясе ўсе пытанні абедзвюх моў', () => {
     const l = llmsFullTxt({ site: SITE, facts: siteFacts(META), stats: dataStats(DB) });
     for (const lang of ['be', 'en']) for (const { q } of FAQ[lang]) expect(l).toContain(q);
     expect(l).toContain(`${SITE}data/index.json`);
@@ -126,7 +126,7 @@ describe('дадатковыя файлы', () => {
     const x = openSearchXml({ site: SITE });
     expect(x).toContain('http://a9.com/-/spec/opensearch/1.1/');
     expect(x).toContain(`template="${SITE}?q={searchTerms}"`);
-    // ShortName паводле спэцыфікацыі — не даўжэй за 16 сымбаляў
+    // ShortName паводле спецыфікацыі — не даўжэй за 16 сімвалаў
     expect(x.match(/<ShortName>(.*?)<\/ShortName>/)[1].length).toBeLessThanOrEqual(16);
   });
   it('security.txt адпавядае RFC 9116', () => {

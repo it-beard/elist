@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 
-/** Стан, сынхранізаваны з параметрам URL (?q=…), каб спасылкай можна было дзяліцца. */
+/** Стан, сінхранізаваны з параметрам URL (?q=…), каб спасылкай можна было дзяліцца. */
 export function useUrlParam(name) {
   const [value, setValue] = useState(() => new URLSearchParams(location.search).get(name) || '');
   const set = useCallback((v) => {

@@ -1,7 +1,7 @@
 {
   "name": "extremist-materials-search",
   "version": "2.0.0",
-  "description": "Пошук па Рэспубліканскім сьпісе экстрэмісцкіх матэрыялаў",
+  "description": "Пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў",
   "type": "module",
   "private": true,
   "scripts": {
