@@ -13,7 +13,6 @@ export default function Header({ meta, items, online, onHelp }) {
   return (
     <header className="top wrap">
       <div className="top-row">
-        <img className="logo" src={`${import.meta.env.BASE_URL}icon-96.png`} width="44" height="44" alt="" />
         <h1>{t.title}</h1>
         <button type="button" className="theme help-btn" title={t.help} aria-label={t.help} onClick={onHelp}>?</button>
         <LangToggle />
