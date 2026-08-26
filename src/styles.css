@@ -1,0 +1,53 @@
+:root {
+  --bg: #f6f7f9; --card: #fff; --text: #1a1d23; --muted: #626875; --line: #e2e5ea;
+  --accent: #b3261e; --accent-soft: #fdecea; --mark: #ffe58a; --new: #1b7f3b; --new-soft: #e3f5e8;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14161a; --card: #1d2026; --text: #e8eaee; --muted: #9aa1ad; --line: #2c313a;
+    --accent: #ff6b5e; --accent-soft: #3a1f1d; --mark: #7a5e00; --new: #5ad07a; --new-soft: #1c3324;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--accent); }
+.wrap { max-width: 900px; margin: 0 auto; padding: 0 16px; }
+.top { padding: 28px 0 12px; }
+h1 { font-size: 1.35rem; margin: 0 0 4px; }
+.sub { margin: 0; color: var(--muted); font-size: .9rem; }
+.badge-new { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 99px; background: var(--new-soft); color: var(--new); font-weight: 600; font-size: .8rem; }
+
+.search { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 0 8px; }
+.field { position: relative; display: flex; align-items: center; }
+.field .icon { position: absolute; left: 14px; width: 20px; height: 20px; color: var(--muted); pointer-events: none; }
+#q { width: 100%; font: inherit; font-size: 1.1rem; padding: 14px 44px 14px 44px; border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--card); color: var(--text); outline: none; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+#q:focus { border-color: var(--accent); }
+#q::-webkit-search-cancel-button { display: none; }
+.clear { position: absolute; right: 8px; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 1.5rem; line-height: 1; cursor: pointer; }
+.clear:hover { background: var(--line); }
+.options { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin-top: 8px; font-size: .88rem; color: var(--muted); }
+.opt { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.opt input { accent-color: var(--accent); }
+select { font: inherit; font-size: .88rem; padding: 3px 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: var(--text); }
+.hint { flex-basis: 100%; font-size: .8rem; }
+code { font-size: .85em; background: var(--line); padding: 0 4px; border-radius: 4px; }
+
+.summary { color: var(--muted); font-size: .9rem; margin: 10px 0; }
+.error { color: var(--accent); }
+.results { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.item { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.item.removed { opacity: .6; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: .8rem; color: var(--muted); margin-bottom: 6px; }
+.type { background: var(--accent-soft); color: var(--accent); padding: 1px 8px; border-radius: 99px; font-weight: 600; }
+.name { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+.court { white-space: pre-wrap; overflow-wrap: anywhere; margin: 8px 0 0; font-size: .88rem; color: var(--muted); border-left: 3px solid var(--line); padding-left: 10px; }
+.skeleton { background: linear-gradient(90deg, var(--line), var(--bg), var(--line)); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 6px; min-height: 2.5em; }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 2px; }
+.more { display: block; margin: 16px auto; padding: 10px 24px; font: inherit; border: 1px solid var(--line); border-radius: 99px; background: var(--card); color: var(--text); cursor: pointer; }
+.more:hover { border-color: var(--accent); }
+.foot { color: var(--muted); font-size: .8rem; padding: 30px 16px 40px; }
+.num { font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) { #q { font-size: 1rem; padding: 12px 40px; } .top { padding-top: 18px; } }

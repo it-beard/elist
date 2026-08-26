@@ -1,0 +1,26 @@
+{
+  "name": "extremist-materials-search",
+  "version": "2.0.0",
+  "description": "Пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў (zviazda.by)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "npm run build:index && vite",
+    "build": "npm run build:index && vite build",
+    "preview": "vite preview",
+    "update": "node scripts/update.mjs",
+    "build:index": "node scripts/build-index.mjs",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.5.0",
+    "vite": "^6.3.0",
+    "vitest": "^3.2.0",
+    "word-extractor": "^1.0.4"
+  },
+  "engines": { "node": ">=20" }
+}
