@@ -6,6 +6,7 @@ export const LINKS = {
   mvd: 'https://www.mvd.gov.by/',
   viasna: 'https://spring96.org/',
   humanConstanta: 'https://humanconstanta.org/',
+  repo: 'https://github.com/it-beard/elist',
 };
 
 export const STRINGS = {
@@ -60,7 +61,8 @@ export const STRINGS = {
     watchFresh: (n) => `Новыя супадзенні: ${n}`,
     watchBase: (d) => `база ад ${d}`,
     watchHint: 'Дадайце свой нік, назвы каналаў, спасылкі, імёны — увядзіце ў пошук і націсніце «Сачыць». Пры кожным адкрыцці сайт праверыць іх і пакажа тут, ці з’явілася нешта новае.',
-    watchPrivacy: 'Спіс захоўваецца толькі ў гэтым браўзеры і нікуды не адпраўляецца. Перад паездкай у Беларусь ці перасячэннем мяжы варта яго ачысціць.',
+    watchPrivacy: 'Спіс захоўваецца толькі ў гэтым браўзеры і нікуды не адпраўляецца.',
+    travelWarn: 'Перад паездкай у Беларусь ці перасячэннем мяжы варта ачысціць спіс назірання.',
     watchMatches: (n) => (n ? `${n} ${plural(n, 'супадзенне', 'супадзенні', 'супадзенняў')}` : 'няма'),
     watchNew: (n) => `+${n} новых`,
     watchOpen: 'Паказаць вынікі',
@@ -110,6 +112,10 @@ export const STRINGS = {
       'Перад паездкай у Беларусь ці мяжой націсніце «Ачысціць усё» — спіс назірання знікне з прылады.',
     ],
     helpPrivacyTitle: 'Прыватнасць',
+    helpOpenTitle: 'Адкрыты код',
+    helpOpen1: 'Праект адкрыты: код даступны на ',
+    helpOpen2: 'GitHub',
+    helpOpen3: '. Сайт статычны, яго можна разгарнуць лакальна ці як люстэрка на любым хостынгу — інструкцыя ў рэпазіторыі.',
     // «што гэта значыць»
     legalTitle: 'Што гэта значыць для мяне?',
     legal: [
@@ -192,7 +198,8 @@ export const STRINGS = {
     watchFresh: (n) => `New matches: ${n}`,
     watchBase: (d) => `database of ${d}`,
     watchHint: 'Add your handle, channel names, links, names — type them in the search box and press “Watch”. Every time you open the site it re-checks them and shows here whether anything new appeared.',
-    watchPrivacy: 'The list is stored only in this browser and never sent anywhere. Clear it before travelling to Belarus or crossing the border.',
+    watchPrivacy: 'The list is stored only in this browser and never sent anywhere.',
+    travelWarn: 'Clear the watchlist before travelling to Belarus or crossing the border.',
     watchMatches: (n) => (n ? `${n} ${n === 1 ? 'match' : 'matches'}` : 'none'),
     watchNew: (n) => `+${n} new`,
     watchOpen: 'Show results',
@@ -239,6 +246,10 @@ export const STRINGS = {
       'Before travelling to Belarus or crossing the border press “Clear everything” — the watchlist disappears from the device.',
     ],
     helpPrivacyTitle: 'Privacy',
+    helpOpenTitle: 'Open source',
+    helpOpen1: 'The project is open source: the code is available on ',
+    helpOpen2: 'GitHub',
+    helpOpen3: '. The site is static and can be run locally or mirrored on any hosting — see the repository for instructions.',
     legalTitle: 'What does this mean for me?',
     legal: [
       ['This is not legal advice', 'A short explanation of how this list works in practice. For a real problem, contact human rights defenders (links at the end).'],

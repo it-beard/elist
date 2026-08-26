@@ -42,6 +42,11 @@ export default function HelpDialog({ open, onClose }) {
           <h3>{t.helpPrivacyTitle}</h3>
           <p>{t.privacy}</p>
           <p>{t.watchPrivacy}</p>
+          <p className="travel-warn">⚠️ {t.travelWarn}</p>
+        </section>
+        <section>
+          <h3>{t.helpOpenTitle}</h3>
+          <p>{t.helpOpen1}<a href={LINKS.repo} target="_blank" rel="noopener">{t.helpOpen2}</a>{t.helpOpen3}</p>
         </section>
       </div>
     </dialog>

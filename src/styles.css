@@ -45,6 +45,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .badge-new { display: inline-block; margin-left: 8px; padding: 1px 9px; border-radius: 99px; background: var(--new); color: #fff; font-weight: 600; font-size: .78rem; white-space: nowrap; }
 .notice { margin: 10px 0 0; padding: 8px 12px; border-radius: 10px; background: var(--line); font-size: .85rem; }
 .notice.warn { background: var(--warn-soft); color: var(--warn); }
+.travel-warn { color: var(--warn); font-weight: 600; }
 
 /* ---- укладкі ---- */
 .tabs { display: flex; gap: 4px; margin-top: 14px; border-bottom: 1px solid var(--line); }

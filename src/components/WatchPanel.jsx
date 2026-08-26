@@ -75,6 +75,7 @@ export default function WatchPanel({ watch, meta, refreshing, refreshError, chec
           </div>
           {refreshError && <p className="hint error">{t.recheckError(refreshError)}</p>}
           <p className="hint">{t.watchPrivacy}</p>
+          <p className="hint travel-warn">⚠️ {t.travelWarn}</p>
           <p className="hint">{t.tgHint1}<a href={LINKS.telegram} target="_blank" rel="noopener">{t.tgHint2}</a>{t.tgHint3}</p>
         </div>
       )}
