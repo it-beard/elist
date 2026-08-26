@@ -2,7 +2,7 @@ export const LANGS = ['be', 'en'];
 export const DEFAULT_LANG = 'be';
 
 export const LINKS = {
-  telegram: 'https://t.me/extremist_by',
+  telegram: 'https://t.me/elist_by',
   mvd: 'https://www.mvd.gov.by/',
   viasna: 'https://spring96.org/',
   humanConstanta: 'https://humanconstanta.org/',
@@ -26,7 +26,7 @@ export const STRINGS = {
     navRss: 'RSS-стужка новых запісаў',
     navTg: 'Telegram-канал з новымі запісамі',
     tgHint1: 'Каб даведвацца пра новыя запісы першым — ',
-    tgHint2: 'Telegram-канал @extremist_by',
+    tgHint2: 'Telegram-канал @elist_by',
     tgHint3: '.',
     placeholder: 'Нік, канал, спасылка, назва, суд…',
     search: 'Пошук',
@@ -105,7 +105,7 @@ export const STRINGS = {
     helpHow: [
       'Увядзіце нік, назву канала, спасылку, імя ці назву — усё, што можа быць у сьпісе. Рэгістар, «ё/е», лацінка/кірыліца і памылкі ў пары літар не перашкодзяць.',
       'Націсьніце «☆ Сачыць» — запыт трапіць у сьпіс назіраньня. Пры кожным адкрыцьці сайт праверыць усе такія запыты і пакажа зьверху, ці зьявілася нешта новае.',
-      'Укладка «Што новага» — усё, што дадалі ў сьпіс апошнім часам. Каб не прапусьціць — Telegram-канал @extremist_by або RSS.',
+      'Укладка «Што новага» — усё, што дадалі ў сьпіс апошнім часам. Каб не прапусьціць — Telegram-канал @elist_by або RSS.',
       'Кожны запіс мае пастаянную спасылку (нумар «№» справа) — яе можна пераслаць.',
       'Перад паездкай у Беларусь ці мяжой націсьніце «Ачысьціць усё» — сьпіс назіраньня зьнікне з прылады.',
     ],
@@ -158,7 +158,7 @@ export const STRINGS = {
     navRss: 'RSS feed of new entries',
     navTg: 'Telegram channel with new entries',
     tgHint1: 'To learn about new entries first, follow the ',
-    tgHint2: 'Telegram channel @extremist_by',
+    tgHint2: 'Telegram channel @elist_by',
     tgHint3: '.',
     placeholder: 'Handle, channel, link, title, court…',
     search: 'Search',
@@ -233,7 +233,7 @@ export const STRINGS = {
     helpHow: [
       'Type a handle, channel name, link, name or title — anything that may be on the list. Case, “ё/е”, Latin/Cyrillic and a couple of typos do not matter.',
       'Press “☆ Watch” — the query goes to your watchlist. Every time you open the site it re-checks all such queries and shows at the top whether anything new appeared.',
-      'The “What’s new” tab lists everything recently added. To never miss an update, follow the Telegram channel @extremist_by or the RSS feed.',
+      'The “What’s new” tab lists everything recently added. To never miss an update, follow the Telegram channel @elist_by or the RSS feed.',
       'Every entry has a permanent link (the “№” on the right) that you can share.',
       'Before travelling to Belarus or crossing the border press “Clear everything” — the watchlist disappears from the device.',
     ],
