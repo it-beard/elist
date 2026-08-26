@@ -3,7 +3,7 @@ export const DEFAULT_LANG = 'be';
 
 export const STRINGS = {
   be: {
-    title: 'Спіс экстрэмісцкіх матэрыялаў',
+    title: 'Спіс экстрэмісцкіх матэрыялаў Беларусі',
     records: 'запісаў',
     updated: 'абноўлена',
     recent: (n, d) => `+${n} за ${d} дзён`,
@@ -43,7 +43,7 @@ export const STRINGS = {
     tipPhrase: '"словы запар"',
   },
   en: {
-    title: 'List of extremist materials',
+    title: 'List of extremist materials of Belarus',
     records: 'records',
     updated: 'updated',
     recent: (n, d) => `+${n} in ${d} days`,
