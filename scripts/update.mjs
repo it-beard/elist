@@ -143,6 +143,11 @@ async function main() {
   for (const it of byId.values()) {
     if (!seen.has(it.id) && !it.removed) { it.removed = today; removed++; }
   }
+  // Засьцярога: сьпіс амаль ніколі не скарачаецца. Калі «зьнікла» болей за 5%
+  // базы — хутчэй за ўсё зьмянілася формула id або фармат файла. Не псуем базу.
+  if (!initial && removed > Math.max(50, db.length * 0.05)) {
+    throw new Error(`Падазрона: ${removed} запісаў зьнікла з крыніцы, ${added} дададзена. Абнаўленьне спынена — праверце формулу id / фармат файла.`);
+  }
   const out = [...byId.values()].sort((a, b) => a.order - b.order);
   await fs.writeFile(DB_FILE, JSON.stringify(out));
 
