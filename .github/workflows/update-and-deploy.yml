@@ -2,7 +2,8 @@ name: Абнаўленне спісу і публікацыя
 
 on:
   schedule:
-    - cron: '17 4 * * *'   # штодня 04:17 UTC
+    - cron: '17 4 * * *'    # штодня 04:17 UTC
+    - cron: '17 16 * * *'   # дубль 16:17 UTC — на выпадак, калі GitHub прапусціць ранішні
   workflow_dispatch:
     inputs:
       telegram_test:
