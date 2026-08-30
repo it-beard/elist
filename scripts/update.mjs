@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Спампоўвае актуальны файл спісу з старонкі-крыніцы (PAGE_URL), разбірае табліцу
- * і даўносіць новыя запісы ў data/materials.json (тэкставая база).
+ * Спампоўвае актуальны файл спісу з старонкі-крыніцы (SOURCES, па парадку прыярытэту),
+ * разбірае табліцу і даўносіць новыя запісы ў data/materials.json (тэкставая база).
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -16,20 +16,25 @@ const DATA_DIR = path.join(ROOT, 'data');
 const DB_FILE = path.join(DATA_DIR, 'materials.json');
 const META_FILE = path.join(DATA_DIR, 'meta.json');
 const CACHE_DIR = path.join(ROOT, '.cache');
-const PAGE_URL = 'https://zviazda.by/respublikanski-spis-ekstremistskikh-materyyala/';
+// Крыніцы па парадку прыярытэту. Афіцыйная — Мінінфарм; Звязда — люстэрка, якое
+// адстае на дні (у жніўні 2026 — на 23 запісы), таму яно толькі запасны варыянт.
+const SOURCES = [
+  { page: 'https://mininform.gov.by/ru/respublikanskiy-spisok-ekstremistskikh-materialov-ru/', primary: true },
+  { page: 'https://zviazda.by/respublikanski-spis-ekstremistskikh-materyyala/', primary: false },
+];
 const UA = 'Mozilla/5.0 (compatible; extremist-materials-search; +https://github.com)';
 
 const today = new Date().toISOString().slice(0, 10);
 const localFile = process.argv[2]; // неабавязкова: лакальны .doc для тэсту
 
 // ---------- крок 1: знайсці спасылку на .doc ----------
-async function findDocUrls() {
-  const res = await fetch(PAGE_URL, { headers: { 'user-agent': UA } });
+async function findDocUrls(pageUrl) {
+  const res = await fetch(pageUrl, { headers: { 'user-agent': UA } });
   if (!res.ok) throw new Error(`Не ўдалося атрымаць старонку: HTTP ${res.status}`);
   const html = await res.text();
   const links = [...html.matchAll(/href="([^"]+\.(?:docx?|rtf))"/gi)].map((m) => m[1]);
   const uniq = [...new Set(links)].map((href) => {
-    const url = new URL(href.replace(/&amp;/g, '&'), PAGE_URL).href;
+    const url = new URL(href.replace(/&amp;/g, '&'), pageUrl).href;
     const num = Number((decodeURIComponent(href).match(/(\d{4,})/) || [])[1] || 0);
     return { url, num };
   });
@@ -47,7 +52,8 @@ async function download(urls) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const buf = Buffer.from(await res.arrayBuffer());
       if (buf.length < 10_000) throw new Error('файл падазрона малы');
-      console.log(`Спампавана: ${url} (${(buf.length / 1e6).toFixed(1)} MB)`);
+      const modified = res.headers.get('last-modified') || '?';
+      console.log(`Спампавана: ${url} (${(buf.length / 1e6).toFixed(1)} MB, Last-Modified: ${modified})`);
       return { url, buf };
     } catch (e) {
       lastErr = e;
@@ -55,6 +61,23 @@ async function download(urls) {
     }
   }
   throw lastErr;
+}
+
+/** Абыходзіць SOURCES па чарзе; вяртае першую крыніцу, з якой удалося спампаваць файл. */
+async function fetchFromSources() {
+  const errors = [];
+  for (const src of SOURCES) {
+    try {
+      const urls = await findDocUrls(src.page);
+      const { url, buf } = await download(urls);
+      if (!src.primary) console.warn('Увага: выкарыстана запасная крыніца — яна можа адставаць ад афіцыйнай.');
+      return { ...src, url, buf };
+    } catch (e) {
+      errors.push(`${new URL(src.page).host}: ${e.message}`);
+      console.warn(`Крыніца ${src.page} недаступная: ${e.message}`);
+    }
+  }
+  throw new Error(errors.join('; '));
 }
 
 // ---------- крок 2: разбор тэксту ----------
@@ -104,13 +127,14 @@ async function readJson(file, fallback) {
 
 async function main() {
   let sourceUrl = localFile ? `file://${localFile}` : null;
+  let sourcePage = localFile ? null : SOURCES[0].page;
+  let primary = true; // лакальны файл лічым паўнавартаснай крыніцай
   let buf;
   if (localFile) {
     buf = await fs.readFile(localFile);
   } else {
     try {
-      const urls = await findDocUrls();
-      ({ url: sourceUrl, buf } = await download(urls));
+      ({ page: sourcePage, primary, url: sourceUrl, buf } = await fetchFromSources());
     } catch (e) {
       // Крыніца недаступная — база застаецца, а сайт пакажа папярэджанне «магла састарэць».
       const meta = await readJson(META_FILE, {});
@@ -138,15 +162,19 @@ async function main() {
     const ex = byId.get(it.id);
     if (ex) {
       ex.order = i; // свежы парадак з крыніцы
+      if (primary && ex.removed) delete ex.removed; // запіс вярнуўся ў афіцыйную крыніцу
     } else {
       byId.set(it.id, { ...it, order: i, added: initial ? null : today });
       added++;
     }
   });
-  // запісы, якіх ужо няма ў крыніцы, пакідаем, але пазначаем
+  // Запісы, якіх ужо няма ў крыніцы, пакідаем, але пазначаем. Толькі для асноўнай
+  // крыніцы: запасное люстэрка можа быць старэйшым за базу, і яго «адсутнасць» нічога не значыць.
   let removed = 0;
-  for (const it of byId.values()) {
-    if (!seen.has(it.id) && !it.removed) { it.removed = today; removed++; }
+  if (primary) {
+    for (const it of byId.values()) {
+      if (!seen.has(it.id) && !it.removed) { it.removed = today; removed++; }
+    }
   }
   // Засцярога: спіс амаль ніколі не скарачаецца. Калі «знікла» болей за 5%
   // базы — хутчэй за ўсё змянілася формула id або фармат файла. Не псуем базу.
@@ -161,7 +189,7 @@ async function main() {
     updated: today,
     checked: today,
     sourceError: null,
-    sourcePage: PAGE_URL,
+    sourcePage,
     sourceFile: sourceUrl,
     total: out.filter((x) => !x.removed).length,
     lastAdded: added && !initial ? today : meta.lastAdded || null,

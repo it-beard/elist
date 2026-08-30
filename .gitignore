@@ -34,3 +34,6 @@ public/opensearch.xml
 public/404.html
 public/security.txt
 public/.well-known/
+
+# update.mjs: апошні спампаваны .doc
+.cache/
