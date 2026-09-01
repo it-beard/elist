@@ -8,7 +8,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalizeCompact } from '../src/lib/normalize.js';
-import { courtName, dateWords } from '../src/lib/court.js';
+import { courtName, dateWords, extractArticle } from '../src/lib/court.js';
 import { writeGeo } from './geo.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -31,7 +31,8 @@ const db = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'materials.json'
 const meta = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'meta.json'), 'utf8'));
 const types = dict(), courts = dict();
 
-// [тып, суд, дата, дададзена, выдалена, назва, id]
+// [тып, суд, дата, дададзена, выдалена, назва, id, артыкул]
+const ART = { gpk: 1, kgs: 2 };
 const items = db.map((x) => [
   types.id(normalizeCompact(x.type)),
   courts.id(normalizeCompact(courtName(x.court))),
@@ -40,6 +41,7 @@ const items = db.map((x) => [
   x.removed || '',
   normalizeCompact(x.name),
   x.id,
+  ART[extractArticle(x.court)?.code] || 0,
 ]);
 const dates = Object.fromEntries([...new Set(items.map((i) => i[2]))].filter(Boolean).map((d) => [d, dateWords(d)]));
 

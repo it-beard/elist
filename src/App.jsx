@@ -19,6 +19,7 @@ import ResultList from './components/ResultList.jsx';
 import WatchPanel from './components/WatchPanel.jsx';
 import WhatsNew from './components/WhatsNew.jsx';
 import RecordPage from './components/RecordPage.jsx';
+import StatsPage from './components/StatsPage.jsx';
 import Consequences from './components/Consequences.jsx';
 import HelpDialog from './components/HelpDialog.jsx';
 import { LINKS } from './lib/i18n.js';
@@ -105,11 +106,12 @@ export default function App() {
     <>
       <Header meta={meta} items={items} online={online} onHelp={() => setHelp(true)} />
       <HelpDialog open={help} onClose={() => setHelp(false)} />
-      <Nav route={route.name === 'new' ? 'new' : route.name === 'r' ? 'r' : ''} newCount={newCount} />
+      <Nav route={['new', 'r', 'stats'].includes(route.name) ? route.name : ''} newCount={newCount} />
       <main className="wrap">
         {status === 'ready' && route.name === 'new' && <WhatsNew items={items} chunkSize={chunkSize} />}
         {status === 'ready' && route.name === 'r' && <RecordPage id={route.arg} items={items} chunkSize={chunkSize} watch={watch} />}
-        {route.name !== 'new' && route.name !== 'r' && (
+        {route.name === 'stats' && (status === 'ready' ? <StatsPage items={items} /> : <p className="summary">{status === 'error' ? t.loadError(error) : t.loading}</p>)}
+        {!['new', 'r', 'stats'].includes(route.name) && (
           <>
             <div className="search">
               <SearchBar value={query} onChange={setQuery} />
