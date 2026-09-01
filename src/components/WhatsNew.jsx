@@ -7,7 +7,7 @@ import ResultList from './ResultList.jsx';
 
 const GROUPS = 8, FALLBACK = 60;
 
-/** Старонка «Што новага»: запісы па даце з’яўлення ў спісе; выдаленыя — асобна. */
+/** Старонка «Новае»: запісы па даце з’яўлення ў спісе; выдаленыя — асобна. */
 export default function WhatsNew({ items, chunkSize }) {
   const { t } = useLang();
   const { groups, removed, fallback } = useMemo(() => {
