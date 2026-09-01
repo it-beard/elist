@@ -160,7 +160,6 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
   .top { padding-top: 18px; }
   h1 { font-size: 1.2rem; }
 
-  .sub .checked { display: block; }
   .tabs { margin-top: 10px; overflow-x: auto; scrollbar-width: none; }
   .tabs::-webkit-scrollbar { display: none; }
   .tab { padding: 9px 8px; font-size: .9rem; white-space: nowrap; }

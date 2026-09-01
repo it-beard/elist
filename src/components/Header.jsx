@@ -6,9 +6,9 @@ import LangToggle from './LangToggle.jsx';
 export default function Header({ meta, items, online, onHelp }) {
   const { t, lang } = useLang();
   const recent = items ? items.filter((it) => isRecent(it.added)).length : 0;
-  // Час апошняй праверкі крыніцы. Cron у GitHub Actions спазняецца на гадзіны,
-  // таму паказваем факт, а не прагноз. Старыя кэшы meta без checkedAt — толькі дата.
-  const checkedStr = checkedLabel(meta, t, lang);
+  // Час апошняга абнаўлення базы (checkedAt пішацца пры кожным паспяховым запуску
+  // update.mjs). Старыя кэшы meta без checkedAt — толькі дата.
+  const updatedStr = updatedLabel(meta, t, lang);
   return (
     <header className="top wrap">
       <div className="top-row">
@@ -20,8 +20,7 @@ export default function Header({ meta, items, online, onHelp }) {
       <p className="sub">
         {meta ? (
           <>
-            {t.updated} <time dateTime={meta.updated}>{fmtDate(meta.updated)}</time>
-            {checkedStr && <>{' · '}<span className="checked" title={t.twiceDaily}>{t.checkedAt(checkedStr)}</span></>}
+            {t.updated} <time dateTime={meta.checkedAt || meta.updated} title={t.twiceDaily}>{updatedStr}</time>
             {recent > 0 && <span className="badge-new">{t.recent(recent, NEW_DAYS)}</span>}
           </>
         ) : ' '}
@@ -32,7 +31,7 @@ export default function Header({ meta, items, online, onHelp }) {
   );
 }
 
-function checkedLabel(meta, t, lang) {
+function updatedLabel(meta, t, lang) {
   if (meta?.checkedAt) {
     const rel = relDay(meta.checkedAt);
     const time = fmtTime(meta.checkedAt, lang);
