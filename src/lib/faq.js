@@ -17,7 +17,6 @@ export function siteFacts(meta = {}) {
     totalStr: fmtNum(meta.total || 0),
     updated: meta.updated || '',
     updatedStr: fmtDay(meta.updated),
-    updateTime: '04:17 UTC',
   };
 }
 
@@ -47,7 +46,7 @@ const LEGAL_EN = {
 
 /**
  * FAQ: пытанне — самадастатковы адказ (першы сказ адказвае цалкам).
- * a(f) атрымлівае факты: { totalStr, updatedStr, updateTime, infoShare }.
+ * a(f) атрымлівае факты: { totalStr, updatedStr, infoShare }.
  */
 export const FAQ = {
   be: [
@@ -61,7 +60,7 @@ export const FAQ = {
     },
     {
       q: 'Колькі запісаў у спісе і як часта ён абнаўляецца?',
-      a: (f) => `На ${f.updatedStr} у базе ${f.totalStr} запісаў, і яна абнаўляецца аўтаматычна раз на суткі: праверка афіцыйнай крыніцы пачынаецца а ${f.updateTime}, новыя запісы трапляюць на сайт прыкладна праз 10 хвілін. ${f.infoShare ? `${f.infoShare}% запісаў — «інфармацыйная прадукцыя» (каналы, сайты, акаўнты, відэа, чаты), астатняе — друкаваныя выданні, кнігі, сімваліка і атрыбутыка.` : ''}`.trim(),
+      a: (f) => `На ${f.updatedStr} у базе ${f.totalStr} запісаў, і яна абнаўляецца аўтаматычна двойчы на дзень: сайт правярае афіцыйную крыніцу раніцай і ўвечары, і новыя запісы трапляюць на сайт праз некалькі хвілін пасля праверкі. ${f.infoShare ? `${f.infoShare}% запісаў — «інфармацыйная прадукцыя» (каналы, сайты, акаўнты, відэа, чаты), астатняе — друкаваныя выданні, кнігі, сімваліка і атрыбутыка.` : ''}`.trim(),
     },
     {
       q: 'Што пагражае за рэпост ці захоўванне матэрыялу са спісу?',
@@ -111,7 +110,7 @@ export const FAQ = {
     },
     {
       q: 'How many entries are on the list and how often is it updated?',
-      a: (f) => `As of ${f.updatedStr} the database holds ${f.totalStr} entries and it refreshes automatically once a day: the official source is checked at ${f.updateTime} and new entries reach the site about 10 minutes later. ${f.infoShare ? `${f.infoShare}% of entries are “information products” (channels, websites, accounts, videos, chats); the rest are printed editions, books, symbols and paraphernalia.` : ''}`.trim(),
+      a: (f) => `As of ${f.updatedStr} the database holds ${f.totalStr} entries and it refreshes automatically twice a day: the official source is checked in the morning and in the evening, and new entries reach the site a few minutes after each check. ${f.infoShare ? `${f.infoShare}% of entries are “information products” (channels, websites, accounts, videos, chats); the rest are printed editions, books, symbols and paraphernalia.` : ''}`.trim(),
     },
     {
       q: 'What are the penalties for reposting or storing a listed material?',
@@ -162,7 +161,7 @@ export const SUMMARY = {
 export const KEY_FACTS = {
   be: (f) => [
     ['Запісаў у базе', `${f.totalStr} (на ${f.updatedStr})`],
-    ['Абнаўленне', `аўтаматычна раз на суткі, а ${f.updateTime}`],
+    ['Абнаўленне', 'аўтаматычна, двойчы на дзень'],
     ['Крыніца', 'афіцыйная публікацыя Рэспубліканскага спісу экстрэмісцкіх матэрыялаў'],
     ['Пошук', 'цалкам у браўзеры; кірыліца ↔ лацінка, памылкі ў 1–2 літары'],
     ['Даныя пра карыстальніка', 'не збіраюцца: ні запытаў, ні cookies, ні статыстыкі'],
@@ -172,7 +171,7 @@ export const KEY_FACTS = {
   ],
   en: (f) => [
     ['Entries', `${f.totalStr} (as of ${f.updatedStr})`],
-    ['Updates', `automatic, once a day at ${f.updateTime}`],
+    ['Updates', 'automatic, twice a day'],
     ['Source', 'official publication of the Republican list of extremist materials'],
     ['Search', 'entirely in the browser; Cyrillic ↔ Latin, 1–2 letter typos'],
     ['User data', 'none collected: no queries, no cookies, no analytics'],

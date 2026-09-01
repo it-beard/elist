@@ -18,7 +18,6 @@ src/hooks/                 useIndex, useRecord (ленівы фрагмент), 
   translit.js              кірыліца ↔ лацінка (руская транслітарацыя і беларуская лацінка), і ↔ и
   fuzzy.js                 прыблізны пошук (Левенштэйн па словах корпуса), калі дакладных супадзенняў няма
   watch.js                 праверка спісу назірання па індэксе
-  schedule.js              час наступнага аўтаабнаўлення
 src/hooks/                 useIndex (з «праверыць зноў»), useRecord, useUrlParam (?q=), useHashRoute (#/new, #/stats, #/r/<id>), useWatchlist, useOnline
 src/components/            Header, Nav, SearchBar, Options, WatchPanel, ResultList, ResultItem, Highlight, WhatsNew, RecordPage, Consequences
 scripts/geo.mjs            GEO: robots.txt, llms.txt, sitemap.xml, статычныя FAQ-старонкі
@@ -105,7 +104,7 @@ npm run build      # dist/
 
 | | |
 | --- | --- |
-| Entries | ~6 000, updated automatically once a day (04:17 UTC) |
+| Entries | ~6 000, updated automatically twice a day |
 | Search | runs entirely in the browser; Cyrillic ↔ Latin transliteration, 1–2 letter typo tolerance |
 | Data collected | none — no queries, no cookies, no analytics, no server |
 | Offline | yes, PWA; the database stays in the browser |

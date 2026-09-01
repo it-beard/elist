@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../hooks/useLang.jsx';
-import { fmtDate } from '../lib/format.js';
+import { fmtDate, fmtTime } from '../lib/format.js';
 import { LINKS } from '../lib/i18n.js';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 
@@ -30,7 +30,7 @@ export default function WatchPanel({ watch, meta, refreshing, refreshError, chec
   };
 
   const status = empty ? t.watchEmpty : fresh ? t.watchFresh(fresh) : hits ? t.watchHits(hits) : t.watchOk(entries.length);
-  const time = checkedAt ? new Date(checkedAt).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+  const time = checkedAt ? fmtTime(checkedAt, lang) : '';
 
   return (
     <section className={`watch ${tone}`} aria-label={t.watchTitle}>

@@ -1,5 +1,4 @@
-import { fmtDate, isRecent, NEW_DAYS } from '../lib/format.js';
-import { nextUpdate } from '../lib/schedule.js';
+import { fmtDate, fmtLocalDate, fmtTime, relDay, isRecent, NEW_DAYS } from '../lib/format.js';
 import { useLang } from '../hooks/useLang.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import LangToggle from './LangToggle.jsx';
@@ -7,9 +6,9 @@ import LangToggle from './LangToggle.jsx';
 export default function Header({ meta, items, online, onHelp }) {
   const { t, lang } = useLang();
   const recent = items ? items.filter((it) => isRecent(it.added)).length : 0;
-  const next = nextUpdate();
-  const day = next.getDate() === new Date().getDate() ? t.today : t.tomorrow;
-  const nextStr = `${day} ${t.at} ${next.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit', hour12: false })}`;
+  // Час апошняй праверкі крыніцы. Cron у GitHub Actions спазняецца на гадзіны,
+  // таму паказваем факт, а не прагноз. Старыя кэшы meta без checkedAt — толькі дата.
+  const checkedStr = checkedLabel(meta, t, lang);
   return (
     <header className="top wrap">
       <div className="top-row">
@@ -22,7 +21,7 @@ export default function Header({ meta, items, online, onHelp }) {
         {meta ? (
           <>
             {t.updated} <time dateTime={meta.updated}>{fmtDate(meta.updated)}</time>
-            {' · '}<span className="next" title={next.toLocaleString(lang)}>{t.nextUpdate(nextStr)}</span>
+            {checkedStr && <>{' · '}<span className="checked" title={t.twiceDaily}>{t.checkedAt(checkedStr)}</span></>}
             {recent > 0 && <span className="badge-new">{t.recent(recent, NEW_DAYS)}</span>}
           </>
         ) : ' '}
@@ -31,4 +30,15 @@ export default function Header({ meta, items, online, onHelp }) {
       {!online && meta && <p className="notice">{t.offline(fmtDate(meta.updated))}</p>}
     </header>
   );
+}
+
+function checkedLabel(meta, t, lang) {
+  if (meta?.checkedAt) {
+    const rel = relDay(meta.checkedAt);
+    const time = fmtTime(meta.checkedAt, lang);
+    if (rel) return `${t[rel]} ${t.at} ${time}`;
+    return `${fmtLocalDate(meta.checkedAt)} ${time}`;
+  }
+  const d = meta?.checked || meta?.updated;
+  return d ? fmtDate(d) : '';
 }

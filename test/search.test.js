@@ -4,7 +4,7 @@ import { variants } from '../src/lib/translit.js';
 import { levenshtein, corpusWords, similarWords } from '../src/lib/fuzzy.js';
 import { search } from '../src/lib/search.js';
 import { checkWatchlist } from '../src/lib/watch.js';
-import { nextUpdate } from '../src/lib/schedule.js';
+import { relDay } from '../src/lib/format.js';
 
 const items = [
   { i: 0, id: 'a', date: '2026-01-01', h: 'канал "свабода" https://t.me/svaboda\nинформационная продукция' },
@@ -71,9 +71,11 @@ describe('checkWatchlist', () => {
   });
 });
 
-describe('nextUpdate', () => {
-  it('сёння, калі яшчэ не было; інакш заўтра', () => {
-    expect(nextUpdate(new Date('2026-08-26T01:00:00Z')).toISOString()).toBe('2026-08-26T04:30:00.000Z');
-    expect(nextUpdate(new Date('2026-08-26T05:00:00Z')).toISOString()).toBe('2026-08-27T04:30:00.000Z');
+describe('relDay', () => {
+  const now = new Date(2026, 8, 1, 12, 0); // 1 верасня, поўдзень, мясцовы час
+  it('сёння / учора / даўней па мясцовай даце, а не па 24 гадзінах', () => {
+    expect(relDay(new Date(2026, 8, 1, 0, 5), now)).toBe('today');
+    expect(relDay(new Date(2026, 7, 31, 23, 55), now)).toBe('yesterday');
+    expect(relDay(new Date(2026, 7, 30, 12, 0), now)).toBe(null);
   });
 });

@@ -24,7 +24,8 @@ const SOURCES = [
 ];
 const UA = 'Mozilla/5.0 (compatible; extremist-materials-search; +https://github.com)';
 
-const today = new Date().toISOString().slice(0, 10);
+const now = new Date().toISOString();
+const today = now.slice(0, 10);
 const localFile = process.argv[2]; // неабавязкова: лакальны .doc для тэсту
 
 // ---------- крок 1: знайсці спасылку на .doc ----------
@@ -138,7 +139,7 @@ async function main() {
     } catch (e) {
       // Крыніца недаступная — база застаецца, а сайт пакажа папярэджанне «магла састарэць».
       const meta = await readJson(META_FILE, {});
-      await fs.writeFile(META_FILE, JSON.stringify({ ...meta, checked: today, sourceError: e.message }, null, 2));
+      await fs.writeFile(META_FILE, JSON.stringify({ ...meta, checked: today, checkedAt: now, sourceError: e.message }, null, 2));
       console.warn(`Крыніца недаступная: ${e.message}. meta.sourceError запісаны, база не зменена.`);
       return;
     }
@@ -188,6 +189,7 @@ async function main() {
   const newMeta = {
     updated: today,
     checked: today,
+    checkedAt: now, // поўны час апошняй праверкі крыніцы — паказваецца ў шапцы сайта
     sourceError: null,
     sourcePage,
     sourceFile: sourceUrl,
