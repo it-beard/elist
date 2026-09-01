@@ -1,5 +1,6 @@
 import { useRecord } from '../hooks/useRecord.js';
 import { fmtDate, isRecent } from '../lib/format.js';
+import { extractArticle } from '../lib/court.js';
 import { useLang } from '../hooks/useLang.jsx';
 import { href } from '../hooks/useHashRoute.js';
 import Highlight from './Highlight.jsx';
@@ -7,10 +8,16 @@ import Highlight from './Highlight.jsx';
 export default function ResultItem({ item, tokens, chunkSize }) {
   const { t } = useLang();
   const rec = useRecord(item.i, chunkSize);
+  // лэйбл: артыкул з рашэння суда; калі яго ў тэксце няма — тып матэрыялу
+  const art = rec?.court ? extractArticle(rec.court) : null;
   return (
     <li className={`item${item.removed ? ' removed' : ''}`}>
       <div className="meta">
-        {rec?.type && <span className="type"><Highlight text={rec.type} tokens={tokens} /></span>}
+        {art ? (
+          <span className="type" title={t.articleTitle(art.num, art.code)}>{t.article(art.num, art.code)}</span>
+        ) : rec?.type ? (
+          <span className="type"><Highlight text={rec.type} tokens={tokens} /></span>
+        ) : null}
         {item.date && <span className="num">{fmtDate(item.date)}</span>}
         {isRecent(item.added) && <span className="badge-new" title={t.addedTitle}>{t.isNew} · {fmtDate(item.added)}</span>}
         {item.removed && <span className="gone">{t.removed} {fmtDate(item.removed)}</span>}

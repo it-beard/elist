@@ -23,3 +23,20 @@ export function dateWords(iso) {
   const [y, m, d] = iso.split('-');
   return `${+d} ${MONTHS_GEN[+m - 1]} ${y} ${d}.${m}.${y}`;
 }
+
+const CODES = [
+  [/гражданского процессуального кодекса|\bГПК\b/i, 'gpk'],
+  [/кодекса гражданского судопроизводства|\bКГС\b/i, 'kgs'],
+];
+
+/**
+ * Артыкул, на які спасылаецца рашэнне: «…в соответствии с 314 статьей Гражданского процессуального
+ * кодекса…» → { num: '314', code: 'gpk' }; «…со статьей 302 Кодекса гражданского судопроизводства…»
+ * → { num: '302', code: 'kgs' }. null — калі артыкула ў тэксце няма.
+ */
+export function extractArticle(text) {
+  const m = (text || '').match(/(\d{2,3})(?:-?[йя])?\s+стать[а-яё]*|стать[а-яё]*\s+(\d{2,3})/i);
+  if (!m) return null;
+  const code = CODES.find(([re]) => re.test(text))?.[1] || null;
+  return { num: m[1] || m[2], code };
+}

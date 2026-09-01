@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { normalize, normalizeCompact, parseQuery, matchRanges } from '../src/lib/normalize.js';
-import { courtName, extractDate, dateWords } from '../src/lib/court.js';
+import { courtName, extractDate, dateWords, extractArticle } from '../src/lib/court.js';
 import { search } from '../src/lib/search.js';
 
 describe('normalize', () => {
@@ -33,6 +33,9 @@ describe('court', () => {
   it('дата', () => expect(extractDate(c)).toBe('2026-08-20'));
   it('дата словамі і лічбамі', () => expect(dateWords('2026-08-20')).toBe('20 августа 2026 20.08.2026'));
   it('няма даты', () => expect(extractDate('без даты')).toBeNull());
+  it('артыкул 314 ГПК', () => expect(extractArticle('Решение суда …\nПодлежит немедленному исполнению в соответствии с 314 статьей Гражданского процессуального кодекса Республики Беларусь')).toEqual({ num: '314', code: 'gpk' }));
+  it('артыкул 302 КГС', () => expect(extractArticle('Решение суда …\nПодлежит немедленному исполнению в соответствии со статьей 302 Кодекса гражданского судопроизводства Республики Беларусь')).toEqual({ num: '302', code: 'kgs' }));
+  it('няма артыкула', () => expect(extractArticle(c)).toBeNull());
 });
 
 describe('search', () => {

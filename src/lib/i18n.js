@@ -52,6 +52,8 @@ export const STRINGS = {
     addedTitle: 'Дададзена ў спіс',
     removed: 'выдалена',
     permalink: 'Пастаянная спасылка на запіс',
+    article: (n, code) => `арт. ${n}${code ? ` ${{ gpk: 'ГПК', kgs: 'КГС' }[code]}` : ''}`,
+    articleTitle: (n, code) => `Артыкул ${n} ${{ gpk: 'Грамадзянскага працэсуальнага кодэкса', kgs: 'Кодэкса грамадзянскага судаводства' }[code] || ''}`.trim(),
     recError: (e) => `Памылка загрузкі: ${e}`,
     // спіс назірання
     watchTitle: 'Мой спіс назірання',
@@ -190,6 +192,8 @@ export const STRINGS = {
     addedTitle: 'Added to the list',
     removed: 'removed',
     permalink: 'Permanent link to this entry',
+    article: (n, code) => `Art. ${n}${code ? ` ${{ gpk: 'CPC', kgs: 'CCP' }[code]}` : ''}`,
+    articleTitle: (n, code) => `Article ${n} ${{ gpk: 'of the Civil Procedure Code', kgs: 'of the Code of Civil Proceedings' }[code] || ''}`.trim(),
     recError: (e) => `Load error: ${e}`,
     watchTitle: 'My watchlist',
     watchEmpty: 'Watchlist is empty',
