@@ -36,8 +36,10 @@ jobs:
     steps:
       # Токен не застаецца ў .git/config: разбор чужога .doc і npm ідуць без крэдэнцыялаў,
       # push робіцца асобным крокам праз x-access-token.
+      # ref: main — каб паўторны запуск (re-run) браў актуальны main, а не каміт першай спробы:
+      # інакш яго data/ канфліктуе з тым, што першая спроба ўжо запушыла.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-        with: { persist-credentials: false }
+        with: { ref: main, persist-credentials: false }
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with: { node-version: 22, cache: npm }
       # Толькі runtime-залежнасці і без install-скрыптоў: у джобе з правамі на запіс — мінімум чужога кода.
@@ -67,17 +69,29 @@ jobs:
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPDATE_FORCE: ${{ inputs.force }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add data
-          if git diff --cached --quiet; then echo "Зменаў няма"; exit 0; fi
-          git commit -m "data: абнаўленне спісу $(date -u +%F)"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          commit_data() { git add data; git diff --cached --quiet && return 1; git commit -q -m "data: абнаўленне спісу $(date -u +%F)"; }
+          commit_data || { echo "Зменаў няма"; exit 0; }
           for i in 1 2 3; do
-            if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi
-            git rebase --abort 2>/dev/null || true
-            echo "Push не ўдаўся (спроба $i), паўтараю…"; sleep 15
+            git fetch -q origin main
+            if git rebase -q origin/main; then
+              git push -q origin HEAD:main && exit 0
+              echo "Push адхілены (спроба $i), паўтараю…"
+            else
+              # Канфлікт у data/: базу ўжо абнавіў іншы запуск (папярэдняя спроба гэтага ж run'а, ручны push).
+              # Бяром свежы main і паўтараем разбор: update.mjs ідэмпатэнтны адносна апошняй базы, а дайджэст
+              # для новых запісаў дашле наступны запуск — notified.json са свежага main не губляецца.
+              git rebase --abort 2>/dev/null || true
+              echo "Канфлікт з origin/main у data/ (спроба $i): паўтараю абнаўленне на свежай базе…"
+              git reset -q --hard origin/main
+              npm run update
+              commit_data || { echo "Пасля паўтору зменаў няма"; exit 0; }
+            fi
+            sleep 10
           done
           echo "::error::Не ўдалося запушыць data/ пасля 3 спробаў"
           exit 1
