@@ -34,7 +34,17 @@ jobs:
       - run: npm ci
       - name: Спампаваць і разабраць свежы .doc
         run: npm run update
+      - name: Дайджэст у Telegram (калі наладжаны сакрэты)
+        run: node scripts/notify.mjs
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_TEST: ${{ inputs.telegram_test }}
+          SITE_URL: https://elist.itbeard.com/
+      # Каміт заўжды пасля дайджэсту: data/notified.json з адзнакамі пра адпраўку
+      # мусіць трапіць у рэпо, інакш наступны запуск прышле тое самае паўторна.
       - name: Закамітаваць змены ў базе
+        if: always()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
@@ -45,13 +55,6 @@ jobs:
             git commit -m "data: абнаўленне спісу $(date -u +%F)"
             git push
           fi
-      - name: Дайджэст у Telegram (калі наладжаны сакрэты)
-        run: node scripts/notify.mjs
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TELEGRAM_TEST: ${{ inputs.telegram_test }}
-          SITE_URL: https://elist.itbeard.com/
 
   deploy:
     name: Сабраць і апублікаваць

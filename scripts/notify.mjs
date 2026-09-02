@@ -4,6 +4,11 @@
  * Патрабуе TELEGRAM_BOT_TOKEN і TELEGRAM_CHAT_ID; без іх проста выходзіць.
  * TELEGRAM_TEST=1 — дасылае пробнае паведамленне з апошнімі запісамі, нават калі новых няма.
  *
+ * Абарона ад дублёў: адпраўленыя id захоўваюцца ў data/notified.json (камітуецца ў рэпо).
+ * Воркфлоў ходзіць двойчы на суткі, таму «новае за сёння» само па сабе не крытэрый —
+ * шлём толькі тое, чаго яшчэ не было ў канале. Незасланае за апошнія WINDOW_DAYS дзён
+ * дабіраецца пры наступным запуску, калі адпраўка ўпала.
+ *
  * Фарматаванне — HTML-рэжым Bot API (дазволеныя толькі b/i/u/s/code/a/blockquote):
  * https://core.telegram.org/bots/api#html-style. Ліміт — 4096 сімвалаў на паведамленне,
  * таму доўгі дайджэст разбіваецца на некалькі частак.
@@ -14,21 +19,33 @@ import { fileURLToPath } from 'node:url';
 import { courtName } from '../src/lib/court.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const STATE_FILE = path.join(ROOT, 'data', 'notified.json');
 const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID;
 const SITE = (process.env.SITE_URL || 'https://elist.itbeard.com/').replace(/\/?$/, '/');
 const test = ['1', 'true'].includes(process.env.TELEGRAM_TEST);
 const LIMIT = 3900;      // запас да 4096
 const NAME_MAX = 220;    // даўжыня назвы ў дайджэсце
+const WINDOW_DAYS = 7;   // як глыбока дабіраем незасланыя запісы
+const KEEP_DAYS = 60;    // як доўга трымаем адзнакі ў data/notified.json
 
 if (!token || !chat) { console.log('Telegram не наладжаны — прапускаю.'); process.exit(0); }
 
+const readJson = async (file, fallback) => {
+  try { return JSON.parse(await fs.readFile(file, 'utf8')); } catch { return fallback; }
+};
+
 const meta = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'meta.json'), 'utf8'));
 const db = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'materials.json'), 'utf8'));
+const sent = (await readJson(STATE_FILE, {})).sent || {};
 const today = new Date().toISOString().slice(0, 10);
+const shiftDays = (iso, n) => new Date(Date.parse(`${iso}T00:00:00Z`) + n * 86400e3).toISOString().slice(0, 10);
+const since = shiftDays(today, -WINDOW_DAYS);
 
-let fresh = db.filter((x) => x.added === today);
+let fresh = db
+  .filter((x) => x.added && x.added >= since && !sent[x.id])
+  .sort((a, b) => a.added.localeCompare(b.added) || (a.order ?? 0) - (b.order ?? 0));
 if (test && !fresh.length) fresh = [...db].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 4);
-if (!test && (meta.lastAdded !== today || !fresh.length)) { console.log('Новых запісаў няма — паведамленне не патрэбнае.'); process.exit(0); }
+if (!fresh.length) { console.log('Новых запісаў няма — паведамленне не патрэбнае.'); process.exit(0); }
 
 // ---------- фарматаванне ----------
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -70,24 +87,38 @@ function entry(x, n) {
 }
 
 const n = fresh.length;
+// дата дайджэсту — калі запісы трапілі ў базу, а не калі мы дасылаем (важна для дабору за мінулыя дні)
+const day = test ? today : fresh[fresh.length - 1].added;
 const header = test
-  ? `🧪 <b>Пробнае паведамленне</b> — так будуць выглядаць дайджэсты\n<i>${dateBe(today)} · ${num(meta.total)} ${plural(meta.total, 'запіс', 'запісы', 'запісаў')} у спісе</i>`
-  : `🔴 <b>Спіс экстрэмісцкіх матэрыялаў: +${n} ${plural(n, 'новы запіс', 'новыя запісы', 'новых запісаў')}</b>\n<i>${dateBe(today)} · усяго ў спісе ${num(meta.total)}</i>`;
+  ? `🧪 <b>Пробнае паведамленне</b> — так будуць выглядаць дайджэсты\n<i>${dateBe(day)} · ${num(meta.total)} ${plural(meta.total, 'запіс', 'запісы', 'запісаў')} у спісе</i>`
+  : `🔴 <b>Спіс экстрэмісцкіх матэрыялаў: +${n} ${plural(n, 'новы запіс', 'новыя запісы', 'новых запісаў')}</b>\n<i>${dateBe(day)} · усяго ў спісе ${num(meta.total)}</i>`;
 const footer =
   `🔎 <a href="${SITE}">Праверыць сябе і свой спіс назірання</a>\n` +
   `📰 <a href="${SITE}#/new">Усе новыя запісы</a> · <a href="${SITE}feed.xml">RSS</a>`;
 
 // ---------- разбіццё на паведамленні (≤ 4096) ----------
-const blocks = fresh.map((x, i) => entry(x, i + 1));
-const messages = [];
-let cur = header, count = 0;
+// ids[i] — запісы, што трапілі ў messages[i]: пазначаем іх адпраўленымі паштучна,
+// каб пасля збою на сярэдзіне дайджэсту паўтарылася толькі недасланая частка.
+const blocks = fresh.map((x, i) => ({ id: x.id, html: entry(x, i + 1) }));
+const messages = [], ids = [];
+let cur = header, curIds = [], count = 0;
 for (const b of blocks) {
-  const next = `${cur}\n\n${b}`;
-  if (next.length > LIMIT && count > 0) { messages.push(cur); cur = `<i>Працяг дайджэсту</i>\n\n${b}`; count = 1; }
-  else { cur = next; count++; }
+  const next = `${cur}\n\n${b.html}`;
+  if (next.length > LIMIT && count > 0) {
+    messages.push(cur); ids.push(curIds);
+    cur = `<i>Працяг дайджэсту</i>\n\n${b.html}`; curIds = [b.id]; count = 1;
+  } else { cur = next; curIds.push(b.id); count++; }
 }
-messages.push(`${cur}\n\n${footer}`);
+messages.push(`${cur}\n\n${footer}`); ids.push(curIds);
 if (messages.length > 1) messages.forEach((m, i) => { messages[i] = m.replace(/^(<i>Працяг дайджэсту<\/i>)/, `<i>Працяг дайджэсту (${i + 1}/${messages.length})</i>`); });
+
+/** Захаваць адзнакі пра адпраўку, адкінуўшы старыя (файл не расце бясконца). */
+async function saveState() {
+  if (test) return;
+  const keepFrom = shiftDays(today, -KEEP_DAYS);
+  const kept = Object.fromEntries(Object.entries(sent).filter(([, d]) => d >= keepFrom).sort());
+  await fs.writeFile(STATE_FILE, `${JSON.stringify({ sent: kept }, null, 2)}\n`);
+}
 
 // ---------- адпраўка ----------
 for (const [i, text] of messages.entries()) {
@@ -99,6 +130,12 @@ for (const [i, text] of messages.entries()) {
       disable_notification: i > 0, // гук — толькі на першую частку
     }),
   });
-  if (!r.ok) { console.error(`Telegram: HTTP ${r.status} ${await r.text()}`); process.exit(1); }
+  if (!r.ok) {
+    console.error(`Telegram: HTTP ${r.status} ${await r.text()}`);
+    await saveState(); // тое, што ўжо сышло, паўторна не пойдзе
+    process.exit(1);
+  }
+  for (const id of ids[i]) sent[id] = today;
 }
+await saveState();
 console.log(`Адпраўлена ў Telegram${test ? ' (тэст)' : ''}: ${n} ${plural(n, 'запіс', 'запісы', 'запісаў')}, ${messages.length} ${plural(messages.length, 'паведамленне', 'паведамленні', 'паведамленняў')}.`);
