@@ -20,6 +20,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { FAQ, KEY_FACTS, SUMMARY, dataStats, siteFacts } from '../src/lib/faq.js';
 import { csp } from './csp.mjs';
+import { LINKS } from '../src/lib/i18n.js';
 
 const esc = (s) => String(s).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
 const abs = (site, p) => new URL(p, site).href;
@@ -282,9 +283,9 @@ ${sections}
 <div class="card">
 <h2 class="tight">${esc(sourcesTitle)}</h2>
 <ul class="links">
-<li><a href="https://spring96.org/" rel="noopener">${en ? 'Viasna Human Rights Centre' : 'Праваабарончы цэнтр «Вясна»'}</a></li>
-<li><a href="https://humanconstanta.org/" rel="noopener">Human Constanta</a></li>
-<li><a href="https://www.mvd.gov.by/" rel="noopener">${en ? 'List of extremist formations (Interior Ministry)' : 'Спіс экстрэмісцкіх фарміраванняў (МУС)'}</a></li>
+<li><a href="${LINKS.viasna}" rel="noopener">${en ? 'Viasna Human Rights Centre' : 'Праваабарончы цэнтр «Вясна»'}</a></li>
+<li><a href="${LINKS.humanConstanta}" rel="noopener">Human Constanta</a></li>
+<li><a href="${LINKS.mvd}" rel="noopener">${en ? 'List of extremist formations (Interior Ministry)' : 'Спіс экстрэмісцкіх фарміраванняў (МУС)'}</a></li>
 </ul>
 <p>${en ? 'This page is not legal advice.' : 'Гэтая старонка — не юрыдычная кансультацыя.'}</p>
 </div>

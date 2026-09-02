@@ -3,7 +3,9 @@ export const DEFAULT_LANG = 'be';
 
 export const LINKS = {
   telegram: 'https://t.me/elist_by',
-  mvd: 'https://www.mvd.gov.by/',
+  // «Перечень организаций, формирований, ИП и физических лиц, причастных к экстремистской деятельности»:
+  // МУС публікуе яго файламі ў гэтай навіне, асобнай старонкі ў спісу няма
+  mvd: 'https://www.mvd.gov.by/ru/news/8642',
   viasna: 'https://spring96.org/',
   humanConstanta: 'https://humanconstanta.org/',
   repo: 'https://github.com/it-beard/elist',
