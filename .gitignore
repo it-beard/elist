@@ -37,3 +37,6 @@ public/.well-known/
 
 # update.mjs: апошні спампаваны .doc
 .cache/
+
+# build-index.mjs: індэкс, фрагменты і публічны meta генеруюцца пры зборцы
+public/data/

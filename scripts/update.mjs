@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 /**
- * Спампоўвае актуальны файл спісу з старонкі-крыніцы (SOURCES, па парадку прыярытэту),
- * разбірае табліцу і даўносіць новыя запісы ў data/materials.json (тэкставая база).
+ * Спампоўвае актуальны файл спісу са старонкі-крыніцы (SOURCES, па парадку прыярытэту),
+ * разбірае табліцу (scripts/parse.mjs) і даўносіць новыя запісы ў data/materials.json.
+ * Праўкі тэксту ў крыніцы (scripts/merge.mjs) не лічацца новымі запісамі.
+ *
+ * Засцярогі: спіс амаль ніколі не скарачаецца і расце на адзінкі-дзясяткі запісаў за раз, таму
+ * масавае «знікненне» ці занадта шмат «новых» спыняюць абнаўленне (UPDATE_FORCE=1 — прыняць).
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import WordExtractor from 'word-extractor';
-import { recordKey } from '../src/lib/identity.js';
-import { extractDate } from '../src/lib/court.js';
+import { parseRows } from './parse.mjs';
+import { pairEdits } from './merge.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DATA_DIR = path.join(ROOT, 'data');
@@ -23,56 +26,67 @@ const SOURCES = [
   { page: 'https://zviazda.by/respublikanski-spis-ekstremistskikh-materyyala/', primary: false },
 ];
 const UA = 'Mozilla/5.0 (compatible; extremist-materials-search; +https://github.com)';
+const PAGE_TIMEOUT = 60_000, FILE_TIMEOUT = 180_000; // каб джоб не вісеў гадзінамі, калі крыніца «маўчыць»
+const MAX_CANDIDATES = 3;  // колькі .doc са старонкі параўноўваем, калі іх некалькі
+const MAX_ADDED = Number(process.env.MAX_ADDED) || 400; // больш «новых» за раз — падазрона
+const FORCE = ['1', 'true'].includes(process.env.UPDATE_FORCE);
 
 const now = new Date().toISOString();
 const today = now.slice(0, 10);
 const localFile = process.argv[2]; // неабавязкова: лакальны .doc для тэсту
 
-// ---------- крок 1: знайсці спасылку на .doc ----------
+// ---------- крок 1: знайсці спасылкі на .doc ----------
 async function findDocUrls(pageUrl) {
-  const res = await fetch(pageUrl, { headers: { 'user-agent': UA } });
+  const res = await fetch(pageUrl, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(PAGE_TIMEOUT) });
   if (!res.ok) throw new Error(`Не ўдалося атрымаць старонку: HTTP ${res.status}`);
   const html = await res.text();
-  const links = [...html.matchAll(/href="([^"]+\.(?:docx?|rtf))"/gi)].map((m) => m[1]);
-  const uniq = [...new Set(links)].map((href) => {
-    const url = new URL(href.replace(/&amp;/g, '&'), pageUrl).href;
-    const num = Number((decodeURIComponent(href).match(/(\d{4,})/) || [])[1] || 0);
-    return { url, num };
-  });
-  // самы новы = з найбольшым нумарам у назве файла; далей — па парадку на старонцы
-  uniq.sort((a, b) => b.num - a.num);
-  if (!uniq.length) throw new Error('На старонцы не знойдзена спасылак на .doc');
-  return uniq.map((u) => u.url);
+  const links = [...html.matchAll(/href=["']([^"']+\.(?:docx?|rtf))["']/gi)].map((m) => m[1]);
+  const urls = [...new Set(links.map((href) => new URL(href.replace(/&amp;/g, '&'), pageUrl).href))];
+  if (!urls.length) throw new Error('На старонцы не знойдзена спасылак на .doc');
+  return urls.slice(0, MAX_CANDIDATES); // у парадку старонкі
 }
 
-async function download(urls) {
-  let lastErr;
+async function download(url) {
+  const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(FILE_TIMEOUT) });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const buf = Buffer.from(await res.arrayBuffer());
+  if (buf.length < 10_000) throw new Error('файл падазрона малы');
+  console.log(`Спампавана: ${url} (${(buf.length / 1e6).toFixed(1)} MB, Last-Modified: ${res.headers.get('last-modified') || '?'})`);
+  return buf;
+}
+
+async function parseDoc(buf) {
+  const doc = await new WordExtractor().extract(buf);
+  return parseRows(doc.getBody());
+}
+
+/** Калі спасылак некалькі — бярэм файл з найбольшай колькасцю запісаў: спіс амаль ніколі не скарачаецца. */
+async function fetchBest(urls) {
+  let best = null, lastErr;
   for (const url of urls) {
     try {
-      const res = await fetch(url, { headers: { 'user-agent': UA } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const buf = Buffer.from(await res.arrayBuffer());
-      if (buf.length < 10_000) throw new Error('файл падазрона малы');
-      const modified = res.headers.get('last-modified') || '?';
-      console.log(`Спампавана: ${url} (${(buf.length / 1e6).toFixed(1)} MB, Last-Modified: ${modified})`);
-      return { url, buf };
+      const buf = await download(url);
+      const items = await parseDoc(buf);
+      console.log(`Разабрана запісаў: ${items.length} (${url})`);
+      if (!best || items.length > best.items.length) best = { url, buf, items };
     } catch (e) {
       lastErr = e;
-      console.warn(`Не ўдалося спампаваць ${url}: ${e.message}`);
+      console.warn(`Не ўдалося ${url}: ${e.message}`);
     }
   }
-  throw lastErr;
+  if (!best) throw lastErr || new Error('няма файлаў');
+  return best;
 }
 
-/** Абыходзіць SOURCES па чарзе; вяртае першую крыніцу, з якой удалося спампаваць файл. */
+/** Абыходзіць SOURCES па чарзе; вяртае першую крыніцу, з якой удалося ўзяць файл. */
 async function fetchFromSources() {
   const errors = [];
   for (const src of SOURCES) {
     try {
       const urls = await findDocUrls(src.page);
-      const { url, buf } = await download(urls);
+      const best = await fetchBest(urls);
       if (!src.primary) console.warn('Увага: выкарыстана запасная крыніца — яна можа адставаць ад афіцыйнай.');
-      return { ...src, url, buf };
+      return { ...src, ...best };
     } catch (e) {
       errors.push(`${new URL(src.page).host}: ${e.message}`);
       console.warn(`Крыніца ${src.page} недаступная: ${e.message}`);
@@ -81,47 +95,7 @@ async function fetchFromSources() {
   throw new Error(errors.join('; '));
 }
 
-// ---------- крок 2: разбор тэксту ----------
-const clean = (s) =>
-  s
-    .replace(/\r/g, '')
-    .replace(/ /g, ' ')
-    .replace(/[ \t]+\n/g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .split('\n')
-    .map((l) => l.trim())
-    .join('\n')
-    .trim();
-
-function parseRows(body) {
-  const rows = body.split('\t\n');
-  const items = [];
-  for (const raw of rows) {
-    const cells = raw.split('\t').map(clean);
-    while (cells.length && !cells[cells.length - 1]) cells.pop();
-    if (cells.length < 2) continue;
-    let [type, ...rest] = cells;
-    if (/вид экстремистских материалов/i.test(type)) continue; // загаловак табліцы
-    // калі ячэйка «тып» адсутнічае і ў першай ячэйцы апісанне — пераносім у назву
-    if (rest.length < 2 && type.length > 80) { rest.unshift(type); type = ''; }
-    if (/^республиканский список/i.test(type) && rest.length < 2) continue;
-    let name, court;
-    if (rest.length >= 2) {
-      court = rest.pop();
-      name = rest.join('\n');
-    } else {
-      name = rest[0];
-      court = '';
-    }
-    if (!name) continue;
-    // id = sha1 ад замарожанай нармалізацыі (src/lib/identity.js) — стабільны між зборкамі
-    const id = crypto.createHash('sha1').update(recordKey(type, name, court)).digest('hex').slice(0, 12);
-    items.push({ id, type, name, court, date: extractDate(court) });
-  }
-  return items;
-}
-
-// ---------- крок 3: зліццё з базай ----------
+// ---------- крок 2: зліццё з базай ----------
 async function readJson(file, fallback) {
   try { return JSON.parse(await fs.readFile(file, 'utf8')); } catch { return fallback; }
 }
@@ -130,12 +104,13 @@ async function main() {
   let sourceUrl = localFile ? `file://${localFile}` : null;
   let sourcePage = localFile ? null : SOURCES[0].page;
   let primary = true; // лакальны файл лічым паўнавартаснай крыніцай
-  let buf;
+  let buf, parsed;
   if (localFile) {
     buf = await fs.readFile(localFile);
+    parsed = await parseDoc(buf);
   } else {
     try {
-      ({ page: sourcePage, primary, url: sourceUrl, buf } = await fetchFromSources());
+      ({ page: sourcePage, primary, url: sourceUrl, buf, items: parsed } = await fetchFromSources());
     } catch (e) {
       // Крыніца недаступная — база застаецца, а сайт пакажа папярэджанне «магла састарэць».
       const meta = await readJson(META_FILE, {});
@@ -147,8 +122,6 @@ async function main() {
   await fs.mkdir(CACHE_DIR, { recursive: true });
   await fs.writeFile(path.join(CACHE_DIR, 'latest.doc'), buf);
 
-  const doc = await new WordExtractor().extract(buf);
-  const parsed = parseRows(doc.getBody());
   console.log(`Разабрана запісаў у крыніцы: ${parsed.length}`);
   if (parsed.length < 100) throw new Error('Занадта мала запісаў — магчыма, змяніўся фармат файла');
 
@@ -156,31 +129,46 @@ async function main() {
   const db = await readJson(DB_FILE, []);
   const byId = new Map(db.map((x) => [x.id, x]));
   const initial = db.length === 0; // першы імпарт: не пазначаем усё як «новае»
-  let added = 0;
+  const addedRecs = [];
   const seen = new Set();
   parsed.forEach((it, i) => {
     seen.add(it.id);
     const ex = byId.get(it.id);
     if (ex) {
       ex.order = i; // свежы парадак з крыніцы
-      if (primary && ex.removed) delete ex.removed; // запіс вярнуўся ў афіцыйную крыніцу
+      if (primary && ex.removed) { delete ex.removed; delete ex.replacedBy; } // запіс вярнуўся ў афіцыйную крыніцу
     } else {
-      byId.set(it.id, { ...it, order: i, added: initial ? null : today });
-      added++;
+      const rec = { ...it, order: i, added: initial ? null : today };
+      byId.set(it.id, rec);
+      addedRecs.push(rec);
     }
   });
   // Запісы, якіх ужо няма ў крыніцы, пакідаем, але пазначаем. Толькі для асноўнай
   // крыніцы: запасное люстэрка можа быць старэйшым за базу, і яго «адсутнасць» нічога не значыць.
-  let removed = 0;
-  if (primary) {
-    for (const it of byId.values()) {
-      if (!seen.has(it.id) && !it.removed) { it.removed = today; removed++; }
-    }
+  const removedRecs = [];
+  if (primary) for (const it of byId.values()) if (!seen.has(it.id) && !it.removed) removedRecs.push(it);
+
+  // Праўкі: «зніклы» + «новы» з тым жа судом і амаль той жа назвай — адзін запіс з выпраўленым тэкстам.
+  // Новы наследуе дату з’яўлення (не ідзе ў Telegram/RSS/«Новае»), стары вядзе на новы (replacedBy).
+  const edits = initial ? [] : pairEdits(removedRecs, addedRecs);
+  const edited = new Set();
+  for (const [old, rec] of edits) {
+    rec.added = old.added; rec.edited = today; rec.editOf = old.id;
+    old.removed = today; old.replacedBy = rec.id;
+    edited.add(old.id); edited.add(rec.id);
+    console.log(`Праўка запісу ${old.id} → ${rec.id}: ${rec.name.replace(/\s+/g, ' ').slice(0, 90)}`);
   }
+  const added = addedRecs.filter((r) => !edited.has(r.id)).length;
+  let removed = 0;
+  for (const it of removedRecs) if (!edited.has(it.id)) { it.removed = today; removed++; }
+
   // Засцярога: спіс амаль ніколі не скарачаецца. Калі «знікла» болей за 5%
   // базы — хутчэй за ўсё змянілася формула id або фармат файла. Не псуем базу.
   if (!initial && removed > Math.max(50, db.length * 0.05)) {
     throw new Error(`Падазрона: ${removed} запісаў знікла з крыніцы, ${added} дададзена. Абнаўленне спынена — праверце формулу id / фармат файла.`);
+  }
+  if (!initial && !FORCE && added > MAX_ADDED) {
+    throw new Error(`Падазрона: ${added} новых запісаў за адзін раз (ліміт ${MAX_ADDED}). Абнаўленне спынена — праверце файл крыніцы; каб прыняць, задайце UPDATE_FORCE=1.`);
   }
   const out = [...byId.values()].sort((a, b) => a.order - b.order);
   await fs.writeFile(DB_FILE, JSON.stringify(out));
@@ -191,6 +179,7 @@ async function main() {
     checked: today,
     checkedAt: now, // поўны час апошняй праверкі крыніцы — паказваецца ў шапцы сайта
     sourceError: null,
+    fallback: !primary, // узятая запасная крыніца — сайт папярэджвае, што база можа адставаць
     sourcePage,
     sourceFile: sourceUrl,
     total: out.filter((x) => !x.removed).length,
@@ -198,7 +187,7 @@ async function main() {
     lastAddedCount: initial ? 0 : added || meta.lastAddedCount || 0,
   };
   await fs.writeFile(META_FILE, JSON.stringify(newMeta, null, 2));
-  console.log(`Дададзена новых: ${added}, знікла з крыніцы: ${removed}, усяго ў базе: ${out.length}`);
+  console.log(`Дададзена новых: ${added}, выпраўлена: ${edits.length}, знікла з крыніцы: ${removed}, усяго ў базе: ${out.length}`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

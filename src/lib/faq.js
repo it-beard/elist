@@ -76,7 +76,7 @@ export const FAQ = {
     },
     {
       q: 'Ці бяспечна карыстацца гэтым сайтам?',
-      a: () => 'Сайт не збірае ніякіх даных: ні запытаў, ні cookies, ні статыстыкі, ні логаў. Пошук цалкам працуе ў вашым браўзеры — запыты нікуды не адпраўляюцца, бо ўся база спампоўваецца на прыладу. Спіс назірання, тэма, мова і сартаванне захоўваюцца толькі ў localStorage гэтай прылады, а кнопка «Ачысціць усё» выдаляе іх адным націскам. Перад паездкай у Беларусь ці перасячэннем мяжы варта гэта зрабіць.',
+      a: () => 'Сайт не збірае ніякіх даных: ні запытаў, ні cookies, ні статыстыкі. Сам сайт логаў не вядзе; хостынг (GitHub Pages), як любы сервер, бачыць IP-адрас і адрас старонкі, але не пошукавыя запыты — яны не трапляюць у адрасны радок і выконваюцца цалкам у вашым браўзеры, бо ўся база спампоўваецца на прыладу. Спіс назірання, тэма, мова і сартаванне захоўваюцца толькі ў localStorage гэтай прылады, а кнопка «Ачысціць усё» выдаляе іх разам з афлайн-копіяй базы адным націскам. Перад паездкай у Беларусь ці перасячэннем мяжы варта гэта зрабіць і ачысціць гісторыю браўзера.',
     },
     {
       q: 'Як даведацца, што ў спіс дадалі нешта новае?',
@@ -126,7 +126,7 @@ export const FAQ = {
     },
     {
       q: 'Is this site safe to use?',
-      a: () => 'The site collects no data: no queries, no cookies, no analytics, no logs. Search runs entirely in your browser — queries are never sent anywhere, because the whole database is downloaded to the device. The watchlist, theme, language and sort order live only in this device’s localStorage, and “Clear everything” deletes them in one click. Do that before travelling to Belarus or crossing the border.',
+      a: () => 'The site collects no data: no queries, no cookies, no analytics. The site itself keeps no logs; the hosting (GitHub Pages), like any server, sees the IP address and the page address but not search queries — they never enter the address bar and run entirely in your browser, because the whole database is downloaded to the device. The watchlist, theme, language and sort order live only in this device’s localStorage, and “Clear everything” deletes them together with the offline copy of the database in one click. Do that before travelling to Belarus or crossing the border, and clear your browser history.',
     },
     {
       q: 'How do I find out when something new is added to the list?',
@@ -153,8 +153,8 @@ export const FAQ = {
 
 /** Кароткае апісанне сайта з лічбамі — для meta description, llms.txt і JSON-LD. */
 export const SUMMARY = {
-  be: (f) => `Пошук па афіцыйным Рэспубліканскім спісе экстрэмісцкіх матэрыялаў Беларусі: ${f.totalStr} запісаў на ${f.updatedStr}, абнаўленне раз на суткі. Праверце нік, Telegram-канал, сайт ці кнігу, дадайце запыт у спіс назірання. Працуе афлайн, не збірае ніякіх даных.`,
-  en: (f) => `Search the official Republican list of extremist materials of Belarus: ${f.totalStr} entries as of ${f.updatedStr}, updated daily. Check a handle, Telegram channel, website or book and add it to your watchlist. Works offline, collects no data.`,
+  be: (f) => `Пошук па афіцыйным Рэспубліканскім спісе экстрэмісцкіх матэрыялаў Беларусі: ${f.totalStr} запісаў на ${f.updatedStr}, абнаўленне двойчы на дзень. Праверце нік, Telegram-канал, сайт ці кнігу, дадайце запыт у спіс назірання. Працуе афлайн, не збірае ніякіх даных.`,
+  en: (f) => `Search the official Republican list of extremist materials of Belarus: ${f.totalStr} entries as of ${f.updatedStr}, updated twice a day. Check a handle, Telegram channel, website or book and add it to your watchlist. Works offline, collects no data.`,
 };
 
 /** Ключавыя факты табліцай — структураваныя фрагменты лягчэй цытаваць. */

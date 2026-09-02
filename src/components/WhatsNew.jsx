@@ -7,15 +7,15 @@ import ResultList from './ResultList.jsx';
 
 const GROUPS = 8, FALLBACK = 60;
 
-/** Старонка «Новае»: запісы па даце з’яўлення ў спісе; выдаленыя — асобна. */
+/** Старонка «Новае»: запісы па даце з’яўлення ў спісе; выдаленыя — асобна. Старыя версіі выпраўленых запісаў не паказваем. */
 export default function WhatsNew({ items, chunkSize }) {
   const { t } = useLang();
   const { groups, removed, fallback } = useMemo(() => {
     const byDate = new Map();
-    for (const it of items) if (it.added) (byDate.get(it.added) || byDate.set(it.added, []).get(it.added)).push(it);
+    for (const it of items) if (it.added && !it.replacedBy) (byDate.get(it.added) || byDate.set(it.added, []).get(it.added)).push(it);
     const groups = [...byDate.entries()].sort((a, b) => b[0].localeCompare(a[0])).slice(0, GROUPS)
       .map(([d, list]) => [d, list.sort((a, b) => b.i - a.i)]);
-    const removed = items.filter((it) => it.removed).sort((a, b) => b.removed.localeCompare(a.removed)).slice(0, FALLBACK);
+    const removed = items.filter((it) => it.removed && !it.replacedBy).sort((a, b) => b.removed.localeCompare(a.removed)).slice(0, FALLBACK);
     const fallback = groups.length ? null : search(items, [], { sort: 'newest' }).slice(0, FALLBACK);
     return { groups, removed, fallback };
   }, [items]);

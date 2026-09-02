@@ -27,6 +27,9 @@ export default function RecordPage({ id, items, chunkSize, watch }) {
         <p className="summary error">{t.recNotFound}</p>
       ) : (
         <>
+          {item.replacedBy && (
+            <p className="notice warn">{t.recReplaced} <a href={href(`r/${item.replacedBy}`)}>{t.recOpenNew}</a></p>
+          )}
           <ol className="results"><ResultItem item={item} tokens={[]} chunkSize={chunkSize} /></ol>
           <div className="rec-actions">
             <button type="button" className="chip" onClick={copy}>{copied ? t.copied : t.copyLink}</button>

@@ -1,14 +1,18 @@
-import { fmtDate, fmtLocalDate, fmtTime, relDay, isRecent, NEW_DAYS } from '../lib/format.js';
+import { fmtDate, fmtLocalDate, fmtTime, relDay, isRecent, NEW_DAYS, STALE_HOURS, hoursSince } from '../lib/format.js';
 import { useLang } from '../hooks/useLang.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import LangToggle from './LangToggle.jsx';
 
 export default function Header({ meta, items, online, onHelp }) {
   const { t, lang } = useLang();
-  const recent = items ? items.filter((it) => isRecent(it.added)).length : 0;
+  const recent = items ? items.filter((it) => !it.replacedBy && isRecent(it.added)).length : 0;
   // Час апошняга абнаўлення базы (checkedAt пішацца пры кожным паспяховым запуску
   // update.mjs). Старыя кэшы meta без checkedAt — толькі дата.
   const updatedStr = updatedLabel(meta, t, lang);
+  // Калі аўтаматычнае абнаўленне спынілася зусім (cron адключаны, парсер зламаўся, джоб падае),
+  // meta на сайце не змяняецца — таму папярэджваем па ўзросце апошняй праверкі на баку кліента.
+  const checkedAgo = meta ? hoursSince(meta.checkedAt || meta.checked || meta.updated) : 0;
+  const stale = Boolean(online && meta && !meta.sourceError && checkedAgo > STALE_HOURS);
   return (
     <header className="top wrap">
       <div className="top-row">
@@ -26,6 +30,8 @@ export default function Header({ meta, items, online, onHelp }) {
         ) : ' '}
       </p>
       {meta?.sourceError && <p className="notice warn">{t.sourceDown(fmtDate(meta.checked || meta.updated))}</p>}
+      {meta?.fallback && <p className="notice warn">{t.fallbackSrc}</p>}
+      {stale && <p className="notice warn">{t.stale(updatedStr)}</p>}
       {!online && meta && <p className="notice">{t.offline(fmtDate(meta.updated))}</p>}
     </header>
   );

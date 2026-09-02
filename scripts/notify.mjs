@@ -2,12 +2,14 @@
 /**
  * Дайджэст новых запісаў у Telegram-канал (запускаецца ў CI пасля абнаўлення).
  * Патрабуе TELEGRAM_BOT_TOKEN і TELEGRAM_CHAT_ID; без іх проста выходзіць.
- * TELEGRAM_TEST=1 — дасылае пробнае паведамленне з апошнімі запісамі, нават калі новых няма.
+ * TELEGRAM_TEST=1 — пробнае паведамленне з узорам апошніх запісаў: у адмін-чат (TELEGRAM_ADMIN_CHAT_ID),
+ * калі ён зададзены, інакш у канал. Рэальныя новыя запісы ў пробным рэжыме не кранаюцца і не пазначаюцца.
  *
  * Абарона ад дублёў: адпраўленыя id захоўваюцца ў data/notified.json (камітуецца ў рэпо).
  * Воркфлоў ходзіць двойчы на суткі, таму «новае за сёння» само па сабе не крытэрый —
  * шлём толькі тое, чаго яшчэ не было ў канале. Незасланае за апошнія WINDOW_DAYS дзён
- * дабіраецца пры наступным запуску, калі адпраўка ўпала.
+ * дабіраецца пры наступным запуску, калі адпраўка ўпала. Выпраўлены ў крыніцы запіс (editOf)
+ * не абвяшчаецца, калі яго папярэднюю версію ўжо дасылалі.
  *
  * Фарматаванне — HTML-рэжым Bot API (дазволеныя толькі b/i/u/s/code/a/blockquote):
  * https://core.telegram.org/bots/api#html-style. Ліміт — 4096 сімвалаў на паведамленне,
@@ -20,7 +22,7 @@ import { courtName } from '../src/lib/court.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STATE_FILE = path.join(ROOT, 'data', 'notified.json');
-const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID;
+const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID, adminChat = process.env.TELEGRAM_ADMIN_CHAT_ID;
 const SITE = (process.env.SITE_URL || 'https://elist.itbeard.com/').replace(/\/?$/, '/');
 const test = ['1', 'true'].includes(process.env.TELEGRAM_TEST);
 const LIMIT = 3900;      // запас да 4096
@@ -36,16 +38,19 @@ const readJson = async (file, fallback) => {
 
 const meta = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'meta.json'), 'utf8'));
 const db = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'materials.json'), 'utf8'));
+const byId = new Map(db.map((x) => [x.id, x]));
 const sent = (await readJson(STATE_FILE, {})).sent || {};
 const today = new Date().toISOString().slice(0, 10);
 const shiftDays = (iso, n) => new Date(Date.parse(`${iso}T00:00:00Z`) + n * 86400e3).toISOString().slice(0, 10);
 const since = shiftDays(today, -WINDOW_DAYS);
 
-let fresh = db
-  .filter((x) => x.added && x.added >= since && !sent[x.id])
+let fresh = test ? [] : db
+  .filter((x) => x.added && x.added >= since && !sent[x.id] && !(x.editOf && sent[x.editOf]))
   .sort((a, b) => a.added.localeCompare(b.added) || (a.order ?? 0) - (b.order ?? 0));
-if (test && !fresh.length) fresh = [...db].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 4);
+// Пробны рэжым: заўсёды ўзор з апошніх запісаў, а не рэальныя новыя — інакш яны пайшлі б у канал двойчы.
+if (test) fresh = db.filter((x) => !x.removed).sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 4);
 if (!fresh.length) { console.log('Новых запісаў няма — паведамленне не патрэбнае.'); process.exit(0); }
+const target = test && adminChat ? adminChat : chat;
 
 // ---------- фарматаванне ----------
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -53,7 +58,7 @@ const MONTHS = ['студзеня', 'лютага', 'сакавіка', 'кра�
 const dateBe = (iso) => { const [y, m, d] = iso.split('-'); return `${+d} ${MONTHS[+m - 1]} ${y}`; };
 const dateShort = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
 const plural = (n, one, few, many) => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 10 || b >= 20) ? few : many; };
-const num = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '\u2009'); // тонкі прабел між тысячамі
+const num = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); // тонкі прабел між тысячамі
 
 /** Эмодзі паводле тыпу рэсурсу — бяром той, што згадваецца ў назве першым. */
 const KINDS = [
@@ -121,21 +126,29 @@ async function saveState() {
 }
 
 // ---------- адпраўка ----------
-for (const [i, text] of messages.entries()) {
-  const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: chat, text, parse_mode: 'HTML',
-      link_preview_options: { is_disabled: true },
-      disable_notification: i > 0, // гук — толькі на першую частку
-    }),
-  });
-  if (!r.ok) {
-    console.error(`Telegram: HTTP ${r.status} ${await r.text()}`);
-    await saveState(); // тое, што ўжо сышло, паўторна не пойдзе
-    process.exit(1);
+let failed = null;
+try {
+  for (const [i, text] of messages.entries()) {
+    const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: target, text, parse_mode: 'HTML',
+        link_preview_options: { is_disabled: true },
+        disable_notification: i > 0, // гук — толькі на першую частку
+      }),
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!r.ok) { failed = `HTTP ${r.status} ${await r.text()}`; break; }
+    for (const id of ids[i]) {
+      sent[id] = today;
+      const prev = byId.get(id)?.editOf; // папярэдняя версія выпраўленага запісу — таксама дасланая
+      if (prev) sent[prev] = today;
+    }
   }
-  for (const id of ids[i]) sent[id] = today;
+} catch (e) {
+  failed = e.message;
+} finally {
+  await saveState(); // тое, што ўжо сышло, паўторна не пойдзе — і пры HTTP-памылцы, і пры сеткавым збоі
 }
-await saveState();
+if (failed) { console.error(`Telegram: ${failed}`); process.exit(1); }
 console.log(`Адпраўлена ў Telegram${test ? ' (тэст)' : ''}: ${n} ${plural(n, 'запіс', 'запісы', 'запісаў')}, ${messages.length} ${plural(messages.length, 'паведамленне', 'паведамленні', 'паведамленняў')}.`);

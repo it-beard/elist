@@ -122,10 +122,10 @@ describe('дадатковыя файлы', () => {
     // поўны тэкст мусіць быць істотна большы за карту сайта
     expect(l.length).toBeGreaterThan(llmsTxt({ site: SITE, facts: siteFacts(META), stats: dataStats(DB) }).length);
   });
-  it('opensearch.xml апісвае пошук праз ?q=', () => {
+  it('opensearch.xml апісвае пошук праз #q= (хэш не ідзе на сервер)', () => {
     const x = openSearchXml({ site: SITE });
     expect(x).toContain('http://a9.com/-/spec/opensearch/1.1/');
-    expect(x).toContain(`template="${SITE}?q={searchTerms}"`);
+    expect(x).toContain(`template="${SITE}#q={searchTerms}"`);
     // ShortName паводле спецыфікацыі — не даўжэй за 16 сімвалаў
     expect(x.match(/<ShortName>(.*?)<\/ShortName>/)[1].length).toBeLessThanOrEqual(16);
   });

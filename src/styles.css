@@ -272,3 +272,6 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
   .chart-card { padding: 10px 8px 6px; }
   .chart-bar .grain { flex-basis: 100%; margin-left: 0; text-align: right; }
 }
+
+/* ---- спасылкі-чыпы (ErrorBoundary) ---- */
+a.chip { display: inline-flex; align-items: center; text-decoration: none; }

@@ -1,10 +1,14 @@
 /**
- * Vite-плагін: дадае ў index.html тое, чаго не хапае SPA для GEO/SEO —
+ * Vite-плагін: дадае ў index.html тое, чаго не хапае SPA для GEO/SEO і бяспекі —
  *  · meta description і og/twitter з рэальнымі лічбамі (яны мяняюцца штодня);
  *  · canonical і hreflang;
  *  · Schema.org (WebSite + SearchAction, Dataset, WebApplication);
  *  · кантэнт для тых, хто не выконвае JS: краўлеры ChatGPT, Claude і Perplexity
- *    інакш бачаць пусты <div id="root">.
+ *    інакш бачаць пусты <div id="root">;
+ *  · Content Security Policy праз <meta http-equiv> (GitHub Pages не аддае загалоўкаў):
+ *    толькі свае скрыпты і стылі, інлайн-скрыпт тэмы — па sha256-хэшу, які лічыцца з гатовага
+ *    HTML, таму змена інлайн-кода не ламае палітыку моўчкі. Толькі ў зборцы: dev-сервер Vite
+ *    дадае ўласныя інлайн-скрыпты і websocket HMR.
  *
  * Змрочны бок SPA: React ачышчае #root пры мантаванні, таму фолбэк унутры
  * яго — карэктны прагрэсіўны прыём, а не клоўкінг: тэкст той самы, што
@@ -14,6 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { SUMMARY, siteFacts } from '../src/lib/faq.js';
 import { siteJsonLd } from './geo.mjs';
+import { csp, inlineScripts, inlineStyles } from './csp.mjs';
 
 const esc = (s) => String(s).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
 
@@ -70,11 +75,16 @@ export function geo({ site = process.env.SITE_URL || 'https://elist.itbeard.com/
 <meta name="twitter:image" content="${esc(new URL('icon-512.png', siteUrl).href)}">
 <script type="application/ld+json">${jsonLd}</script>
 </head>`;
-        return html
+        let out = html
           // апісанне з жывымі лічбамі — самы моцны GEO-сігнал паводле даследавання
           .replace(/(<meta name="description" content=")[^"]*(">)/, `$1${esc(desc)}$2`)
           .replace('</head>', head)
           .replace('<div id="root"></div>', `<div id="root">${fallback(base, f)}\n    </div>`);
+        if (!ctx?.server) {
+          const policy = csp({ scripts: inlineScripts(out), styles: inlineStyles(out) });
+          out = out.replace('<meta charset="utf-8">', `<meta charset="utf-8">\n<meta http-equiv="Content-Security-Policy" content="${esc(policy)}">`);
+        }
+        return out;
       },
     },
   };

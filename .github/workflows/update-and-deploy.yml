@@ -10,64 +10,103 @@ on:
         description: 'Даслаць пробнае паведамленне ў Telegram (праверка бота)'
         type: boolean
         default: false
+      force:
+        description: 'Прыняць абнаўленне, нават калі новых запісаў падазрона шмат (UPDATE_FORCE=1)'
+        type: boolean
+        default: false
   push:
     branches: [main]
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+# Правы токена — толькі тыя, што патрэбныя канкрэтнаму джобу (зададзеныя ніжэй).
+permissions: {}
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
+# Дзеянні прыпінутыя да SHA каміта (Dependabot абнаўляе іх PR'амі): тэг можна перапісаць, каміт — не.
 jobs:
   update:
     name: Абнавіць базу
     runs-on: ubuntu-latest
     if: github.event_name != 'push'
+    timeout-minutes: 30
+    permissions:
+      contents: write   # каміт data/ у main
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # Токен не застаецца ў .git/config: разбор чужога .doc і npm ідуць без крэдэнцыялаў,
+      # push робіцца асобным крокам праз x-access-token.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with: { node-version: 22, cache: npm }
-      - run: npm ci
+      # Толькі runtime-залежнасці і без install-скрыптоў: у джобе з правамі на запіс — мінімум чужога кода.
+      - run: npm ci --omit=dev --ignore-scripts
       - name: Спампаваць і разабраць свежы .doc
         run: npm run update
+        env:
+          UPDATE_FORCE: ${{ inputs.force }}
       - name: Дайджэст у Telegram (калі наладжаны сакрэты)
         run: node scripts/notify.mjs
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
           TELEGRAM_TEST: ${{ inputs.telegram_test }}
           SITE_URL: https://elist.itbeard.com/
-      # Каміт заўжды пасля дайджэсту: data/notified.json з адзнакамі пра адпраўку
-      # мусіць трапіць у рэпо, інакш наступны запуск прышле тое самае паўторна.
+      - name: Папярэдзіць адміна, калі змяніўся стан крыніцы
+        if: always()
+        run: node scripts/alert.mjs source
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+      # Каміт заўжды пасля дайджэсту: data/notified.json з адзнакамі пра адпраўку мусіць трапіць у рэпо,
+      # інакш наступны запуск прышле тое самае паўторна. Перад push — rebase і паўторы: паралельны push
+      # у main (напрыклад, ваш каміт з кодам) не павінен губляць гэты каміт і валіць дэплой.
       - name: Закамітаваць змены ў базе
         if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add data
-          if git diff --cached --quiet; then
-            echo "Зменаў няма"
-          else
-            git commit -m "data: абнаўленне спісу $(date -u +%F)"
-            git push
-          fi
+          if git diff --cached --quiet; then echo "Зменаў няма"; exit 0; fi
+          git commit -m "data: абнаўленне спісу $(date -u +%F)"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          for i in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi
+            git rebase --abort 2>/dev/null || true
+            echo "Push не ўдаўся (спроба $i), паўтараю…"; sleep 15
+          done
+          echo "::error::Не ўдалося запушыць data/ пасля 3 спробаў"
+          exit 1
+      - name: Папярэдзіць адміна пра збой
+        if: failure()
+        run: node scripts/alert.mjs failed
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+          ALERT_JOB: update
+          ALERT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
   deploy:
     name: Сабраць і апублікаваць
     needs: update
     if: always() && (needs.update.result == 'success' || needs.update.result == 'skipped')
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-        with: { ref: main }
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with: { ref: main, persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: npm test
@@ -77,8 +116,16 @@ jobs:
           # уласны дамен: сайт аддаецца з кораня
           BASE_PATH: /
           SITE_URL: https://elist.itbeard.com/
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
         with: { path: dist }
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
+      - name: Папярэдзіць адміна пра збой
+        if: failure()
+        run: node scripts/alert.mjs failed
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+          ALERT_JOB: deploy
+          ALERT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

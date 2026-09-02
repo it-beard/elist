@@ -1,0 +1,14 @@
+# Абнаўленні дзеянняў (прыпінутых да SHA) і npm-залежнасцяў — раз на тыдзень, адным PR на групу.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      dev:
+        dependency-type: development
+      prod:
+        dependency-type: production

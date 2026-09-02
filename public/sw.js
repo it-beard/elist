@@ -1,5 +1,5 @@
 /* Service worker: сайт і база працуюць афлайн. Ніякай аналітыкі, ніякіх знешніх запытаў. */
-const VERSION = 'v2';
+const VERSION = 'v3'; // v3: старонкі кэшуюцца без query-радка — у Cache Storage не застаецца «?q=»
 const SHELL = `shell-${VERSION}`, DATA = `data-${VERSION}`;
 const BASE = new URL(self.registration.scope).pathname;
 
@@ -14,6 +14,8 @@ self.addEventListener('activate', (e) => {
 
 const isData = (url) => url.pathname.startsWith(`${BASE}data/`) || url.pathname === `${BASE}feed.xml`;
 const isAsset = (url) => url.pathname.startsWith(`${BASE}assets/`);
+/** Ключ кэша старонкі — толькі шлях: ні query, ні хэш, каб пошукавыя запыты не асядалі ў Cache Storage. */
+const pageKey = (url) => url.origin + url.pathname;
 
 self.addEventListener('fetch', (e) => {
   const req = e.request;
@@ -23,8 +25,9 @@ self.addEventListener('fetch', (e) => {
 
   // Старонка: сетка → кэш (каб пасля дэплою браць свежую абалонку, а афлайн — захаваную).
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then((r) => { const copy = r.clone(); caches.open(SHELL).then((c) => c.put(req, copy)); return r; })
-      .catch(() => caches.match(req).then((hit) => hit || caches.match(BASE))));
+    const key = pageKey(url);
+    e.respondWith(fetch(req).then((r) => { if (r.ok) { const copy = r.clone(); caches.open(SHELL).then((c) => c.put(key, copy)); } return r; })
+      .catch(() => caches.match(key).then((hit) => hit || caches.match(BASE))));
     return;
   }
   // Хэшаваныя асеты — нязменныя: кэш → сетка.
@@ -37,4 +40,13 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(fetch(req).then((r) => { if (r.ok) { const copy = r.clone(); caches.open(DATA).then((c) => c.put(req, copy)); } return r; })
       .catch(() => caches.match(req)));
   }
+});
+
+// Тап па апавяшчэнні спісу назірання — сфакусаваць адкрытую ўкладку сайта або адкрыць новую.
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    const win = list.find((c) => c.url.startsWith(self.registration.scope));
+    return win ? win.focus() : self.clients.openWindow(BASE);
+  }));
 });

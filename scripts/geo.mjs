@@ -19,6 +19,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { FAQ, KEY_FACTS, SUMMARY, dataStats, siteFacts } from '../src/lib/faq.js';
+import { csp } from './csp.mjs';
 
 const esc = (s) => String(s).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
 const abs = (site, p) => new URL(p, site).href;
@@ -81,7 +82,7 @@ ${years}
 
 ## Старонкі
 
-- [Пошук](${abs(site, '')}): галоўная старонка; запыт можна перадаць у URL — \`?q=запыт\`.
+- [Пошук](${abs(site, '')}): галоўная старонка; запыт можна перадаць у адрасе — \`#q=запыт\` (прымаецца і \`?q=запыт\`), у адрасны радок ён пры гэтым не запісваецца.
 - [Пытанні і адказы](${abs(site, 'faq.html')}): што такое спіс, што пагражае за рэпост, чым ён адрозніваецца ад спісу экстрэмісцкіх фарміраванняў.
 - [FAQ (English)](${abs(site, 'faq-en.html')}): тое самае па-англійску.
 - [Новае](${abs(site, '#/new')}): запісы, згрупаваныя па даце з’яўлення ў спісе.
@@ -205,9 +206,13 @@ ul.links{padding-left:18px}
 footer{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
 footer p{margin:0 0 8px}
 code{font-size:.85em;background:var(--line);padding:1px 5px;border-radius:5px}
+.tight{margin-top:0}
 @media(max-width:600px){h1{font-size:1.25rem}th{width:auto}}`;
 
 const THEME_BOOT = 'var t="light";try{t=JSON.parse(localStorage.getItem("theme"))||t}catch(e){}if(t!=="system")document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light")';
+
+/** CSP статычных старонак: інлайн-скрыпт тэмы і <style> дазволеныя па sha256-хэшах. */
+const PAGE_CSP = esc(csp({ scripts: [THEME_BOOT], styles: [PAGE_CSS] }));
 
 /** Статычная старонка FAQ: поўны тэкст у HTML, без JS — менавіта яе цытуюць мадэлі. */
 export function faqPage({ site, facts, stats, lang, base = '/' }) {
@@ -218,8 +223,8 @@ export function faqPage({ site, facts, stats, lang, base = '/' }) {
     ? 'FAQ: the list of extremist materials of Belarus'
     : 'Пытанні і адказы: спіс экстрэмісцкіх матэрыялаў Беларусі';
   const lead = en
-    ? `This page answers the most common questions about the Republican list of extremist materials of Belarus and about this search site: what the list is, how to check a channel or handle, what the penalties are, and what data the site stores. As of ${f.updatedStr} the database holds ${f.totalStr} entries and refreshes once a day.`
-    : `Гэтая старонка адказвае на самыя частыя пытанні пра Рэспубліканскі спіс экстрэмісцкіх матэрыялаў Беларусі і пра гэты сайт: што такое спіс, як праверыць канал ці нік, што пагражае за рэпост і якія даныя сайт захоўвае. На ${f.updatedStr} у базе ${f.totalStr} запісаў, яна абнаўляецца раз на суткі.`;
+    ? `This page answers the most common questions about the Republican list of extremist materials of Belarus and about this search site: what the list is, how to check a channel or handle, what the penalties are, and what data the site stores. As of ${f.updatedStr} the database holds ${f.totalStr} entries and refreshes twice a day.`
+    : `Гэтая старонка адказвае на самыя частыя пытанні пра Рэспубліканскі спіс экстрэмісцкіх матэрыялаў Беларусі і пра гэты сайт: што такое спіс, як праверыць канал ці нік, што пагражае за рэпост і якія даныя сайт захоўвае. На ${f.updatedStr} у базе ${f.totalStr} запісаў, яна абнаўляецца двойчы на дзень.`;
   const years = (stats.byYear || []).slice(0, 6);
   const yearsTitle = en ? 'Entries by year of the court decision' : 'Запісы па годзе судовага рашэння';
   const factsTitle = en ? 'Key facts' : 'Ключавыя факты';
@@ -234,6 +239,8 @@ export function faqPage({ site, facts, stats, lang, base = '/' }) {
 <html lang="${lang}">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="${PAGE_CSP}">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(en ? `FAQ about the Republican list of extremist materials of Belarus: ${f.totalStr} entries as of ${f.updatedStr}, penalties under Art. 19.11, how to check a channel or handle, what data the site stores.` : `Пытанні і адказы пра Рэспубліканскі спіс экстрэмісцкіх матэрыялаў Беларусі: ${f.totalStr} запісаў на ${f.updatedStr}, адказнасць паводле арт. 19.11 КаАП, як праверыць канал ці нік, якія даныя захоўвае сайт.`)}">
@@ -273,7 +280,7 @@ ${years.length ? `<h2>${esc(yearsTitle)}</h2>\n<table><tbody>\n${yearRows}\n</tb
 ${sections}
 
 <div class="card">
-<h2 style="margin-top:0">${esc(sourcesTitle)}</h2>
+<h2 class="tight">${esc(sourcesTitle)}</h2>
 <ul class="links">
 <li><a href="https://spring96.org/" rel="noopener">${en ? 'Viasna Human Rights Centre' : 'Праваабарончы цэнтр «Вясна»'}</a></li>
 <li><a href="https://humanconstanta.org/" rel="noopener">Human Constanta</a></li>
@@ -284,7 +291,7 @@ ${sections}
 </main>
 
 <footer>
-<p>${en ? 'Unofficial search over the Republican list of extremist materials. The database updates automatically once a day; entry text, court name and date are kept exactly as in the official source.' : 'Неафіцыйны пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў. База абнаўляецца аўтаматычна раз на суткі; тэкст запісу, назва суда і дата захоўваюцца як у афіцыйнай крыніцы.'}</p>
+<p>${en ? 'Unofficial search over the Republican list of extremist materials. The database updates automatically twice a day; entry text, court name and date are kept exactly as in the official source.' : 'Неафіцыйны пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў. База абнаўляецца аўтаматычна двойчы на дзень; тэкст запісу, назва суда і дата захоўваюцца як у афіцыйнай крыніцы.'}</p>
 <p><a href="${base}">${en ? 'Search' : 'Пошук'}</a> · <a href="${base}${en ? 'faq.html' : 'faq-en.html'}">${en ? 'Па-беларуску' : 'English'}</a> · <a href="https://github.com/it-beard/elist" rel="noopener">GitHub</a> · <a href="${base}llms.txt">llms.txt</a></p>
 </footer>
 </div>
@@ -321,7 +328,7 @@ ${years}
 - Кірыліца ↔ лацінка ў абодва бакі: руская транслітарацыя і беларуская лацінка без дыякрытыкі.
 - Калі дакладных супадзенняў няма — прыблізны пошук па словах з памылкамі ў 1–2 літары.
 - Па рашэнні суда шукаюцца назва суда і дата — словамі («20 августа 2026») і лічбамі («20.08.2026»).
-- Запыт трапляе ва URL: \`?q=запыт\` — спасылкай можна дзяліцца.
+- Запыт не трапляе ў адрасны радок і гісторыю браўзера; спасылкай на запыт можна падзяліцца праз кнопку «Спасылка» (\`#q=запыт\`; прымаецца і \`?q=\`).
 
 ## Пытанні і адказы (беларуская)
 
@@ -343,7 +350,7 @@ ${block('en')}
 `;
 }
 
-/** OpenSearch — браўзер можа дадаць сайт як пошукавік (і гэта яшчэ адзін сігнал пра ?q=). */
+/** OpenSearch — браўзер можа дадаць сайт як пошукавік. Шаблон з хэшам «#q=»: запыт не ідзе на сервер. */
 export function openSearchXml({ site }) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">
@@ -354,7 +361,7 @@ export function openSearchXml({ site }) {
   <Language>be</Language>
   <Image width="16" height="16" type="image/x-icon">${esc(abs(site, 'favicon.ico'))}</Image>
   <Image width="96" height="96" type="image/png">${esc(abs(site, 'icon-96.png'))}</Image>
-  <Url type="text/html" method="get" template="${esc(abs(site, ''))}?q={searchTerms}"/>
+  <Url type="text/html" method="get" template="${esc(abs(site, ''))}#q={searchTerms}"/>
   <moz:SearchForm>${esc(abs(site, ''))}</moz:SearchForm>
 </OpenSearchDescription>
 `;
@@ -378,6 +385,8 @@ export function notFoundPage({ site, base = '/' }) {
 <html lang="be">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="${PAGE_CSP}">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Старонка не знойдзеная — Спіс экстрэмісцкіх матэрыялаў Беларусі</title>
 <meta name="robots" content="noindex, follow">

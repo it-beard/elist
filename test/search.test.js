@@ -79,3 +79,19 @@ describe('relDay', () => {
     expect(relDay(new Date(2026, 7, 30, 12, 0), now)).toBe(null);
   });
 });
+
+describe('праўкі запісаў (editOf / replacedBy)', () => {
+  const rows = [
+    { i: 0, id: 'old', date: '2026-01-01', removed: '2026-02-01', replacedBy: 'new', h: 'канал "свабода"' },
+    { i: 1, id: 'new', date: '2026-01-01', editOf: 'old', h: 'канал "свабода"' },
+  ];
+  it('заменены запіс не трапляе ў вынікі пошуку', () => {
+    expect(search(rows, ['свабода']).map((x) => x.id)).toEqual(['new']);
+  });
+  it('выпраўлены запіс не трывожыць, калі бачылі папярэднюю версію', () => {
+    const [c] = checkWatchlist(rows, [{ q: 'свабода', seen: ['old'] }]);
+    expect(c.matches.map((x) => x.id)).toEqual(['new']);
+    expect(c.fresh).toEqual([]);
+    expect(checkWatchlist(rows, [{ q: 'свабода', seen: [] }])[0].fresh.map((x) => x.id)).toEqual(['new']);
+  });
+});

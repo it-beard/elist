@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useIndex } from './hooks/useIndex.js';
-import { useUrlParam } from './hooks/useUrlParam.js';
+import { useQuery } from './hooks/useQuery.js';
 import { useLocalStorage } from './hooks/useLocalStorage.js';
 import { useLang } from './hooks/useLang.jsx';
 import { useHashRoute } from './hooks/useHashRoute.js';
@@ -11,6 +11,9 @@ import { parseQuery } from './lib/normalize.js';
 import { variants } from './lib/translit.js';
 import { corpusWords, similarWords } from './lib/fuzzy.js';
 import { NEW_DAYS, isRecent } from './lib/format.js';
+import { queryLink } from './lib/entry.js';
+import { showNotification } from './lib/notifications.js';
+import { wipeBrowserData } from './lib/wipe.js';
 import Header from './components/Header.jsx';
 import Nav from './components/Nav.jsx';
 import SearchBar from './components/SearchBar.jsx';
@@ -42,10 +45,12 @@ export default function App() {
   const route = useHashRoute();
   const online = useOnline();
   const watch = useWatchlist(items);
-  const [query, setQuery] = useUrlParam('q');
+  // Запыт — у стане і history.state укладкі, не ў адрасным радку (гл. lib/entry.js).
+  const [query, setQuery] = useQuery();
   const [sort, setSort] = useLocalStorage('sort', 'newest');
   const [flags, setFlags] = useState({ any: false, onlyNew: false });
   const [help, setHelp] = useState(false);
+  const [copied, setCopied] = useState(false);
   const opts = useMemo(() => ({ ...flags, sort }), [flags, sort]);
   const setOpts = ({ sort: s, ...rest }) => { if (s !== sort) setSort(s); setFlags(rest); };
   const deferredQuery = useDeferredValue(query);
@@ -68,13 +73,14 @@ export default function App() {
   }, []);
 
   // Апавяшчэнне пра новыя супадзенні — раз на загрузку, толькі калі карыстальнік уключыў.
+  // Без назваў запытаў у тэксце: апавяшчэнне бачна і на заблакаваным экране.
   const notified = useRef(false);
   const freshTotal = watch.checks.reduce((n, c) => n + c.fresh.length, 0);
   useEffect(() => {
     if (!watch.notify || notified.current || !freshTotal || typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
     notified.current = true;
-    try { new Notification(t.notifyTitle(freshTotal), { body: watch.checks.filter((c) => c.fresh.length).map((c) => c.entry.q).join(', ') }); } catch { /* iOS без PWA */ }
-  }, [freshTotal, watch.notify, watch.checks, t]);
+    showNotification(t.notifyTitle(freshTotal), t.notifyBody).catch(() => {});
+  }, [freshTotal, watch.notify, t]);
 
   // Калі карыстальнік сам шукае запыт са спісу назірання — ён бачыць вынікі, пазначаем іх бачанымі.
   const watchedNow = watch.checks.find((c) => c.entry.q === deferredQuery.trim());
@@ -88,19 +94,31 @@ export default function App() {
     setQuery(entry.q);
     route.go('');
   };
-  const clearAll = () => {
+  const clearAll = async () => {
     if (!confirm(t.clearAllConfirm)) return;
     watch.clear();
     setQuery('');
-    try { localStorage.clear(); } catch { /* ignore */ }
+    await wipeBrowserData();
+  };
+  // Спасылка на запыт — толькі па просьбе (кнопка «Спасылка»): у адрасны радок запыт не пішацца.
+  const copyQueryLink = async () => {
+    const link = queryLink(query.trim(), import.meta.env.BASE_URL);
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      if (navigator.share) navigator.share({ title: t.title, url: link }).catch(() => {});
+    }
   };
   const watchChip = query.trim() && status === 'ready' ? {
     on: watch.has(query),
     toggle: () => (watch.has(query) ? watch.remove(query) : watch.add(query)),
   } : null;
+  const shareChip = query.trim() && status === 'ready' ? { copy: copyQueryLink, copied } : null;
 
   const active = tokens.length > 0 || opts.onlyNew;
-  const newCount = items ? items.filter((it) => isRecent(it.added)).length : 0;
+  const newCount = items ? items.filter((it) => !it.replacedBy && isRecent(it.added)).length : 0;
 
   return (
     <>
@@ -115,7 +133,7 @@ export default function App() {
           <>
             <div className="search">
               <SearchBar value={query} onChange={setQuery} />
-              <Options value={opts} onChange={setOpts} watch={watchChip} />
+              <Options value={opts} onChange={setOpts} watch={watchChip} share={shareChip} />
             </div>
             {status === 'loading' && <p className="summary">{t.loading}</p>}
             {status === 'error' && <p className="summary error">{t.loadError(error)}</p>}

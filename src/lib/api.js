@@ -17,8 +17,8 @@ const ART = { 1: 'gpk', 2: 'kgs' };
 /** Індэкс → масіў зручных для пошуку аб’ектаў. */
 export async function fetchIndex(fresh) {
   const idx = await getJson('index.json', opts(fresh));
-  const items = idx.items.map(([t, c, date, added, removed, name, id, art], i) => ({
-    i, id, date, added, removed, art: ART[art] || 'none',
+  const items = idx.items.map(([t, c, date, added, removed, name, id, art, editOf, replacedBy], i) => ({
+    i, id, date, added, removed, editOf: editOf || '', replacedBy: replacedBy || '', art: ART[art] || 'none',
     h: `${name}\n${idx.types[t]}\n${idx.courts[c]}\n${idx.dates[date] || ''}`,
   }));
   return { chunkSize: idx.chunk, items };

@@ -1,10 +1,25 @@
 import { matchRanges } from '../lib/normalize.js';
+import { useLang } from '../hooks/useLang.jsx';
 
 const URL_RE = /(https?:\/\/[^\s"<>)]+|(?<![\w/.@])(?:t\.me|www\.)[^\s"<>)]+)/g;
 
+// Спасылкі ў запісах вядуць на матэрыялы са спісу: перад першым пераходам за сесію — папярэджанне.
+const ACK = 'elist-links-ok';
+let ackMem = false;
+const acknowledged = () => { try { return ackMem || sessionStorage.getItem(ACK) === '1'; } catch { return ackMem; } };
+const acknowledge = () => { ackMem = true; try { sessionStorage.setItem(ACK, '1'); } catch { /* ignore */ } };
+
 /** Тэкст з клікабельнымі спасылкамі і падсветкай супадзенняў (у тым ліку ўнутры спасылак). */
 export default function Highlight({ text, tokens }) {
+  const { t } = useLang();
   const marks = matchRanges(text, tokens);
+  const onClick = (e) => {
+    if (acknowledged()) return;
+    e.preventDefault();
+    if (!confirm(t.linkWarn)) return;
+    acknowledge();
+    open(e.currentTarget.href, '_blank', 'noopener,noreferrer');
+  };
   const out = [];
   let pos = 0;
   for (const m of text.matchAll(URL_RE)) {
@@ -12,7 +27,7 @@ export default function Highlight({ text, tokens }) {
     const start = m.index, end = start + url.length;
     out.push(...marked(text, pos, start, marks));
     out.push(
-      <a key={`u${start}`} href={url.startsWith('http') ? url : `https://${url}`} target="_blank" rel="noopener nofollow">
+      <a key={`u${start}`} href={url.startsWith('http') ? url : `https://${url}`} target="_blank" rel="noopener noreferrer nofollow" onClick={onClick}>
         {marked(text, start, end, marks)}
       </a>,
     );
