@@ -131,8 +131,9 @@ jobs:
           BASE_PATH: /
           SITE_URL: https://elist.itbeard.com/
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
-      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
-        with: { path: dist }
+      # include-hidden-files: ад v4 dot-файлы ў артэфакт не трапляюць, а нам патрэбны dist/.well-known/security.txt
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with: { path: dist, include-hidden-files: true }
       - id: deployment
         uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
       - name: Папярэдзіць адміна пра збой
