@@ -162,8 +162,8 @@ export const FAQ = {
 
 /** Кароткае апісанне сайта з лічбамі — для meta description, llms.txt і JSON-LD. */
 export const SUMMARY = {
-  be: (f) => `Пошук па афіцыйным Рэспубліканскім спісе экстрэмісцкіх матэрыялаў Беларусі: ${f.totalStr} запісаў на ${f.updatedStr}, абнаўленне двойчы на дзень${f.formations ? `, плюс ${f.formationsStr} запісаў пераліку экстрэмісцкіх фарміраванняў МУС/КДБ` : ''}. Праверце нік, Telegram-канал, сайт ці кнігу, дадайце запыт у спіс назірання. Працуе афлайн, не збірае ніякіх даных.`,
-  en: (f) => `Search the official Republican list of extremist materials of Belarus: ${f.totalStr} entries as of ${f.updatedStr}, updated twice a day${f.formations ? `, plus ${f.formationsStr} entries from the Interior Ministry / KGB list of extremist formations` : ''}. Check a handle, Telegram channel, website or book and add it to your watchlist. Works offline, collects no data.`,
+  be: (f) => `Пошук па экстрэмісцкіх спісах Беларусі: ${f.totalStr} запісаў Рэспубліканскага спісу экстрэмісцкіх матэрыялаў${f.formations ? ` і ${f.formationsStr} запісаў пераліку экстрэмісцкіх фарміраванняў МУС/КДБ` : ''} на ${f.updatedStr}, абнаўленне штодня. Праверце нік, Telegram-канал, сайт ці кнігу, дадайце запыт у спіс назірання. Працуе афлайн, не збірае ніякіх даных.`,
+  en: (f) => `Search the extremist lists of Belarus: ${f.totalStr} entries of the Republican list of extremist materials${f.formations ? ` and ${f.formationsStr} entries of the Interior Ministry / KGB list of extremist formations` : ''} as of ${f.updatedStr}, updated daily. Check a handle, Telegram channel, website or book and add it to your watchlist. Works offline, collects no data.`,
 };
 
 /** Ключавыя факты табліцай — структураваныя фрагменты лягчэй цытаваць. */
