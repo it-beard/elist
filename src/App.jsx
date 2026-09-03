@@ -163,11 +163,10 @@ export default function App() {
       <footer className="wrap foot">
         <p>
           {t.footSrc1}<a href={LINKS.mininform} target="_blank" rel="noopener noreferrer">{t.footSrcM}</a>{t.footSrc2}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcF}</a>{t.footSrc3}
-          <strong className="travel-warn">{t.footSrcWarn}</strong>
         </p>
-        <p>{t.privacy} <button type="button" className="linklike" onClick={clearAll}>{t.clearAll}</button>.</p>
-        <p>{t.mirror}</p>
-        <p>{t.issues1}<a href="https://github.com/it-beard/elist/issues" target="_blank" rel="noopener">{t.issues2}</a>{t.issues3}</p>
+        <p className="travel-warn">⚠️ {t.footSrcWarn}</p>
+        <p>{t.footPrivacy} <button type="button" className="linklike" onClick={clearAll}>{t.clearAll}</button>.</p>
+        <p>{t.footCode1}<a href="https://github.com/it-beard/elist/issues" target="_blank" rel="noopener">{t.footCode2}</a>{t.footCode3}</p>
         <p>
           <a href={`${import.meta.env.BASE_URL}${lang === 'en' ? 'faq-en.html' : 'faq.html'}`}>{t.faq}</a>
           {' · '}<a href="https://github.com/it-beard/elist" target="_blank" rel="noopener">{t.code}</a>
