@@ -1,5 +1,5 @@
 /* Service worker: сайт і база працуюць афлайн. Ніякай аналітыкі, ніякіх знешніх запытаў. */
-const VERSION = 'v3'; // v3: старонкі кэшуюцца без query-радка — у Cache Storage не застаецца «?q=»
+const VERSION = 'v4'; // v4: новыя іконкі (лагатып «e»); v3: старонкі кэшуюцца без query-радка — у Cache Storage не застаецца «?q=»
 const SHELL = `shell-${VERSION}`, DATA = `data-${VERSION}`;
 const BASE = new URL(self.registration.scope).pathname;
 
