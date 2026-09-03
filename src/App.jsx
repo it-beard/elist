@@ -122,8 +122,6 @@ export default function App() {
   // другі спіс (экстрэмісцкія фарміраванні): пераключальнік і асобны падлік — толькі калі ён ёсць у базе
   const hasLists = Boolean(counts?.f);
   const fInResults = useMemo(() => results.reduce((n, r) => n + (r.list === 'f' ? 1 : 0), 0), [results]);
-  // статыстыка — таймлайн па артыкулах судовых рашэнняў, таму толькі матэрыялы (фарміраванні яе не скажаюць)
-  const statItems = useMemo(() => (items ? items.filter((it) => it.list !== 'f') : items), [items]);
 
   return (
     <>
@@ -133,7 +131,7 @@ export default function App() {
       <main className="wrap">
         {status === 'ready' && route.name === 'new' && <WhatsNew items={items} chunkSize={chunkSize} />}
         {status === 'ready' && route.name === 'r' && <RecordPage id={route.arg} items={items} chunkSize={chunkSize} watch={watch} />}
-        {route.name === 'stats' && (status === 'ready' ? <StatsPage items={statItems} /> : <p className="summary">{status === 'error' ? t.loadError(error) : t.loading}</p>)}
+        {route.name === 'stats' && (status === 'ready' ? <StatsPage items={items} initialList={route.arg === 'f' ? 'f' : 'm'} /> : <p className="summary">{status === 'error' ? t.loadError(error) : t.loading}</p>)}
         {!['new', 'r', 'stats'].includes(route.name) && (
           <>
             <div className="search">

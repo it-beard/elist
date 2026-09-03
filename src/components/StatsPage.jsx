@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLang } from '../hooks/useLang.jsx';
 import { fmtDate } from '../lib/format.js';
 import { fmtNum } from '../lib/faq.js';
-import { SERIES, DAY, GRAINS, GRAIN_MS, TREND_WINDOW, dailyCounts, buckets, trend, pickGrain, clampRange, zoomRange, floorTo, nextOf, summary } from '../lib/stats.js';
+import { SERIES_BY_LIST, DAY, GRAINS, GRAIN_MS, TREND_WINDOW, dailyCounts, buckets, trend, pickGrain, clampRange, zoomRange, floorTo, nextOf, summary } from '../lib/stats.js';
 import Timeline from './Timeline.jsx';
 
 const MIN_SPAN = 14 * DAY;
@@ -26,11 +26,20 @@ const iso = (t) => new Date(t).toISOString().slice(0, 10);
 const pct = (n, d) => (d ? Math.round((n / d) * 100) : 0);
 const delta = (cur, prev) => (prev ? Math.round(((cur - prev) / prev) * 100) : null);
 
-/** Старонка «Статыстыка»: пліткі, таймлайн з маштабам, легенда, картка перыяду, табліца. */
-export default function StatsPage({ items }) {
+/**
+ * Старонка «Статыстыка»: пліткі, таймлайн з маштабам, легенда, картка перыяду, табліца.
+ * Два спісы — асобна, праз пераключальнік: матэрыялы (серыі — артыкул рашэння суда) і фарміраванні
+ * (серыі — хто прыняў рашэнне). У адзін графік іх не змешваем: сотні матэрыялаў у месяц схавалі б адзінкі фарміраванняў.
+ */
+export default function StatsPage({ items, initialList = 'm' }) {
   const { t } = useLang();
   const now = useMemo(() => floorTo(Date.now(), 'day'), []);
-  const daily = useMemo(() => dailyCounts(items), [items]);
+  const hasF = useMemo(() => items.some((it) => it.list === 'f'), [items]);
+  // #/stats — матэрыялы, #/stats/f — фарміраванні (спасылкай можна падзяліцца)
+  const [list, setList] = useState(hasF && initialList === 'f' ? 'f' : 'm');
+  const SERIES = SERIES_BY_LIST[list];
+  const listItems = useMemo(() => items.filter((it) => (it.list || 'm') === list), [items, list]);
+  const daily = useMemo(() => dailyCounts(listItems, SERIES), [listItems, SERIES]);
   const minT = daily[0]?.[0] ?? now - 365 * DAY;
   const maxT = nextOf(now, 'day');
   const presets = useMemo(() => ({
@@ -46,6 +55,15 @@ export default function StatsPage({ items }) {
   const [hidden, setHidden] = useState(() => new Set());
   const [sel, setSel] = useState(null);
   const [hover, setHover] = useState(null);
+  // пераключэнне спіса: свае серыі і свой дыяпазон дат — скідаем выбар, схаваныя серыі і маштаб
+  const switchList = (l) => {
+    if (l === list) return;
+    setList(l); setHidden(new Set()); setSel(null); setHover(null);
+    history.replaceState(history.state, '', l === 'f' ? '#/stats/f' : '#/stats'); // без hashchange — старонка не перамантоўваецца
+    const d = dailyCounts(items.filter((it) => (it.list || 'm') === l), SERIES_BY_LIST[l]);
+    const min = d[0]?.[0] ?? now - 365 * DAY;
+    setState({ range: clampRange(presets.y3, min, maxT, MIN_SPAN), preset: 'y3' });
+  };
 
   const wrapRef = useRef(null);
   const width = useWidth(wrapRef);
@@ -54,7 +72,7 @@ export default function StatsPage({ items }) {
   const plotW = Math.max(100, width - 50);
   const grain = pickGrain(range[1] - range[0], plotW);
   const full = useMemo(() => buckets(daily, grain, now), [daily, grain, now]);
-  const tr = useMemo(() => trend(full, TREND_WINDOW[grain], hidden), [full, grain, hidden]);
+  const tr = useMemo(() => trend(full, TREND_WINDOW[grain], hidden, SERIES), [full, grain, hidden, SERIES]);
   const withTrend = useMemo(() => full.map((b, i) => ({ ...b, trend: tr[i] })), [full, tr]);
   const visible = useMemo(() => withTrend.filter((b) => b.end > range[0] && b.start < range[1]), [withTrend, range]);
 
@@ -111,7 +129,13 @@ export default function StatsPage({ items }) {
   return (
     <>
       <h2 className="page-title">{t.statsTitle}</h2>
-      <p className="hint">{t.statsIntro}</p>
+      {hasF && (
+        <div className="options stats-switch" role="group">
+          <button type="button" className={`chip${list === 'm' ? ' on' : ''}`} aria-pressed={list === 'm'} onClick={() => switchList('m')}>{t.statsMaterials}</button>
+          <button type="button" className={`chip${list === 'f' ? ' on form' : ''}`} aria-pressed={list === 'f'} onClick={() => switchList('f')}>{t.statsFormations}</button>
+        </div>
+      )}
+      <p className="hint">{list === 'f' ? t.statsIntroF : t.statsIntro}</p>
 
       <div className="tiles">
         <div className="tile"><span className="lbl">{t.tileTotal}</span><span className="val">{fmtNum(sum.total)}</span>{sum.first && <span className="dlt">{t.since(fmtDate(iso(sum.first)))}</span>}</div>
@@ -137,7 +161,7 @@ export default function StatsPage({ items }) {
           {width > 0 && (
             <Timeline
               width={width} height={height} range={range} onRange={setRange} visible={visible} hidden={hidden} now={now}
-              focus={focus?.start ?? null} onHover={setHover} onSelect={(s) => { setSel(s); setHover(null); }} xTicks={xTicks} ariaLabel={t.chartAria} emptyText={t.newNone}
+              focus={focus?.start ?? null} onHover={setHover} onSelect={(s) => { setSel(s); setHover(null); }} xTicks={xTicks} ariaLabel={t.chartAria} emptyText={t.statsEmpty} series={SERIES}
             />
           )}
         </div>

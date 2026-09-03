@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 /**
- * «#/new» → { name: 'new' }, «#/r/<id>» → { name: 'r', arg: id }. Пусты хэш і «#q=…»
+ * «#/new» → { name: 'new' }, «#/r/<id>» → { name: 'r', arg: id }, «#/stats/f» → { name: 'stats', arg: 'f' }. Пусты хэш і «#q=…»
  * (запыт з адраснага радка, яго забірае useQuery) — галоўная. Сапсаваная кадоўка не кідае выключэння.
  */
 export function parseHash(hash) {

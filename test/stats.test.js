@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { floorTo, nextOf, dailyCounts, buckets, trend, pickGrain, niceTicks, clampRange, summary, DAY } from '../src/lib/stats.js';
+import { floorTo, nextOf, dailyCounts, buckets, trend, pickGrain, niceTicks, clampRange, summary, DAY, SERIES_BY_LIST } from '../src/lib/stats.js';
 
 const T = (s) => Date.parse(s);
 
@@ -53,5 +53,21 @@ describe('stats', () => {
     expect(s.total).toBe(4);
     expect(s.last30).toBe(3);
     expect(s.peak.start).toBe(T('2026-08-01'));
+  });
+});
+
+describe('stats: серыі другога спісу (фарміраванні)', () => {
+  const F = SERIES_BY_LIST.f;
+  const items = [
+    { date: '2021-10-18', art: 'mvd' }, { date: '2021-10-18', art: 'kgb' }, { date: '2022-06-14', art: 'court' }, { date: '2022-06-14', art: 'zzz' },
+  ];
+  it('dailyCounts і buckets працуюць з любым наборам серый; невядомая — у апошнюю', () => {
+    const d = dailyCounts(items, F);
+    expect(d).toEqual([[T('2021-10-18'), [1, 1, 0]], [T('2022-06-14'), [0, 0, 2]]]);
+    const b = buckets(d, 'year', T('2023-01-05'));
+    expect(b.map((x) => x.total)).toEqual([2, 2, 0]);
+    expect(b[1].counts).toEqual([0, 0, 2]);
+    expect(trend(b, 3, new Set(['court']), F)).toEqual([1, 2 / 3, 0]);
+    expect(summary(d, T('2023-01-01')).total).toBe(4);
   });
 });

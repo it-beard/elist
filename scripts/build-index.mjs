@@ -45,7 +45,8 @@ const KIND = { formation: 'Экстремистское формирование
 const DECIDER = { mvd: 'Решение МВД', kgb: 'Решение КГБ', court: 'Решение суда' };
 
 // [тып, суд, дата, дададзена, выдалена, назва, id, артыкул, праўка чаго (editOf), заменены чым (replacedBy), спіс (0/1)]
-const ART = { gpk: 1, kgs: 2 };
+// слот «артыкул» для фарміраванняў — хто прыняў рашэнне (для статыстыкі): 1 МУС, 2 КДБ, 3 суд
+const ART = { gpk: 1, kgs: 2 }, DEC = { mvd: 1, kgb: 2, court: 3 };
 const items = db.map((x) => (x.list === 'f'
   ? [
     types.id(normalizeCompact(KIND[x.kind] || KIND.formation)),
@@ -55,7 +56,7 @@ const items = db.map((x) => (x.list === 'f'
     x.removed || '',
     normalizeCompact([x.name, x.alias, x.links, x.address, x.basis].filter(Boolean).join('\n')),
     x.id,
-    0, '', '', 1,
+    DEC[x.decidedBy] || 0, '', '', 1,
   ]
   : [
     types.id(normalizeCompact(x.type)),

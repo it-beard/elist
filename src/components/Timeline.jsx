@@ -10,7 +10,7 @@ const MAX_BAR = 24; // бар не таўсцейшы за 24px — рэшта �
  * Жэсты: цягнуць — пракрутка; шчыпок / Ctrl+кола / двайны тап — маштаб;
  * тап ці навядзенне — выбар карзіны; клавіятура: ←/→ выбар, Shift+←/→ пракрутка, +/− маштаб.
  */
-export default function Timeline({ width, height, range, onRange, visible, hidden, now, focus, onHover, onSelect, xTicks, ariaLabel, emptyText }) {
+export default function Timeline({ width, height, range, onRange, visible, hidden, now, focus, onHover, onSelect, xTicks, ariaLabel, emptyText, series = SERIES }) {
   const svgRef = useRef(null);
   const ptrs = useRef(new Map());
   const gesture = useRef(null);
@@ -24,7 +24,7 @@ export default function Timeline({ width, height, range, onRange, visible, hidde
   const X = (t) => plotX + ((t - t0) / (t1 - t0)) * plotW;
   const T = (x, [a, b] = live.current.range) => a + ((x - plotX) / plotW) * (b - a);
 
-  const shown = (i) => !hidden.has(SERIES[i]);
+  const shown = (i) => !hidden.has(series[i]);
   const yMax = visible.reduce((m, b) => Math.max(m, b.counts.reduce((s, v, i) => (shown(i) ? s + v : s), 0)), 0);
   const ticks = niceTicks(yMax);
   const top = ticks[ticks.length - 1];
@@ -124,10 +124,10 @@ export default function Timeline({ width, height, range, onRange, visible, hidde
     const x = xs + (slot - bw) / 2;
     const segs = [];
     let y0 = Y(0);
-    for (let i = 0; i < SERIES.length; i++) {
+    for (let i = 0; i < series.length; i++) {
       if (!shown(i) || !b.counts[i]) continue;
       const hpx = (b.counts[i] / top) * plotH;
-      segs.push({ s: SERIES[i], y: y0 - hpx, h: hpx });
+      segs.push({ s: series[i], y: y0 - hpx, h: hpx });
       y0 -= hpx;
     }
     return { b, xs, slot, x, bw, segs, partial: b.end > now };

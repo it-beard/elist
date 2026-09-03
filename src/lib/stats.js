@@ -3,7 +3,10 @@
  * месяц/квартал/год) па тыпах артыкула, лінія тэндэнцыі, восі. Чыстыя функцыі,
  * усе даты — UTC-мілісекунды (даты рашэнняў у базе без часу).
  */
-export const SERIES = ['gpk', 'kgs', 'none']; // фіксаваны парадак = фіксаваныя колеры
+// Серыі стоса — фіксаваны парадак = фіксаваныя колеры. Матэрыялы: артыкул рашэння суда;
+// фарміраванні (другі спіс): хто прыняў рашэнне — МУС, КДБ ці суд (для «экстрэмісцкіх арганізацый»).
+export const SERIES_BY_LIST = { m: ['gpk', 'kgs', 'none'], f: ['mvd', 'kgb', 'court'] };
+export const SERIES = SERIES_BY_LIST.m;
 export const GRAINS = ['day', 'week', 'month', 'quarter', 'year'];
 export const DAY = 864e5;
 export const GRAIN_MS = { day: DAY, week: 7 * DAY, month: 30.44 * DAY, quarter: 91.31 * DAY, year: 365.25 * DAY };
@@ -36,15 +39,16 @@ export function nextOf(t, grain) {
   }
 }
 
-/** Запісы → адсартаваны масіў [дзень(ms), [gpk, kgs, none]]. Без даты — прапускаем. */
-export function dailyCounts(items) {
+/** Запісы → адсартаваны масіў [дзень(ms), лічыльнікі па серыях]. Без даты — прапускаем; невядомая серыя — у апошнюю. */
+export function dailyCounts(items, series = SERIES) {
   const map = new Map();
   for (const it of items) {
     if (!it.date) continue;
     const t = Date.parse(it.date);
     if (Number.isNaN(t)) continue;
-    const s = Math.max(0, SERIES.indexOf(it.art || 'none'));
-    const c = map.get(t) || map.set(t, [0, 0, 0]).get(t);
+    const idx = series.indexOf(it.art || 'none');
+    const s = idx === -1 ? series.length - 1 : idx;
+    const c = map.get(t) || map.set(t, new Array(series.length).fill(0)).get(t);
     c[s] += 1;
   }
   return [...map.entries()].sort((a, b) => a[0] - b[0]);
@@ -53,13 +57,12 @@ export function dailyCounts(items) {
 /** Дзённыя лічыльнікі → суцэльны шэраг карзін ад першага запісу да `until` (пустыя — таксама). */
 export function buckets(daily, grain, until) {
   if (!daily.length) return [];
-  const out = [];
-  const push = (start) => { const b = { start, end: nextOf(start, grain), counts: [0, 0, 0], total: 0 }; out.push(b); return b; };
+  const out = [], n = daily[0][1].length;
+  const push = (start) => { const b = { start, end: nextOf(start, grain), counts: new Array(n).fill(0), total: 0 }; out.push(b); return b; };
   let cur = push(floorTo(daily[0][0], grain));
   for (const [t, c] of daily) {
     while (t >= cur.end) cur = push(cur.end);
-    for (let i = 0; i < 3; i++) cur.counts[i] += c[i];
-    cur.total += c[0] + c[1] + c[2];
+    for (let i = 0; i < n; i++) { cur.counts[i] += c[i]; cur.total += c[i]; }
   }
   const last = until ?? daily[daily.length - 1][0];
   while (last >= cur.end) cur = push(cur.end);
@@ -67,8 +70,8 @@ export function buckets(daily, grain, until) {
 }
 
 /** Цэнтраванае слізгальнае сярэдняе сумы бачных серый (на краях — часткавае акно). */
-export function trend(list, win, hidden = new Set()) {
-  const vals = list.map((b) => b.counts.reduce((s, v, i) => (hidden.has(SERIES[i]) ? s : s + v), 0));
+export function trend(list, win, hidden = new Set(), series = SERIES) {
+  const vals = list.map((b) => b.counts.reduce((s, v, i) => (hidden.has(series[i]) ? s : s + v), 0));
   const h = Math.floor(win / 2);
   return vals.map((_, i) => {
     const a = Math.max(0, i - h), z = Math.min(vals.length - 1, i + h);
@@ -110,7 +113,7 @@ export const zoomRange = ([t0, t1], f, at = (t0 + t1) / 2) => [at - (at - t0) / 
 
 /** Лічбы для плітак: усяго, за 365/30 дзён (+ папярэднія перыяды), пікавы месяц. */
 export function summary(daily, now) {
-  const sumBetween = (a, b) => daily.reduce((s, [t, c]) => (t >= a && t < b ? s + c[0] + c[1] + c[2] : s), 0);
+  const sumBetween = (a, b) => daily.reduce((s, [t, c]) => (t >= a && t < b ? s + c.reduce((x, y) => x + y, 0) : s), 0);
   const total = sumBetween(-Infinity, Infinity);
   const d30 = now - 30 * DAY, d60 = now - 60 * DAY, y1 = now - 365 * DAY, y2 = now - 730 * DAY;
   const months = buckets(daily, 'month', now);
