@@ -117,6 +117,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .watch-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .hint { color: var(--muted); font-size: .85rem; margin: 10px 0 0; }
 .hint.error { color: var(--accent); }
+.hint.travel-warn { color: var(--warn); } /* як у даведцы: .hint не мусіць перабіваць колер папярэджання */
 
 /* ---- вынікі ---- */
 .summary { color: var(--muted); font-size: .88rem; margin: 12px 2px; }
