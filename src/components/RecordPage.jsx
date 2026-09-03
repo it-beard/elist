@@ -3,7 +3,6 @@ import { useLang } from '../hooks/useLang.jsx';
 import { useRecord } from '../hooks/useRecord.js';
 import { href } from '../hooks/useHashRoute.js';
 import { fmtDate } from '../lib/format.js';
-import { LINKS } from '../lib/i18n.js';
 import ResultItem from './ResultItem.jsx';
 import Consequences from './Consequences.jsx';
 
@@ -57,7 +56,6 @@ export default function RecordPage({ id, items, chunkSize, watch }) {
           </div>
           <p className="hint">
             {isF ? t.positionF(item.n) : t.position(item.n ?? item.i + 1)}
-            {isF && <> <a href={LINKS.mvd} target="_blank" rel="noopener">{t.recSourceF}</a></>}
           </p>
           <Consequences open formations={isF} />
         </>

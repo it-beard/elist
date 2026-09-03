@@ -285,7 +285,6 @@ ${sections}
 <ul class="links">
 <li><a href="${LINKS.viasna}" rel="noopener">${en ? 'Viasna Human Rights Centre' : 'Праваабарончы цэнтр «Вясна»'}</a></li>
 <li><a href="${LINKS.humanConstanta}" rel="noopener">Human Constanta</a></li>
-<li><a href="${LINKS.mvd}" rel="noopener">${en ? 'List of extremist formations (Interior Ministry)' : 'Спіс экстрэмісцкіх фарміраванняў (МУС)'}</a></li>
 </ul>
 <p>${en ? 'This page is not legal advice.' : 'Гэтая старонка — не юрыдычная кансультацыя.'}</p>
 </div>

@@ -161,7 +161,10 @@ export default function App() {
         )}
       </main>
       <footer className="wrap foot">
-        <p>{t.footSource} {t.footUpdate}</p>
+        <p>
+          {t.footSrc1}<a href={LINKS.mininform} target="_blank" rel="noopener noreferrer">{t.footSrcM}</a>{t.footSrc2}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcF}</a>{t.footSrc3}
+          <strong className="travel-warn">{t.footSrcWarn}</strong>
+        </p>
         <p>{t.privacy} <button type="button" className="linklike" onClick={clearAll}>{t.clearAll}</button>.</p>
         <p>{t.mirror}</p>
         <p>{t.issues1}<a href="https://github.com/it-beard/elist/issues" target="_blank" rel="noopener">{t.issues2}</a>{t.issues3}</p>
