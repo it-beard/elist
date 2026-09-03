@@ -127,7 +127,7 @@ export default function App() {
 
   return (
     <>
-      <Header meta={meta} items={items} online={online} onHelp={() => setHelp(true)} />
+      <Header meta={meta} online={online} onHelp={() => setHelp(true)} />
       <HelpDialog open={help} onClose={() => setHelp(false)} />
       <Nav route={['new', 'r', 'stats'].includes(route.name) ? route.name : ''} newCount={newCount} />
       <main className="wrap">

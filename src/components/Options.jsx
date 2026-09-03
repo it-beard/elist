@@ -1,7 +1,9 @@
-import { NEW_DAYS } from '../lib/format.js';
 import { useLang } from '../hooks/useLang.jsx';
 
-/** Чыпы-опцыі пошуку. lists — у базе ёсць абодва спісы: паказваем пераключальнік «усе · матэрыялы · фарміраванні». */
+/**
+ * Чыпы-опцыі пошуку. lists — у базе ёсць абодва спісы: чыпы «Матэрыялы» / «Фарміраванні» абмяжоўваюць пошук адным
+ * спісам (паўторны націск здымае абмежаванне). «Новыя за N дзён» тут няма — гэта ўкладка «Новае».
+ */
 export default function Options({ value, onChange, watch, share, lists = false }) {
   const { t } = useLang();
   const set = (patch) => onChange({ ...value, ...patch });
@@ -11,6 +13,14 @@ export default function Options({ value, onChange, watch, share, lists = false }
     </button>
   );
   const list = value.list || '';
+  const ListChip = ({ k, children }) => (
+    <button
+      type="button" className={`chip${list === k ? ` on${k === 'f' ? ' form' : ''}` : ''}`} aria-pressed={list === k}
+      title={t.listFilterTitle} onClick={() => set({ list: list === k ? '' : k })}
+    >
+      {children}
+    </button>
+  );
   return (
     <div className="options">
       {watch && (
@@ -23,16 +33,8 @@ export default function Options({ value, onChange, watch, share, lists = false }
           {share.copied ? t.copied : t.shareQuery}
         </button>
       )}
-      {lists && (
-        <div className="seg" role="group" aria-label={t.listFilter} title={t.listFilterTitle}>
-          {[['', t.listAll], ['m', t.listMaterials], ['f', t.listFormations]].map(([k, label]) => (
-            <button key={k} type="button" className={`${list === k ? 'on' : ''}${k === 'f' ? ' f' : ''}`} aria-pressed={list === k} onClick={() => set({ list: k })}>
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
-      <Chip k="onlyNew">{t.onlyNew(NEW_DAYS)}</Chip>
+      {lists && <ListChip k="m">{t.listMaterials}</ListChip>}
+      {lists && <ListChip k="f">{t.listFormations}</ListChip>}
       <Chip k="any">{t.any}</Chip>
       <label className="sort">
         <span className="vh">{t.sort}</span>

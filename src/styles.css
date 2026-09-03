@@ -82,13 +82,8 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .chip.star { font-weight: 600; }
 .chip.danger { color: var(--accent); }
 .chip:disabled { opacity: .6; cursor: default; }
-/* пераключальнік спіса: усе · матэрыялы · фарміраванні */
-.seg { display: inline-flex; flex: none; height: 36px; border: 1px solid var(--line-strong); border-radius: 99px; background: var(--card); overflow: hidden; }
-.seg button { font: inherit; font-size: .88rem; padding: 0 12px; border: 0; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
-.seg button + button { border-left: 1px solid var(--line-strong); }
-.seg button:hover { color: var(--text); }
-.seg button.on { background: var(--accent); color: #fff; }
-.seg button.on.f { background: var(--form); }
+/* чып спіса «Фарміраванні» ва ўключаным стане — колерам другога спісу */
+.chip.on.form { background: var(--form); border-color: var(--form); }
 .sort { flex: none; margin-left: auto; }
 .sort select { -webkit-appearance: none; appearance: none; padding-right: 30px; color: var(--muted);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");

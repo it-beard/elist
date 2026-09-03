@@ -81,7 +81,7 @@ export const FAQ = {
     },
     {
       q: 'Чым спіс экстрэмісцкіх матэрыялаў адрозніваецца ад спісу экстрэмісцкіх фарміраванняў?',
-      a: (f) => `Гэта два розныя спісы, і сайт шукае адразу па абодвух. Спіс «экстрэмісцкіх матэрыялаў» фармуюць суды — за яго парушэнне адміністрацыйная адказнасць. Пералік «экстрэмісцкіх фарміраванняў» вядуць МУС і КДБ${f.formations ? ` (${f.formationsStr} запісаў, правяраецца раз на суткі)` : ''}; у выдачы такія запісы пазначаныя фіялетавай плашкай «Фарміраванне», а пераключальнік «Усе · Матэрыялы · Фарміраванні» абмяжоўвае пошук адным спісам. ${LEGAL_BE.crime} Многія рэсурсы ёсць у абодвух спісах.`,
+      a: (f) => `Гэта два розныя спісы, і сайт шукае адразу па абодвух. Спіс «экстрэмісцкіх матэрыялаў» фармуюць суды — за яго парушэнне адміністрацыйная адказнасць. Пералік «экстрэмісцкіх фарміраванняў» вядуць МУС і КДБ${f.formations ? ` (${f.formationsStr} запісаў, правяраецца раз на суткі)` : ''}; у выдачы такія запісы пазначаныя фіялетавай плашкай «Фарміраванне», а чыпы «Толькі матэрыялы» / «Толькі фарміраванні» абмяжоўваюць пошук адным спісам. ${LEGAL_BE.crime} Многія рэсурсы ёсць у абодвух спісах.`,
     },
     {
       q: 'Ці бяспечна карыстацца гэтым сайтам?',
@@ -131,7 +131,7 @@ export const FAQ = {
     },
     {
       q: 'How does the list of extremist materials differ from the list of extremist formations?',
-      a: (f) => `They are two different lists, and the site searches both at once. The list of “extremist materials” is formed by courts and carries administrative liability. The list of “extremist formations” is maintained by the Interior Ministry and the KGB${f.formations ? ` (${f.formationsStr} entries, checked once a day)` : ''}; such results carry a purple “Formation” label, and the “All · Materials · Formations” switch limits the search to one list. ${LEGAL_EN.crime} Many resources appear on both lists.`,
+      a: (f) => `They are two different lists, and the site searches both at once. The list of “extremist materials” is formed by courts and carries administrative liability. The list of “extremist formations” is maintained by the Interior Ministry and the KGB${f.formations ? ` (${f.formationsStr} entries, checked once a day)` : ''}; such results carry a purple “Formation” label, and the “Materials only” / “Formations only” chips limit the search to one list. ${LEGAL_EN.crime} Many resources appear on both lists.`,
     },
     {
       q: 'Is this site safe to use?',

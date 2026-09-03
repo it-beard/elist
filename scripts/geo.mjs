@@ -67,7 +67,7 @@ export function llmsTxt({ site, facts, stats }) {
   const f = { ...facts, ...stats };
   const years = (stats.byYear || []).slice(0, 6).map(([y, n]) => `- ${y}: ${n} запісаў`).join('\n');
   const faq = FAQ.be.slice(0, 6).map((x) => `- **${x.q}** ${x.a(f)}`).join('\n');
-  return `# Спіс экстрэмісцкіх матэрыялаў Беларусі — пошук
+  return `# Экстрэмісцкія спісы Беларусі — пошук
 
 > ${SUMMARY.be(f)}
 
@@ -103,7 +103,7 @@ ${faq}
 /** Schema.org для галоўнай: WebSite + SearchAction, Dataset, WebApplication. */
 export function siteJsonLd({ site, facts, lang = 'be' }) {
   const f = facts;
-  const name = lang === 'en' ? 'List of extremist materials of Belarus — search' : 'Спіс экстрэмісцкіх матэрыялаў Беларусі — пошук';
+  const name = lang === 'en' ? 'Extremist lists of Belarus — search' : 'Экстрэмісцкія спісы Беларусі — пошук';
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -124,7 +124,7 @@ export function siteJsonLd({ site, facts, lang = 'be' }) {
       {
         '@type': 'Dataset',
         '@id': `${abs(site, '')}#dataset`,
-        name: lang === 'en' ? 'Republican list of extremist materials of Belarus' : 'Рэспубліканскі спіс экстрэмісцкіх матэрыялаў Беларусі',
+        name: lang === 'en' ? 'Extremist lists of Belarus: the Republican list of extremist materials and the list of extremist formations' : 'Экстрэмісцкія спісы Беларусі: Рэспубліканскі спіс экстрэмісцкіх матэрыялаў і пералік экстрэмісцкіх фарміраванняў',
         description: SUMMARY[lang](f),
         url: abs(site, ''),
         inLanguage: 'ru',
@@ -221,8 +221,8 @@ export function faqPage({ site, facts, stats, lang, base = '/' }) {
   const en = lang === 'en';
   const page = abs(site, en ? 'faq-en.html' : 'faq.html');
   const title = en
-    ? 'FAQ: the list of extremist materials of Belarus'
-    : 'Пытанні і адказы: спіс экстрэмісцкіх матэрыялаў Беларусі';
+    ? 'FAQ: the extremist lists of Belarus'
+    : 'Пытанні і адказы: экстрэмісцкія спісы Беларусі';
   const lead = en
     ? `This page answers the most common questions about the Republican list of extremist materials of Belarus and about this search site: what the list is, how to check a channel or handle, what the penalties are, and what data the site stores. As of ${f.updatedStr} the database holds ${f.totalStr} entries and refreshes twice a day.`
     : `Гэтая старонка адказвае на самыя частыя пытанні пра Рэспубліканскі спіс экстрэмісцкіх матэрыялаў Беларусі і пра гэты сайт: што такое спіс, як праверыць канал ці нік, што пагражае за рэпост і якія даныя сайт захоўвае. На ${f.updatedStr} у базе ${f.totalStr} запісаў, яна абнаўляецца двойчы на дзень.`;
@@ -307,7 +307,7 @@ export function llmsFullTxt({ site, facts, stats }) {
   const f = { ...facts, ...stats };
   const block = (lang) => FAQ[lang].map((x) => `### ${x.q}\n\n${x.a(f)}`).join('\n\n');
   const years = (stats.byYear || []).map(([y, n]) => `- ${y}: ${n}`).join('\n');
-  return `# Спіс экстрэмісцкіх матэрыялаў Беларусі — поўны даведнік
+  return `# Экстрэмісцкія спісы Беларусі — поўны даведнік
 
 > ${SUMMARY.be(f)}
 
@@ -355,9 +355,9 @@ ${block('en')}
 export function openSearchXml({ site }) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">
-  <ShortName>Спіс ЭМ</ShortName>
-  <LongName>Пошук па спісе экстрэмісцкіх матэрыялаў Беларусі</LongName>
-  <Description>Пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў Беларусі</Description>
+  <ShortName>Экстр. спісы</ShortName>
+  <LongName>Пошук па экстрэмісцкіх спісах Беларусі</LongName>
+  <Description>Пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў і пераліку экстрэмісцкіх фарміраванняў Беларусі</Description>
   <InputEncoding>UTF-8</InputEncoding>
   <Language>be</Language>
   <Image width="16" height="16" type="image/x-icon">${esc(abs(site, 'favicon.ico'))}</Image>
@@ -389,7 +389,7 @@ export function notFoundPage({ site, base = '/' }) {
 <meta http-equiv="Content-Security-Policy" content="${PAGE_CSP}">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Старонка не знойдзеная — Спіс экстрэмісцкіх матэрыялаў Беларусі</title>
+<title>Старонка не знойдзеная — Экстрэмісцкія спісы Беларусі</title>
 <meta name="robots" content="noindex, follow">
 <link rel="icon" href="${base}favicon.ico" sizes="any">
 <script>${THEME_BOOT}</script>

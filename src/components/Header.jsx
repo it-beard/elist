@@ -1,11 +1,10 @@
-import { fmtDate, fmtLocalDate, fmtTime, relDay, isRecent, NEW_DAYS, STALE_HOURS, hoursSince } from '../lib/format.js';
+import { fmtDate, fmtLocalDate, fmtTime, relDay, STALE_HOURS, hoursSince } from '../lib/format.js';
 import { useLang } from '../hooks/useLang.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import LangToggle from './LangToggle.jsx';
 
-export default function Header({ meta, items, online, onHelp }) {
+export default function Header({ meta, online, onHelp }) {
   const { t, lang } = useLang();
-  const recent = items ? items.filter((it) => !it.replacedBy && isRecent(it.added)).length : 0;
   // Час апошняга абнаўлення базы (checkedAt пішацца пры кожным паспяховым запуску
   // update.mjs). Старыя кэшы meta без checkedAt — толькі дата.
   const updatedStr = updatedLabel(meta, t, lang);
@@ -26,11 +25,16 @@ export default function Header({ meta, items, online, onHelp }) {
       <p className="sub">
         {meta ? (
           <>
-            {t.updated} <time dateTime={meta.checkedAt || meta.updated} title={t.twiceDaily}>{updatedStr}</time>
-            {fm && (fm.checked || fm.updated) && (
-              <> · {t.formationsChecked} <time dateTime={fm.checkedAt || fm.checked || fm.updated} title={t.formationsDaily}>{fmtDate(fm.checked || fm.updated)}</time></>
+            {/* з другім спісам — «абноўлена: матэрыялы сёння а 10:54 · фарміраванні ўчора а 04:20», без яго — як раней.
+                Лічыльнік новых за месяц тут не паказваем — ён ёсць на ўкладцы «Новае». */}
+            {fm && (fm.checkedAt || fm.checked || fm.updated) ? (
+              <>
+                {t.updated}: {t.updatedMaterials} <time dateTime={meta.checkedAt || meta.updated} title={t.twiceDaily}>{updatedStr}</time>
+                {' · '}{t.formationsChecked} <time dateTime={fm.checkedAt || fm.checked || fm.updated} title={t.formationsDaily}>{updatedLabel(fm, t, lang)}</time>
+              </>
+            ) : (
+              <>{t.updated} <time dateTime={meta.checkedAt || meta.updated} title={t.twiceDaily}>{updatedStr}</time></>
             )}
-            {recent > 0 && <span className="badge-new">{t.recent(recent, NEW_DAYS)}</span>}
           </>
         ) : ' '}
       </p>
