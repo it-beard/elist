@@ -112,7 +112,7 @@ function feed(rows, meta) {
     return `<item><title>${esc(title)}</title><link>${SITE}#/r/${x.id}</link><guid isPermaLink="false">${root(x.id)}</guid><pubDate>${when}</pubDate><category>${esc(category)}</category><description>${esc(body)}</description></item>`;
   }).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0"><channel><title>Экстрэмісцкія спісы Беларусі — новыя запісы</title><link>${SITE}</link><description>Неафіцыйная стужка новых запісаў у Рэспубліканскім спісе экстрэмісцкіх матэрыялаў і пераліку экстрэмісцкіх фарміраванняў МУС/КДБ. Абнаўляецца двойчы на дзень.</description><language>be</language><image><url>${SITE}icon-192.png</url><title>Экстрэмісцкія спісы Беларусі</title><link>${SITE}</link></image><lastBuildDate>${new Date(meta.updated).toUTCString()}</lastBuildDate>
+<rss version="2.0"><channel><title>Пошук па экстрэмісцкіх спісах Беларусі — новыя запісы</title><link>${SITE}</link><description>Неафіцыйная стужка новых запісаў у Рэспубліканскім спісе экстрэмісцкіх матэрыялаў і пераліку экстрэмісцкіх фарміраванняў МУС/КДБ. Абнаўляецца двойчы на дзень.</description><language>be</language><image><url>${SITE}icon-192.png</url><title>Пошук па экстрэмісцкіх спісах Беларусі</title><link>${SITE}</link></image><lastBuildDate>${new Date(meta.updated).toUTCString()}</lastBuildDate>
 ${items}
 </channel></rss>`;
 }

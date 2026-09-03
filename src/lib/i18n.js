@@ -13,7 +13,7 @@ export const LINKS = {
 
 export const STRINGS = {
   be: {
-    title: 'Экстрэмісцкія спісы Беларусі',
+    title: 'Пошук па экстрэмісцкіх спісах Беларусі',
     records: 'запісаў',
     updated: 'абноўлена',
     today: 'сёння', yesterday: 'учора', at: 'а',
@@ -205,7 +205,7 @@ export const STRINGS = {
     tipPhrase: '"словы запар"',
   },
   en: {
-    title: 'Extremist lists of Belarus',
+    title: 'Search the extremist lists of Belarus',
     records: 'records',
     updated: 'updated',
     today: 'today', yesterday: 'yesterday', at: 'at',

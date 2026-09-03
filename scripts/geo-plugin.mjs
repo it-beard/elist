@@ -33,7 +33,7 @@ function readMeta(root) {
 function fallback(base, f) {
   return `
       <header class="top wrap">
-        <div class="top-row"><h1>Экстрэмісцкія спісы Беларусі</h1></div>
+        <div class="top-row"><h1>Пошук па экстрэмісцкіх спісах Беларусі</h1></div>
         <p class="sub">${f.total ? `${esc(f.totalStr)} запісаў · абноўлена ${esc(f.updatedStr)}` : 'Пошук па афіцыйным спісе'}</p>
       </header>
       <main class="wrap">
@@ -68,9 +68,9 @@ export function geo({ site = process.env.SITE_URL || 'https://elist.itbeard.com/
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <link rel="search" type="application/opensearchdescription+xml" title="Спіс экстрэмісцкіх матэрыялаў" href="${base}opensearch.xml">
 <meta property="og:url" content="${esc(siteUrl)}">
-<meta property="og:site_name" content="Экстрэмісцкія спісы Беларусі">
+<meta property="og:site_name" content="Пошук па экстрэмісцкіх спісах Беларусі">
 <meta property="og:locale" content="be_BY">
-<meta name="twitter:title" content="Экстрэмісцкія спісы Беларусі — пошук">
+<meta name="twitter:title" content="Пошук па экстрэмісцкіх спісах Беларусі">
 <meta name="twitter:description" content="${esc(desc)}">
 <meta name="twitter:image" content="${esc(new URL('icon-512.png', siteUrl).href)}">
 <script type="application/ld+json">${jsonLd}</script>

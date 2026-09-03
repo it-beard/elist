@@ -67,7 +67,7 @@ export function llmsTxt({ site, facts, stats }) {
   const f = { ...facts, ...stats };
   const years = (stats.byYear || []).slice(0, 6).map(([y, n]) => `- ${y}: ${n} запісаў`).join('\n');
   const faq = FAQ.be.slice(0, 6).map((x) => `- **${x.q}** ${x.a(f)}`).join('\n');
-  return `# Экстрэмісцкія спісы Беларусі — пошук
+  return `# Пошук па экстрэмісцкіх спісах Беларусі
 
 > ${SUMMARY.be(f)}
 
@@ -103,7 +103,7 @@ ${faq}
 /** Schema.org для галоўнай: WebSite + SearchAction, Dataset, WebApplication. */
 export function siteJsonLd({ site, facts, lang = 'be' }) {
   const f = facts;
-  const name = lang === 'en' ? 'Extremist lists of Belarus — search' : 'Экстрэмісцкія спісы Беларусі — пошук';
+  const name = lang === 'en' ? 'Search the extremist lists of Belarus' : 'Пошук па экстрэмісцкіх спісах Беларусі';
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -307,7 +307,7 @@ export function llmsFullTxt({ site, facts, stats }) {
   const f = { ...facts, ...stats };
   const block = (lang) => FAQ[lang].map((x) => `### ${x.q}\n\n${x.a(f)}`).join('\n\n');
   const years = (stats.byYear || []).map(([y, n]) => `- ${y}: ${n}`).join('\n');
-  return `# Экстрэмісцкія спісы Беларусі — поўны даведнік
+  return `# Пошук па экстрэмісцкіх спісах Беларусі — поўны даведнік
 
 > ${SUMMARY.be(f)}
 
@@ -389,7 +389,7 @@ export function notFoundPage({ site, base = '/' }) {
 <meta http-equiv="Content-Security-Policy" content="${PAGE_CSP}">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Старонка не знойдзеная — Экстрэмісцкія спісы Беларусі</title>
+<title>Старонка не знойдзеная — Пошук па экстрэмісцкіх спісах Беларусі</title>
 <meta name="robots" content="noindex, follow">
 <link rel="icon" href="${base}favicon.ico" sizes="any">
 <script>${THEME_BOOT}</script>
