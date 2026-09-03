@@ -12,13 +12,22 @@ export const fmtDay = (iso) => (iso ? String(iso).split('-').reverse().join('.')
 
 /** Базавыя факты з публічнага meta.json (даступныя і без самой базы). */
 export function siteFacts(meta = {}) {
+  const fm = meta.formations || {};
   return {
     total: meta.total || 0,
     totalStr: fmtNum(meta.total || 0),
     updated: meta.updated || '',
     updatedStr: fmtDay(meta.updated),
+    // другі спіс — пералік экстрэмісцкіх фарміраванняў МУС/КДБ (0, пакуль не імпартаваны)
+    formations: fm.total || 0,
+    formationsStr: fmtNum(fm.total || 0),
+    formationsUpdatedStr: fmtDay(fm.checked || fm.updated),
   };
 }
+
+/** Фраза-дадатак пра другі спіс, калі ён ёсць у базе. */
+const FORM_BE = (f) => (f.formations ? ` Акрамя таго, у базе ${f.formationsStr} запісаў з пераліку «экстрэмісцкіх фарміраванняў» МУС/КДБ (правяраецца раз на суткі).` : '');
+const FORM_EN = (f) => (f.formations ? ` The database also holds ${f.formationsStr} entries from the Interior Ministry / KGB list of “extremist formations” (checked once a day).` : '');
 
 /** Статыстыка па самой базе — толькі там, дзе яна ёсць (зборка). */
 export function dataStats(db = []) {
@@ -52,7 +61,7 @@ export const FAQ = {
   be: [
     {
       q: 'Што такое Рэспубліканскі спіс экстрэмісцкіх матэрыялаў?',
-      a: (f) => `Рэспубліканскі спіс экстрэмісцкіх матэрыялаў — афіцыйны пералік тэкстаў, відэа, каналаў, сайтаў, акаўнтаў, кніг і сімвалікі, якія беларускія суды прызналі экстрэмісцкімі. На ${f.updatedStr} у ім ${f.totalStr} запісаў. Кожны запіс з’яўляецца пасля рашэння канкрэтнага суда і змяшчае тып матэрыялу, яго апісанне, назву суда і дату рашэння. ${LEGAL_BE.admin}`,
+      a: (f) => `Рэспубліканскі спіс экстрэмісцкіх матэрыялаў — афіцыйны пералік тэкстаў, відэа, каналаў, сайтаў, акаўнтаў, кніг і сімвалікі, якія беларускія суды прызналі экстрэмісцкімі. На ${f.updatedStr} у ім ${f.totalStr} запісаў. Кожны запіс з’яўляецца пасля рашэння канкрэтнага суда і змяшчае тып матэрыялу, яго апісанне, назву суда і дату рашэння. ${LEGAL_BE.admin}${FORM_BE(f)}`,
     },
     {
       q: 'Як праверыць, ці трапіў мой Telegram-канал, нік ці сайт у спіс?',
@@ -72,7 +81,7 @@ export const FAQ = {
     },
     {
       q: 'Чым спіс экстрэмісцкіх матэрыялаў адрозніваецца ад спісу экстрэмісцкіх фарміраванняў?',
-      a: () => `Гэта два розныя спісы. Спіс «экстрэмісцкіх матэрыялаў» фармуюць суды — за яго парушэнне адміністрацыйная адказнасць; менавіта па ім шукае гэты сайт. Спіс «экстрэмісцкіх фарміраванняў» вядуць МУС і КДБ. ${LEGAL_BE.crime} Многія рэсурсы ёсць у абодвух спісах, таму варта праверыць і другі.`,
+      a: (f) => `Гэта два розныя спісы, і сайт шукае адразу па абодвух. Спіс «экстрэмісцкіх матэрыялаў» фармуюць суды — за яго парушэнне адміністрацыйная адказнасць. Пералік «экстрэмісцкіх фарміраванняў» вядуць МУС і КДБ${f.formations ? ` (${f.formationsStr} запісаў, правяраецца раз на суткі)` : ''}; у выдачы такія запісы пазначаныя фіялетавай плашкай «Фарміраванне», а пераключальнік «Усе · Матэрыялы · Фарміраванні» абмяжоўвае пошук адным спісам. ${LEGAL_BE.crime} Многія рэсурсы ёсць у абодвух спісах.`,
     },
     {
       q: 'Ці бяспечна карыстацца гэтым сайтам?',
@@ -102,7 +111,7 @@ export const FAQ = {
   en: [
     {
       q: 'What is the Republican list of extremist materials of Belarus?',
-      a: (f) => `The Republican list of extremist materials is the official register of texts, videos, channels, websites, accounts, books and symbols that Belarusian courts have ruled extremist. As of ${f.updatedStr} it contains ${f.totalStr} entries. Each entry follows a decision by a specific court and carries the material type, its description, the court name and the decision date. ${LEGAL_EN.admin}`,
+      a: (f) => `The Republican list of extremist materials is the official register of texts, videos, channels, websites, accounts, books and symbols that Belarusian courts have ruled extremist. As of ${f.updatedStr} it contains ${f.totalStr} entries. Each entry follows a decision by a specific court and carries the material type, its description, the court name and the decision date. ${LEGAL_EN.admin}${FORM_EN(f)}`,
     },
     {
       q: 'How do I check whether my Telegram channel, handle or website is on the list?',
@@ -122,7 +131,7 @@ export const FAQ = {
     },
     {
       q: 'How does the list of extremist materials differ from the list of extremist formations?',
-      a: () => `They are two different lists. The list of “extremist materials” is formed by courts and carries administrative liability — this is the list the site searches. The list of “extremist formations” is maintained by the Interior Ministry and the KGB. ${LEGAL_EN.crime} Many resources appear on both, so check the second one too.`,
+      a: (f) => `They are two different lists, and the site searches both at once. The list of “extremist materials” is formed by courts and carries administrative liability. The list of “extremist formations” is maintained by the Interior Ministry and the KGB${f.formations ? ` (${f.formationsStr} entries, checked once a day)` : ''}; such results carry a purple “Formation” label, and the “All · Materials · Formations” switch limits the search to one list. ${LEGAL_EN.crime} Many resources appear on both lists.`,
     },
     {
       q: 'Is this site safe to use?',
@@ -153,16 +162,17 @@ export const FAQ = {
 
 /** Кароткае апісанне сайта з лічбамі — для meta description, llms.txt і JSON-LD. */
 export const SUMMARY = {
-  be: (f) => `Пошук па афіцыйным Рэспубліканскім спісе экстрэмісцкіх матэрыялаў Беларусі: ${f.totalStr} запісаў на ${f.updatedStr}, абнаўленне двойчы на дзень. Праверце нік, Telegram-канал, сайт ці кнігу, дадайце запыт у спіс назірання. Працуе афлайн, не збірае ніякіх даных.`,
-  en: (f) => `Search the official Republican list of extremist materials of Belarus: ${f.totalStr} entries as of ${f.updatedStr}, updated twice a day. Check a handle, Telegram channel, website or book and add it to your watchlist. Works offline, collects no data.`,
+  be: (f) => `Пошук па афіцыйным Рэспубліканскім спісе экстрэмісцкіх матэрыялаў Беларусі: ${f.totalStr} запісаў на ${f.updatedStr}, абнаўленне двойчы на дзень${f.formations ? `, плюс ${f.formationsStr} запісаў пераліку экстрэмісцкіх фарміраванняў МУС/КДБ` : ''}. Праверце нік, Telegram-канал, сайт ці кнігу, дадайце запыт у спіс назірання. Працуе афлайн, не збірае ніякіх даных.`,
+  en: (f) => `Search the official Republican list of extremist materials of Belarus: ${f.totalStr} entries as of ${f.updatedStr}, updated twice a day${f.formations ? `, plus ${f.formationsStr} entries from the Interior Ministry / KGB list of extremist formations` : ''}. Check a handle, Telegram channel, website or book and add it to your watchlist. Works offline, collects no data.`,
 };
 
 /** Ключавыя факты табліцай — структураваныя фрагменты лягчэй цытаваць. */
 export const KEY_FACTS = {
   be: (f) => [
     ['Запісаў у базе', `${f.totalStr} (на ${f.updatedStr})`],
+    ...(f.formations ? [['Экстрэмісцкіх фарміраванняў (МУС/КДБ)', `${f.formationsStr} (на ${f.formationsUpdatedStr}), правяраецца раз на суткі`]] : []),
     ['Абнаўленне', 'аўтаматычна, двойчы на дзень'],
-    ['Крыніца', 'афіцыйная публікацыя Рэспубліканскага спісу экстрэмісцкіх матэрыялаў'],
+    ['Крыніца', 'афіцыйная публікацыя Рэспубліканскага спісу экстрэмісцкіх матэрыялаў; пералік экстрэмісцкіх фарміраванняў — сайт МУС'],
     ['Пошук', 'цалкам у браўзеры; кірыліца ↔ лацінка, памылкі ў 1–2 літары'],
     ['Даныя пра карыстальніка', 'не збіраюцца: ні запытаў, ні cookies, ні статыстыкі'],
     ['Афлайн', 'так, PWA — база застаецца ў браўзеры'],
@@ -171,8 +181,9 @@ export const KEY_FACTS = {
   ],
   en: (f) => [
     ['Entries', `${f.totalStr} (as of ${f.updatedStr})`],
+    ...(f.formations ? [['Extremist formations (Interior Ministry / KGB)', `${f.formationsStr} (as of ${f.formationsUpdatedStr}), checked once a day`]] : []),
     ['Updates', 'automatic, twice a day'],
-    ['Source', 'official publication of the Republican list of extremist materials'],
+    ['Source', 'official publication of the Republican list of extremist materials; the list of extremist formations — Interior Ministry website'],
     ['Search', 'entirely in the browser; Cyrillic ↔ Latin, 1–2 letter typos'],
     ['User data', 'none collected: no queries, no cookies, no analytics'],
     ['Offline', 'yes, PWA — the database stays in the browser'],

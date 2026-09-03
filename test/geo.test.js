@@ -27,7 +27,20 @@ describe('факты', () => {
   it('перажывае пусты meta.json', () => {
     const f = siteFacts({});
     expect(f.total).toBe(0);
+    expect(f.formations).toBe(0);
     expect(() => SUMMARY.be(f)).not.toThrow();
+    expect(SUMMARY.be(f)).not.toContain('фарміраванн'); // без другога спісу пра яго не згадваем
+    expect(KEY_FACTS.be(f).some(([k]) => /фарміраванняў/.test(k))).toBe(false);
+  });
+  it('другі спіс (фарміраванні МУС/КДБ) трапляе ў факты, калі ён ёсць у meta', () => {
+    const f = { ...siteFacts({ ...META, formations: { total: 377, checked: '2026-09-03' } }), ...dataStats(DB) };
+    expect(f.formationsStr).toBe('377');
+    expect(f.formationsUpdatedStr).toBe('03.09.2026');
+    for (const lang of ['be', 'en']) {
+      expect(SUMMARY[lang](f)).toContain('377');
+      expect(KEY_FACTS[lang](f).some(([, v]) => v.includes('377'))).toBe(true);
+      expect(FAQ[lang].find((x) => /фарміраванняў|formations/.test(x.q)).a(f)).toContain('377');
+    }
   });
 });
 

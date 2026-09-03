@@ -11,6 +11,9 @@
  * дабіраецца пры наступным запуску, калі адпраўка ўпала. Выпраўлены ў крыніцы запіс (editOf)
  * не абвяшчаецца, калі яго папярэднюю версію ўжо дасылалі.
  *
+ * Другі спіс (data/formations.json, экстрэмісцкія фарміраванні МУС/КДБ) ідзе ў той жа дайджэст: 🟣 і подпіс
+ * «экстрэмісцкае фарміраванне». Пры першым імпарце added = null — у дайджэст нічога не трапляе.
+ *
  * Фарматаванне — HTML-рэжым Bot API (дазволеныя толькі b/i/u/s/code/a/blockquote):
  * https://core.telegram.org/bots/api#html-style. Ліміт — 4096 сімвалаў на паведамленне,
  * таму доўгі дайджэст разбіваецца на некалькі частак.
@@ -37,7 +40,9 @@ const readJson = async (file, fallback) => {
 };
 
 const meta = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'meta.json'), 'utf8'));
-const db = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'materials.json'), 'utf8'));
+const materials = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'materials.json'), 'utf8'));
+const formations = await readJson(path.join(ROOT, 'data', 'formations.json'), []);
+const db = [...materials, ...formations.map((x) => ({ ...x, list: 'f' }))];
 const byId = new Map(db.map((x) => [x.id, x]));
 const sent = (await readJson(STATE_FILE, {})).sent || {};
 const today = new Date().toISOString().slice(0, 10);
@@ -46,9 +51,9 @@ const since = shiftDays(today, -WINDOW_DAYS);
 
 let fresh = test ? [] : db
   .filter((x) => x.added && x.added >= since && !sent[x.id] && !(x.editOf && sent[x.editOf]))
-  .sort((a, b) => a.added.localeCompare(b.added) || (a.order ?? 0) - (b.order ?? 0));
+  .sort((a, b) => a.added.localeCompare(b.added) || (a.list === 'f') - (b.list === 'f') || (a.order ?? 0) - (b.order ?? 0));
 // Пробны рэжым: заўсёды ўзор з апошніх запісаў, а не рэальныя новыя — інакш яны пайшлі б у канал двойчы.
-if (test) fresh = db.filter((x) => !x.removed).sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 4);
+if (test) fresh = [...materials.filter((x) => !x.removed).sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 3), ...formations.filter((x) => !x.removed).slice(-1).map((x) => ({ ...x, list: 'f' }))];
 if (!fresh.length) { console.log('Новых запісаў няма — паведамленне не патрэбнае.'); process.exit(0); }
 const target = test && adminChat ? adminChat : chat;
 
@@ -68,7 +73,8 @@ const KINDS = [
   [/сайт|ресурс|http|www\.|\.by|\.com|\.org/, '🌐'],
 ];
 function icon(x) {
-  const s = `${x.name}\n${x.type}`.toLowerCase();
+  if (x.list === 'f') return '🟣';
+  const s = `${x.name}\n${x.type || ''}`.toLowerCase();
   let best = null;
   for (const [re, emoji] of KINDS) { const i = s.search(re); if (i !== -1 && (best === null || i < best.i)) best = { i, emoji }; }
   return best ? best.emoji : '📄';
@@ -81,8 +87,9 @@ function title(x) {
   return s;
 }
 
+const DECIDER = { mvd: 'рашэнне МУС', kgb: 'рашэнне КДБ', court: 'рашэнне суда' };
 function entry(x, n) {
-  const court = x.court ? courtName(x.court).replace(/^суда\s+/i, 'суд ') : '';
+  const court = x.list === 'f' ? `экстрэмісцкае фарміраванне${DECIDER[x.decidedBy] ? `, ${DECIDER[x.decidedBy]}` : ''}` : x.court ? courtName(x.court).replace(/^суда\s+/i, 'суд ') : '';
   const metaLine = [x.date && dateShort(x.date), court && `⚖️ ${esc(court)}`].filter(Boolean).join(' · ');
   return (
     `<blockquote>${icon(x)} <b>${n}.</b> ${esc(title(x))}` +
@@ -91,12 +98,16 @@ function entry(x, n) {
   );
 }
 
-const n = fresh.length;
+const n = fresh.length, nF = fresh.filter((x) => x.list === 'f').length, nM = n - nF;
 // дата дайджэсту — калі запісы трапілі ў базу, а не калі мы дасылаем (важна для дабору за мінулыя дні)
 const day = test ? today : fresh[fresh.length - 1].added;
 const header = test
   ? `🧪 <b>Пробнае паведамленне</b> — так будуць выглядаць дайджэсты\n<i>${dateBe(day)} · ${num(meta.total)} ${plural(meta.total, 'запіс', 'запісы', 'запісаў')} у спісе</i>`
-  : `🔴 <b>Спіс экстрэмісцкіх матэрыялаў: +${n} ${plural(n, 'новы запіс', 'новыя запісы', 'новых запісаў')}</b>\n<i>${dateBe(day)} · усяго ў спісе ${num(meta.total)}</i>`;
+  : nM && nF
+    ? `🔴 <b>Спісы экстрэмісцкіх матэрыялаў і фарміраванняў: +${n} ${plural(n, 'новы запіс', 'новыя запісы', 'новых запісаў')}</b>\n<i>${dateBe(day)} · матэрыялаў +${nM}, фарміраванняў +${nF} · усяго матэрыялаў у спісе ${num(meta.total)}</i>`
+    : nF
+      ? `🟣 <b>Пералік экстрэмісцкіх фарміраванняў (МУС/КДБ): +${n} ${plural(n, 'новы запіс', 'новыя запісы', 'новых запісаў')}</b>\n<i>${dateBe(day)}</i>`
+      : `🔴 <b>Спіс экстрэмісцкіх матэрыялаў: +${n} ${plural(n, 'новы запіс', 'новыя запісы', 'новых запісаў')}</b>\n<i>${dateBe(day)} · усяго ў спісе ${num(meta.total)}</i>`;
 const footer =
   `🔎 <a href="${SITE}">Праверыць сябе і свой спіс назірання</a>\n` +
   `📰 <a href="${SITE}#/new">Усе новыя запісы</a> · <a href="${SITE}feed.xml">RSS</a>`;

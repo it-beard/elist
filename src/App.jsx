@@ -41,14 +41,14 @@ function runSearch(items, tokens, opts) {
 
 export default function App() {
   const { t, lang } = useLang();
-  const { status, error, meta, items, chunkSize, reload, refreshing, refreshError, checkedAt } = useIndex();
+  const { status, error, meta, items, chunkSize, counts, reload, refreshing, refreshError, checkedAt } = useIndex();
   const route = useHashRoute();
   const online = useOnline();
   const watch = useWatchlist(items);
   // Запыт — у стане і history.state укладкі, не ў адрасным радку (гл. lib/entry.js).
   const [query, setQuery] = useQuery();
   const [sort, setSort] = useLocalStorage('sort', 'newest');
-  const [flags, setFlags] = useState({ any: false, onlyNew: false });
+  const [flags, setFlags] = useState({ any: false, onlyNew: false, list: '' }); // list: '' | 'm' | 'f' — абодва / матэрыялы / фарміраванні
   const [help, setHelp] = useState(false);
   const [copied, setCopied] = useState(false);
   const opts = useMemo(() => ({ ...flags, sort }), [flags, sort]);
@@ -90,7 +90,7 @@ export default function App() {
 
   const openWatch = (entry, matches) => {
     watch.markSeen(entry.q, matches.map((m) => m.id));
-    setFlags({ any: false, onlyNew: false });
+    setFlags({ any: false, onlyNew: false, list: '' });
     setQuery(entry.q);
     route.go('');
   };
@@ -117,8 +117,13 @@ export default function App() {
   } : null;
   const shareChip = query.trim() && status === 'ready' ? { copy: copyQueryLink, copied } : null;
 
-  const active = tokens.length > 0 || opts.onlyNew;
+  const active = tokens.length > 0 || opts.onlyNew || Boolean(opts.list);
   const newCount = items ? items.filter((it) => !it.replacedBy && isRecent(it.added)).length : 0;
+  // другі спіс (экстрэмісцкія фарміраванні): пераключальнік і асобны падлік — толькі калі ён ёсць у базе
+  const hasLists = Boolean(counts?.f);
+  const fInResults = useMemo(() => results.reduce((n, r) => n + (r.list === 'f' ? 1 : 0), 0), [results]);
+  // статыстыка — таймлайн па артыкулах судовых рашэнняў, таму толькі матэрыялы (фарміраванні яе не скажаюць)
+  const statItems = useMemo(() => (items ? items.filter((it) => it.list !== 'f') : items), [items]);
 
   return (
     <>
@@ -128,12 +133,12 @@ export default function App() {
       <main className="wrap">
         {status === 'ready' && route.name === 'new' && <WhatsNew items={items} chunkSize={chunkSize} />}
         {status === 'ready' && route.name === 'r' && <RecordPage id={route.arg} items={items} chunkSize={chunkSize} watch={watch} />}
-        {route.name === 'stats' && (status === 'ready' ? <StatsPage items={items} /> : <p className="summary">{status === 'error' ? t.loadError(error) : t.loading}</p>)}
+        {route.name === 'stats' && (status === 'ready' ? <StatsPage items={statItems} /> : <p className="summary">{status === 'error' ? t.loadError(error) : t.loading}</p>)}
         {!['new', 'r', 'stats'].includes(route.name) && (
           <>
             <div className="search">
               <SearchBar value={query} onChange={setQuery} />
-              <Options value={opts} onChange={setOpts} watch={watchChip} share={shareChip} />
+              <Options value={opts} onChange={setOpts} watch={watchChip} share={shareChip} lists={hasLists} />
             </div>
             {status === 'loading' && <p className="summary">{t.loading}</p>}
             {status === 'error' && <p className="summary error">{t.loadError(error)}</p>}
@@ -146,9 +151,9 @@ export default function App() {
                   />
                 )}
                 <p className="summary" aria-live="polite">
-                  {!active ? t.total(results.length) : mode === 'fuzzy' ? t.fuzzy(results.length) : results.length ? t.found(results.length) : t.nothing}
+                  {!active ? (hasLists ? t.totalBoth(results.length - fInResults, fInResults) : t.total(results.length)) : mode === 'fuzzy' ? t.fuzzy(results.length) : results.length ? t.found(results.length) : t.nothing}
                 </p>
-                {active && results.length > 0 && <Consequences />}
+                {active && results.length > 0 && <Consequences formations={fInResults > 0} />}
                 <ResultList results={results} tokens={hl} chunkSize={chunkSize} />
               </>
             )}

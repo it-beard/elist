@@ -9,7 +9,7 @@ export function useIndex() {
     const fresh = tick > 0;
     if (fresh) setState((s) => ({ ...s, refreshing: true }));
     Promise.all([fetchMeta(fresh), fetchIndex(fresh)])
-      .then(([meta, idx]) => alive && setState({ status: 'ready', meta, items: idx.items, chunkSize: idx.chunkSize, checkedAt: Date.now() }))
+      .then(([meta, idx]) => alive && setState({ status: 'ready', meta, items: idx.items, chunkSize: idx.chunkSize, counts: idx.counts, checkedAt: Date.now() }))
       .catch((e) => alive && setState((s) => (s.status === 'ready' ? { ...s, refreshing: false, refreshError: e.message } : { status: 'error', error: e.message })));
     return () => { alive = false; };
   }, [tick]);

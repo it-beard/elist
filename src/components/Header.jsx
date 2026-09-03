@@ -13,6 +13,8 @@ export default function Header({ meta, items, online, onHelp }) {
   // meta на сайце не змяняецца — таму папярэджваем па ўзросце апошняй праверкі на баку кліента.
   const checkedAgo = meta ? hoursSince(meta.checkedAt || meta.checked || meta.updated) : 0;
   const stale = Boolean(online && meta && !meta.sourceError && checkedAgo > STALE_HOURS);
+  // другі спіс (экстрэмісцкія фарміраванні МУС/КДБ) правяраецца раз на суткі — асобная дата і асобнае папярэджанне
+  const fm = meta?.formations;
   return (
     <header className="top wrap">
       <div className="top-row">
@@ -25,12 +27,16 @@ export default function Header({ meta, items, online, onHelp }) {
         {meta ? (
           <>
             {t.updated} <time dateTime={meta.checkedAt || meta.updated} title={t.twiceDaily}>{updatedStr}</time>
+            {fm && (fm.checked || fm.updated) && (
+              <> · {t.formationsChecked} <time dateTime={fm.checkedAt || fm.checked || fm.updated} title={t.formationsDaily}>{fmtDate(fm.checked || fm.updated)}</time></>
+            )}
             {recent > 0 && <span className="badge-new">{t.recent(recent, NEW_DAYS)}</span>}
           </>
         ) : ' '}
       </p>
       {meta?.sourceError && <p className="notice warn">{t.sourceDown(fmtDate(meta.checked || meta.updated))}</p>}
       {meta?.fallback && <p className="notice warn">{t.fallbackSrc}</p>}
+      {fm?.sourceError && <p className="notice warn">{t.formationsDown(fmtDate(fm.checked || fm.updated))}</p>}
       {stale && <p className="notice warn">{t.stale(updatedStr)}</p>}
       {!online && meta && <p className="notice">{t.offline(fmtDate(meta.updated))}</p>}
     </header>

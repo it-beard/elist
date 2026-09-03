@@ -48,6 +48,15 @@ jobs:
         run: npm run update
         env:
           UPDATE_FORCE: ${{ inputs.force }}
+      # Другі спіс — пералік экстрэмісцкіх фарміраванняў (МУС/КДБ, .xlsx): раз на суткі (толькі ранішні cron,
+      # ручны запуск і паўторы). Збой гэтай крыніцы не спыняе абнаўленне матэрыялаў і дэплой: сеткавыя памылкі
+      # скрыпт сам піша ў formations-meta.json (сайт папярэдзіць), а пра падазроныя даныя скажа alert.mjs.
+      - name: Абнавіць пералік экстрэмісцкіх фарміраванняў (раз на суткі)
+        if: github.event.schedule != '17 16 * * *'
+        continue-on-error: true
+        run: npm run update:formations
+        env:
+          UPDATE_FORCE: ${{ inputs.force }}
       - name: Дайджэст у Telegram (калі наладжаны сакрэты)
         run: node scripts/notify.mjs
         env:
@@ -89,6 +98,7 @@ jobs:
               echo "Канфлікт з origin/main у data/ (спроба $i): паўтараю абнаўленне на свежай базе…"
               git reset -q --hard origin/main
               npm run update
+              npm run update:formations || true
               commit_data || { echo "Пасля паўтору зменаў няма"; exit 0; }
             fi
             sleep 10

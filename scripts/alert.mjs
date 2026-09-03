@@ -3,7 +3,8 @@
  * Службовыя паведамленні адміну ў асабісты Telegram-чат (TELEGRAM_ADMIN_CHAT_ID; без яго — ціхі выхад).
  *   node scripts/alert.mjs failed   — джоб упаў (ALERT_JOB, ALERT_RUN_URL)
  *   node scripts/alert.mjs source   — стан крыніцы ў data/meta.json змяніўся адносна HEAD:
- *                                     крыніца перастала/пачала адказваць, уключылася/выключылася запасная
+ *                                     крыніца перастала/пачала адказваць, уключылася/выключылася запасная;
+ *                                     тое ж для другога спісу (data/formations-meta.json, пералік МУС)
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -12,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const META = path.join(ROOT, 'data', 'meta.json');
+const FMETA = path.join(ROOT, 'data', 'formations-meta.json');
 const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_ADMIN_CHAT_ID;
 const mode = process.argv[2];
 
@@ -42,6 +44,13 @@ if (mode === 'failed') {
   }
   if (Boolean(cur.fallback) !== Boolean(prev.fallback)) {
     msgs.push(cur.fallback ? `⚠️ Афіцыйная крыніца недаступная, узятая запасная: ${esc(cur.sourcePage || '')}` : '✅ Зноў афіцыйная крыніца.');
+  }
+  // другі спіс: пералік экстрэмісцкіх фарміраванняў (МУС)
+  const curF = await readJson(FMETA, {});
+  let prevF = {};
+  try { prevF = JSON.parse(execFileSync('git', ['show', 'HEAD:data/formations-meta.json'], { cwd: ROOT, encoding: 'utf8' })); } catch { /* файла яшчэ не было */ }
+  if (Boolean(curF.sourceError) !== Boolean(prevF.sourceError)) {
+    msgs.push(curF.sourceError ? `⚠️ Пералік фарміраванняў (МУС) не адказвае: ${esc(curF.sourceError)}` : '✅ Пералік фарміраванняў (МУС) зноў адказвае.');
   }
   if (!msgs.length) { console.log('Стан крыніцы не змяніўся.'); process.exit(0); }
   await send(`<b>elist: стан крыніцы</b>\n${msgs.join('\n')}`);

@@ -2,6 +2,7 @@
   --bg: #f4f5f7; --card: #fff; --text: #16181d; --muted: #6b7280; --line: #e4e6eb; --line-strong: #cfd3da;
   --accent: #b3261e; --accent-soft: #fbeae8; --mark: #ffe58a; --new: #1b7f3b; --new-soft: #e3f5e8;
   --warn: #9a6700; --warn-soft: #fff4d6;
+  --form: #5b3fbf; --form-soft: #ece7fb; /* другі спіс — экстрэмісцкія фарміраванні (МУС/КДБ) */
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --trend: #16181d;
   --radius: 14px; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04);
 }
@@ -12,6 +13,7 @@
     --bg: #111317; --card: #1a1d23; --text: #e9ebef; --muted: #9aa1ad; --line: #272b33; --line-strong: #3a404a;
     --accent: #ff6b5e; --accent-soft: #3a1f1d; --mark: #7a5e00; --new: #5ad07a; --new-soft: #1c3324;
     --warn: #e3b341; --warn-soft: #332a12;
+    --form: #b39dfc; --form-soft: #2b2447;
     --s1: #3987e5; --s2: #d95926; --s3: #199e70; --trend: #e9ebef;
     --shadow: 0 1px 2px rgba(0,0,0,.4);
   }
@@ -20,6 +22,7 @@
   --bg: #111317; --card: #1a1d23; --text: #e9ebef; --muted: #9aa1ad; --line: #272b33; --line-strong: #3a404a;
   --accent: #ff6b5e; --accent-soft: #3a1f1d; --mark: #7a5e00; --new: #5ad07a; --new-soft: #1c3324;
   --warn: #e3b341; --warn-soft: #332a12;
+  --form: #b39dfc; --form-soft: #2b2447;
   --s1: #3987e5; --s2: #d95926; --s3: #199e70; --trend: #e9ebef;
   --shadow: 0 1px 2px rgba(0,0,0,.4);
 }
@@ -79,6 +82,13 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .chip.star { font-weight: 600; }
 .chip.danger { color: var(--accent); }
 .chip:disabled { opacity: .6; cursor: default; }
+/* пераключальнік спіса: усе · матэрыялы · фарміраванні */
+.seg { display: inline-flex; flex: none; height: 36px; border: 1px solid var(--line-strong); border-radius: 99px; background: var(--card); overflow: hidden; }
+.seg button { font: inherit; font-size: .88rem; padding: 0 12px; border: 0; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.seg button + button { border-left: 1px solid var(--line-strong); }
+.seg button:hover { color: var(--text); }
+.seg button.on { background: var(--accent); color: #fff; }
+.seg button.on.f { background: var(--form); }
 .sort { flex: none; margin-left: auto; }
 .sort select { -webkit-appearance: none; appearance: none; padding-right: 30px; color: var(--muted);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -125,6 +135,16 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .meta .idx:hover { opacity: 1; color: var(--accent); text-decoration: underline; }
 .type { background: var(--accent-soft); color: var(--accent); padding: 1px 9px; border-radius: 99px; font-weight: 600; }
 .gone { color: var(--accent); }
+/* другі спіс: фіялетавая палоска злева і плашка «Фарміраванне · МУС/КДБ» — каб адрозніваць у змяшанай выдачы */
+.item.formation { border-left: 3px solid var(--form); }
+.type.form { background: var(--form-soft); color: var(--form); }
+.alias { margin: 4px 0 0; color: var(--muted); font-size: .9rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.links { margin: 6px 0 0; font-size: .95rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.rec-details { margin: 14px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); font-size: .9rem; }
+.rec-details dt { margin: 10px 0 0; color: var(--muted); font-size: .8rem; font-weight: 600; }
+.rec-details dt:first-child { margin-top: 0; }
+.rec-details dd { margin: 2px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.crime { margin: 0 0 10px; padding: 8px 12px; border-radius: 10px; background: var(--form-soft); color: var(--form); font-size: .88rem; }
 .name { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; line-height: 1.45; }
 .court { white-space: pre-wrap; overflow-wrap: anywhere; margin: 10px 0 0; font-size: .85rem; color: var(--muted); border-left: 3px solid var(--line-strong); padding-left: 10px; }
 .skeleton { background: linear-gradient(90deg, var(--line), var(--bg), var(--line)); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 6px; min-height: 2.5em; }
