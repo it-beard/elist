@@ -224,8 +224,8 @@ export function faqPage({ site, facts, stats, lang, base = '/' }) {
     ? 'FAQ: the extremist lists of Belarus'
     : 'Пытанні і адказы: экстрэмісцкія спісы Беларусі';
   const lead = en
-    ? `This page answers the most common questions about the Republican list of extremist materials of Belarus and about this search site: what the list is, how to check a channel or handle, what the penalties are, and what data the site stores. As of ${f.updatedStr} the database holds ${f.totalStr} entries and refreshes twice a day.`
-    : `Гэтая старонка адказвае на самыя частыя пытанні пра Рэспубліканскі спіс экстрэмісцкіх матэрыялаў Беларусі і пра гэты сайт: што такое спіс, як праверыць канал ці нік, што пагражае за рэпост і якія даныя сайт захоўвае. На ${f.updatedStr} у базе ${f.totalStr} запісаў, яна абнаўляецца двойчы на дзень.`;
+    ? `This page answers the most common questions about the extremist lists of Belarus — the Republican list of extremist materials and the list of extremist formations — and about this search site: what the lists are, how to check a channel or handle, what the penalties are, and what data the site stores. As of ${f.updatedStr} the database holds ${f.totalStr} material entries${f.formations ? ` and ${f.formationsStr} formations` : ''}; materials refresh twice a day, formations once a day.`
+    : `Гэтая старонка адказвае на самыя частыя пытанні пра экстрэмісцкія спісы Беларусі — Рэспубліканскі спіс экстрэмісцкіх матэрыялаў і пералік экстрэмісцкіх фарміраванняў — і пра гэты сайт: што гэта за спісы, як праверыць канал ці нік, што пагражае за рэпост і якія даныя сайт захоўвае. На ${f.updatedStr} у базе ${f.totalStr} запісаў матэрыялаў${f.formations ? ` і ${f.formationsStr} фарміраванняў` : ''}; матэрыялы абнаўляюцца двойчы на дзень, фарміраванні — раз на суткі.`;
   const years = (stats.byYear || []).slice(0, 6);
   const yearsTitle = en ? 'Entries by year of the court decision' : 'Запісы па годзе судовага рашэння';
   const factsTitle = en ? 'Key facts' : 'Ключавыя факты';
@@ -244,7 +244,7 @@ export function faqPage({ site, facts, stats, lang, base = '/' }) {
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
-<meta name="description" content="${esc(en ? `FAQ about the Republican list of extremist materials of Belarus: ${f.totalStr} entries as of ${f.updatedStr}, penalties under Art. 19.11, how to check a channel or handle, what data the site stores.` : `Пытанні і адказы пра Рэспубліканскі спіс экстрэмісцкіх матэрыялаў Беларусі: ${f.totalStr} запісаў на ${f.updatedStr}, адказнасць паводле арт. 19.11 КаАП, як праверыць канал ці нік, якія даныя захоўвае сайт.`)}">
+<meta name="description" content="${esc(en ? `FAQ about the extremist lists of Belarus (materials and formations): ${f.totalStr} entries as of ${f.updatedStr}, penalties under Art. 19.11 and Art. 361-1, how to check a channel or handle, what data the site stores.` : `Пытанні і адказы пра экстрэмісцкія спісы Беларусі (матэрыялы і фарміраванні): ${f.totalStr} запісаў на ${f.updatedStr}, адказнасць паводле арт. 19.11 КаАП і арт. 361-1 КК, як праверыць канал ці нік, якія даныя захоўвае сайт.`)}">
 <link rel="canonical" href="${esc(page)}">
 <link rel="alternate" hreflang="be" href="${esc(abs(site, 'faq.html'))}">
 <link rel="alternate" hreflang="en" href="${esc(abs(site, 'faq-en.html'))}">

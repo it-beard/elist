@@ -65,11 +65,11 @@ export const FAQ = {
     },
     {
       q: 'Як праверыць, ці трапіў мой Telegram-канал, нік ці сайт у спіс?',
-      a: () => 'Увядзіце нік, назву канала, спасылку, імя ці назву ў поле пошуку на галоўнай старонцы — вынік з’явіцца адразу, за мілісекунды. Пошук не ўлічвае рэгістар, «ё/е», лацінскую і кірылічную «i», віды лапак і хвост «/» у спасылках, а «@nick», «t.me/nick» і «nick» лічацца адным і тым жа. Калі дакладных супадзенняў няма, сайт паказвае падобныя словы — з памылкамі ў 1–2 літары і ў лацінскай транслітарацыі.',
+      a: () => 'Увядзіце нік, назву канала, спасылку, імя ці назву ў поле пошуку на галоўнай старонцы — вынік з’явіцца адразу, за мілісекунды, і адразу па абодвух спісах (запісы пераліку фарміраванняў пазначаныя фіялетавай плашкай). Пошук не ўлічвае рэгістар, «ё/е», лацінскую і кірылічную «i», віды лапак і хвост «/» у спасылках, а «@nick», «t.me/nick» і «nick» лічацца адным і тым жа. Калі дакладных супадзенняў няма, сайт паказвае падобныя словы — з памылкамі ў 1–2 літары і ў лацінскай транслітарацыі.',
     },
     {
       q: 'Колькі запісаў у спісе і як часта ён абнаўляецца?',
-      a: (f) => `На ${f.updatedStr} у базе ${f.totalStr} запісаў, і яна абнаўляецца аўтаматычна двойчы на дзень: сайт правярае афіцыйную крыніцу раніцай і ўвечары, і новыя запісы трапляюць на сайт праз некалькі хвілін пасля праверкі. ${f.infoShare ? `${f.infoShare}% запісаў — «інфармацыйная прадукцыя» (каналы, сайты, акаўнты, відэа, чаты), астатняе — друкаваныя выданні, кнігі, сімваліка і атрыбутыка.` : ''}`.trim(),
+      a: (f) => `На ${f.updatedStr} у базе ${f.totalStr} запісаў спісу экстрэмісцкіх матэрыялаў${f.formations ? ` і ${f.formationsStr} запісаў пераліку экстрэмісцкіх фарміраванняў` : ''}. Спіс матэрыялаў абнаўляецца аўтаматычна двойчы на дзень: сайт правярае афіцыйную крыніцу раніцай і ўвечары, і новыя запісы трапляюць на сайт праз некалькі хвілін пасля праверкі; пералік фарміраванняў правяраецца раз на суткі. ${f.infoShare ? `${f.infoShare}% запісаў — «інфармацыйная прадукцыя» (каналы, сайты, акаўнты, відэа, чаты), астатняе — друкаваныя выданні, кнігі, сімваліка і атрыбутыка.` : ''}`.trim(),
     },
     {
       q: 'Што пагражае за рэпост ці захоўванне матэрыялу са спісу?',
@@ -85,19 +85,19 @@ export const FAQ = {
     },
     {
       q: 'Ці бяспечна карыстацца гэтым сайтам?',
-      a: () => 'Сайт не збірае ніякіх даных: ні запытаў, ні cookies, ні статыстыкі. Сам сайт логаў не вядзе; хостынг (GitHub Pages), як любы сервер, бачыць IP-адрас і адрас старонкі, але не пошукавыя запыты — яны не трапляюць у адрасны радок і выконваюцца цалкам у вашым браўзеры, бо ўся база спампоўваецца на прыладу. Спіс назірання, тэма, мова і сартаванне захоўваюцца толькі ў localStorage гэтай прылады, а кнопка «Ачысціць усё» выдаляе іх разам з афлайн-копіяй базы адным націскам. Перад паездкай у Беларусь ці перасячэннем мяжы варта гэта зрабіць і ачысціць гісторыю браўзера.',
+      a: () => 'Сайт не збірае ніякіх даных: ні запытаў, ні cookies, ні статыстыкі. Сам сайт логаў не вядзе; хостынг (GitHub Pages), як любы сервер, бачыць IP-адрас і адрас старонкі, але не пошукавыя запыты — яны не трапляюць у адрасны радок і выконваюцца цалкам у вашым браўзеры, бо ўся база спампоўваецца на прыладу. Спіс назірання, тэма, мова і сартаванне захоўваюцца толькі ў localStorage гэтай прылады, а кнопка «Ачысціць усё» выдаляе іх разам з афлайн-копіяй базы адным націскам. Перад паездкай у Беларусь ці перасячэннем мяжы варта гэта зрабіць і ачысціць гісторыю браўзера. Спасылкі ўнутры запісаў вядуць на самі рэсурсы са спісу — сайт папярэджвае перад пераходам. А вось адкрываць афіцыйныя сайты і файлы спісаў наўпрост ці карыстацца афіцыйным пошукам можа быць небяспечна само па сабе: даныя наведнікаў могуць збірацца органамі РБ.',
     },
     {
       q: 'Як даведацца, што ў спіс дадалі нешта новае?',
-      a: () => 'Ёсць тры спосабы. Спіс назірання: увядзіце свой нік ці канал і націсніце «Сачыць» — пры кожным адкрыцці сайт правярае ўсе такія запыты і паказвае зверху, ці з’явілася нешта новае (з неабавязковымі браўзернымі апавяшчэннямі). RSS-стужка feed.xml — для любога чытача стужак, з фільтрам па сваіх словах. Telegram-канал @elist_by — дайджэст новых запісаў пасля кожнага абнаўлення.',
+      a: () => 'Укладка «Новае» паказвае ўсё, што дадалі ў абодва спісы за апошнія 30 дзён. Каб не сачыць уручную, ёсць тры спосабы. Спіс назірання: увядзіце свой нік ці канал і націсніце «Сачыць» — пры кожным адкрыцці сайт правярае ўсе такія запыты і паказвае зверху, ці з’явілася нешта новае (з неабавязковымі браўзернымі апавяшчэннямі). RSS-стужка feed.xml — для любога чытача стужак, з фільтрам па сваіх словах. Telegram-канал @elist_by — дайджэст новых запісаў пасля кожнага абнаўлення.',
     },
     {
       q: 'Ці афіцыйны гэта сайт?',
-      a: () => 'Не, сайт неафіцыйны і зроблены незалежна, з адкрытым кодам на GitHub. Даныя аўтаматычна бяруцца з афіцыйнай публікацыі Рэспубліканскага спісу і не рэдагуюцца: тэкст запісу, назва суда і дата захоўваюцца як у крыніцы. Пры юрыдычна значных рашэннях звяраць варта з афіцыйнай публікацыяй.',
+      a: () => 'Не, сайт неафіцыйны і зроблены незалежна, з адкрытым кодам на GitHub. Даныя аўтаматычна бяруцца з афіцыйных публікацый — Рэспубліканскага спісу экстрэмісцкіх матэрыялаў (Мінінфарм) і пераліку экстрэмісцкіх фарміраванняў (МУС) — і не рэдагуюцца: тэкст запісу, падстава і даты захоўваюцца як у крыніцы. Пры юрыдычна значных рашэннях звяраць варта з афіцыйнай публікацыяй, памятаючы, што афіцыйныя сайты могуць збіраць даныя наведнікаў.',
     },
     {
       q: 'Што рабіць, калі я знайшоў сябе ці свой рэсурс у спісе?',
-      a: () => 'Праверце тэкст запісу, дату і назву суда — менавіта яны вызначаюць, што і калі прызналі экстрэмісцкім. Дадайце запыт у спіс назірання, каб убачыць, калі з’явіцца новы звязаны запіс. Пра свае рызыкі і магчымасць абскарджання пракансультуйцеся з праваабаронцамі: Праваабарончы цэнтр «Вясна» і Human Constanta.',
+      a: () => 'Праверце тэкст запісу, дату і падставу — назву суда для матэрыялаў ці рашэнне МУС/КДБ для фарміраванняў: менавіта яны вызначаюць, што і калі прызналі экстрэмісцкім. Для фарміравання адказнасць крымінальная, таму варта звярнуцца па кансультацыю адразу. Дадайце запыт у спіс назірання, каб убачыць, калі з’явіцца новы звязаны запіс. Пра свае рызыкі і магчымасць абскарджання пракансультуйцеся з праваабаронцамі: Праваабарончы цэнтр «Вясна» і Human Constanta.',
     },
     {
       q: 'Ці працуе пошук без інтэрнэту?',
@@ -115,11 +115,11 @@ export const FAQ = {
     },
     {
       q: 'How do I check whether my Telegram channel, handle or website is on the list?',
-      a: () => 'Type the handle, channel name, link, personal name or title into the search box on the front page — results appear instantly, in milliseconds. Search ignores case, “ё/е”, Latin vs Cyrillic “i”, quote styles and a trailing “/” in links, and treats “@nick”, “t.me/nick” and “nick” as the same thing. When there is no exact match, the site shows near matches: 1–2 letter typos and Latin transliteration.',
+      a: () => 'Type the handle, channel name, link, personal name or title into the search box on the front page — results appear instantly, in milliseconds, across both lists at once (entries from the formations list carry a purple label). Search ignores case, “ё/е”, Latin vs Cyrillic “i”, quote styles and a trailing “/” in links, and treats “@nick”, “t.me/nick” and “nick” as the same thing. When there is no exact match, the site shows near matches: 1–2 letter typos and Latin transliteration.',
     },
     {
       q: 'How many entries are on the list and how often is it updated?',
-      a: (f) => `As of ${f.updatedStr} the database holds ${f.totalStr} entries and it refreshes automatically twice a day: the official source is checked in the morning and in the evening, and new entries reach the site a few minutes after each check. ${f.infoShare ? `${f.infoShare}% of entries are “information products” (channels, websites, accounts, videos, chats); the rest are printed editions, books, symbols and paraphernalia.` : ''}`.trim(),
+      a: (f) => `As of ${f.updatedStr} the database holds ${f.totalStr} entries of the list of extremist materials${f.formations ? ` and ${f.formationsStr} entries of the list of extremist formations` : ''}. The materials list refreshes automatically twice a day: the official source is checked in the morning and in the evening, and new entries reach the site a few minutes after each check; the formations list is checked once a day. ${f.infoShare ? `${f.infoShare}% of entries are “information products” (channels, websites, accounts, videos, chats); the rest are printed editions, books, symbols and paraphernalia.` : ''}`.trim(),
     },
     {
       q: 'What are the penalties for reposting or storing a listed material?',
@@ -135,19 +135,19 @@ export const FAQ = {
     },
     {
       q: 'Is this site safe to use?',
-      a: () => 'The site collects no data: no queries, no cookies, no analytics. The site itself keeps no logs; the hosting (GitHub Pages), like any server, sees the IP address and the page address but not search queries — they never enter the address bar and run entirely in your browser, because the whole database is downloaded to the device. The watchlist, theme, language and sort order live only in this device’s localStorage, and “Clear everything” deletes them together with the offline copy of the database in one click. Do that before travelling to Belarus or crossing the border, and clear your browser history.',
+      a: () => 'The site collects no data: no queries, no cookies, no analytics. The site itself keeps no logs; the hosting (GitHub Pages), like any server, sees the IP address and the page address but not search queries — they never enter the address bar and run entirely in your browser, because the whole database is downloaded to the device. The watchlist, theme, language and sort order live only in this device’s localStorage, and “Clear everything” deletes them together with the offline copy of the database in one click. Do that before travelling to Belarus or crossing the border, and clear your browser history. Links inside entries lead to the listed resources themselves — the site warns you before opening. Opening the official list sites and files directly, or using the official search, can be risky in itself: visitor data may be collected by Belarusian authorities.',
     },
     {
       q: 'How do I find out when something new is added to the list?',
-      a: () => 'Three ways. The watchlist: type your handle or channel and press “Watch” — every time you open the site it re-checks all such queries and shows at the top whether anything new appeared, with optional browser notifications. The RSS feed feed.xml works in any feed reader and can be filtered by your own keywords. The Telegram channel @elist_by posts a digest after every update.',
+      a: () => 'The “What’s new” tab shows everything added to both lists in the last 30 days. To avoid checking by hand there are three ways. The watchlist: type your handle or channel and press “Watch” — every time you open the site it re-checks all such queries and shows at the top whether anything new appeared, with optional browser notifications. The RSS feed feed.xml works in any feed reader and can be filtered by your own keywords. The Telegram channel @elist_by posts a digest after every update.',
     },
     {
       q: 'Is this an official site?',
-      a: () => 'No. The site is unofficial and independent, with open source code on GitHub. Data is pulled automatically from the official publication of the Republican list and is never edited: entry text, court name and date are kept exactly as in the source. For legally significant decisions, verify against the official publication.',
+      a: () => 'No. The site is unofficial and independent, with open source code on GitHub. Data is pulled automatically from the official publications — the Republican list of extremist materials (Ministry of Information) and the list of extremist formations (Interior Ministry) — and is never edited: entry text, grounds and dates are kept exactly as in the source. For legally significant decisions, verify against the official publication, bearing in mind that official sites may collect visitor data.',
     },
     {
       q: 'What should I do if I find myself or my resource on the list?',
-      a: () => 'Check the entry text, the date and the court name — they define what was ruled extremist and when. Add the query to your watchlist to see when a related entry appears. Consult human rights defenders about your risks and possible appeal: Viasna Human Rights Centre and Human Constanta.',
+      a: () => 'Check the entry text, the date and the grounds — the court name for materials, or the Interior Ministry / KGB decision for formations: they define what was ruled extremist and when. For a formation the liability is criminal, so seek advice right away. Add the query to your watchlist to see when a related entry appears. Consult human rights defenders about your risks and possible appeal: Viasna Human Rights Centre and Human Constanta.',
     },
     {
       q: 'Does the search work offline?',
