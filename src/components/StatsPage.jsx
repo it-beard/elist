@@ -38,7 +38,9 @@ export default function StatsPage({ items, initialList = 'm' }) {
   // #/stats — матэрыялы, #/stats/f — фарміраванні (спасылкай можна падзяліцца)
   const [list, setList] = useState(hasF && initialList === 'f' ? 'f' : 'm');
   const SERIES = SERIES_BY_LIST[list];
-  const listItems = useMemo(() => items.filter((it) => (it.list || 'm') === list), [items, list]);
+  // адно правіла ўсюды: лічым запісы, якія цяпер ёсць у спісе — без выдаленых і старых версій выпраўленых
+  const inList = (it, l) => (it.list || 'm') === l && !it.removed && !it.replacedBy;
+  const listItems = useMemo(() => items.filter((it) => inList(it, list)), [items, list]);
   const daily = useMemo(() => dailyCounts(listItems, SERIES), [listItems, SERIES]);
   const minT = daily[0]?.[0] ?? now - 365 * DAY;
   const maxT = nextOf(now, 'day');
@@ -60,7 +62,7 @@ export default function StatsPage({ items, initialList = 'm' }) {
     if (l === list) return;
     setList(l); setHidden(new Set()); setSel(null); setHover(null);
     history.replaceState(history.state, '', l === 'f' ? '#/stats/f' : '#/stats'); // без hashchange — старонка не перамантоўваецца
-    const d = dailyCounts(items.filter((it) => (it.list || 'm') === l), SERIES_BY_LIST[l]);
+    const d = dailyCounts(items.filter((it) => inList(it, l)), SERIES_BY_LIST[l]);
     const min = d[0]?.[0] ?? now - 365 * DAY;
     setState({ range: clampRange(presets.y3, min, maxT, MIN_SPAN), preset: 'y3' });
   };
@@ -138,7 +140,7 @@ export default function StatsPage({ items, initialList = 'm' }) {
       <p className="hint">{list === 'f' ? t.statsIntroF : t.statsIntro}</p>
 
       <div className="tiles">
-        <div className="tile"><span className="lbl">{t.tileTotal}</span><span className="val">{fmtNum(sum.total)}</span>{sum.first && <span className="dlt">{t.since(fmtDate(iso(sum.first)))}</span>}</div>
+        <div className="tile"><span className="lbl">{t.tileTotal}</span><span className="val">{fmtNum(listItems.length)}</span>{sum.first && <span className="dlt">{t.since(fmtDate(iso(sum.first)))}</span>}</div>
         <div className="tile"><span className="lbl">{t.tile365}</span><span className="val">{fmtNum(sum.last365)}</span><span className="dlt">{fmtDelta(d365)}</span></div>
         <div className="tile"><span className="lbl">{t.tile30}</span><span className="val">{fmtNum(sum.last30)}</span><span className="dlt">{fmtDelta(d30)}</span></div>
         <div className="tile"><span className="lbl">{t.tilePeak}</span><span className="val">{fmtNum(sum.peak?.total ?? 0)}</span>{sum.peak && <span className="dlt">{fmtBucket(sum.peak, 'month')}</span>}</div>

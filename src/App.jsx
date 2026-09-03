@@ -122,6 +122,8 @@ export default function App() {
   // другі спіс (экстрэмісцкія фарміраванні): пераключальнік і асобны падлік — толькі калі ён ёсць у базе
   const hasLists = Boolean(counts?.f);
   const fInResults = useMemo(() => results.reduce((n, r) => n + (r.list === 'f' ? 1 : 0), 0), [results]);
+  // «Усяго запісаў» — адно правіла ўсюды (шапка, статыстыка, FAQ): запісы, якія цяпер ёсць у спісе — без выдаленых і старых версій
+  const live = useMemo(() => results.reduce((c, r) => { if (!r.removed) c[r.list === 'f' ? 'f' : 'm']++; return c; }, { m: 0, f: 0 }), [results]);
 
   return (
     <>
@@ -149,7 +151,7 @@ export default function App() {
                   />
                 )}
                 <p className="summary" aria-live="polite">
-                  {!active ? (hasLists ? t.totalBoth(results.length - fInResults, fInResults) : t.total(results.length)) : mode === 'fuzzy' ? t.fuzzy(results.length) : results.length ? t.found(results.length) : t.nothing}
+                  {!active ? (hasLists ? t.totalBoth(live.m, live.f) : t.total(live.m + live.f)) : mode === 'fuzzy' ? t.fuzzy(results.length) : results.length ? t.found(results.length) : t.nothing}
                 </p>
                 {active && results.length > 0 && <Consequences formations={fInResults > 0} />}
                 <ResultList results={results} tokens={hl} chunkSize={chunkSize} />
