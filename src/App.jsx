@@ -10,7 +10,7 @@ import { search } from './lib/search.js';
 import { parseQuery } from './lib/normalize.js';
 import { variants } from './lib/translit.js';
 import { corpusWords, similarWords } from './lib/fuzzy.js';
-import { NEW_DAYS, isRecent } from './lib/format.js';
+import { isRecent } from './lib/format.js';
 import { queryLink } from './lib/entry.js';
 import { showNotification } from './lib/notifications.js';
 import { wipeBrowserData } from './lib/wipe.js';
@@ -162,7 +162,6 @@ export default function App() {
       </main>
       <footer className="wrap foot">
         <p>{t.footSource} {t.footUpdate}</p>
-        <p>{t.footNew1(NEW_DAYS)}<em>{t.footNew2}</em>{t.footNew3}</p>
         <p>{t.privacy} <button type="button" className="linklike" onClick={clearAll}>{t.clearAll}</button>.</p>
         <p>{t.mirror}</p>
         <p>{t.issues1}<a href="https://github.com/it-beard/elist/issues" target="_blank" rel="noopener">{t.issues2}</a>{t.issues3}</p>
@@ -171,7 +170,6 @@ export default function App() {
           {' · '}<a href="https://github.com/it-beard/elist" target="_blank" rel="noopener">{t.code}</a>
           {' · '}<a href={LINKS.telegram} target="_blank" rel="noopener">Telegram</a>
           {' · '}<a href={`${import.meta.env.BASE_URL}feed.xml`}>RSS</a>
-          {' · '}{t.tip1}<code>{t.tipPhrase}</code>{t.tip2}<code>/</code>{t.tip3}
         </p>
       </footer>
     </>

@@ -36,9 +36,9 @@ export default function Options({ value, onChange, watch, share, lists = false }
       {lists && <ListChip k="m">{t.listMaterials}</ListChip>}
       {lists && <ListChip k="f">{t.listFormations}</ListChip>}
       <Chip k="any">{t.any}</Chip>
-      <label className="sort">
+      <label className="sort" title={t.sortTitle}>
         <span className="vh">{t.sort}</span>
-        <select value={value.sort} onChange={(e) => set({ sort: e.target.value })}>
+        <select value={value.sort} title={t.sortTitle} onChange={(e) => set({ sort: e.target.value })}>
           <option value="newest">{t.sortNewest}</option>
           <option value="oldest">{t.sortOldest}</option>
           <option value="source">{t.sortSource}</option>
