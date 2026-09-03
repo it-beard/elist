@@ -88,9 +88,13 @@ function title(x) {
 }
 
 const DECIDER = { mvd: 'рашэнне МУС', kgb: 'рашэнне КДБ', court: 'рашэнне суда' };
+const KIND = { formation: 'экстрэмісцкае фарміраванне', organization: 'экстрэмісцкая арганізацыя' };
+const FORM_HEADER = '🟣 <b>Пералік экстрэмісцкіх фарміраванняў (МУС/КДБ)</b> — за ўдзел, садзейнічанне ці данаты крымінальная адказнасць';
 function entry(x, n) {
-  const court = x.list === 'f' ? `экстрэмісцкае фарміраванне${DECIDER[x.decidedBy] ? `, ${DECIDER[x.decidedBy]}` : ''}` : x.court ? courtName(x.court).replace(/^суда\s+/i, 'суд ') : '';
-  const metaLine = [x.date && dateShort(x.date), court && `⚖️ ${esc(court)}`].filter(Boolean).join(' · ');
+  // матэрыял: ⚖️ суд; фарміраванне: 🟣 хто прыняў рашэнне + від запісу — каб у стужцы адрозніваліся з першага погляду
+  const metaLine = x.list === 'f'
+    ? [x.date && dateShort(x.date), `🟣 ${[DECIDER[x.decidedBy], KIND[x.kind] || KIND.formation].filter(Boolean).join(' · ')}`].filter(Boolean).join(' · ')
+    : [x.date && dateShort(x.date), x.court && `⚖️ ${esc(courtName(x.court).replace(/^суда\s+/i, 'суд '))}`].filter(Boolean).join(' · ');
   return (
     `<blockquote>${icon(x)} <b>${n}.</b> ${esc(title(x))}` +
     (metaLine ? `\n<i>${metaLine}</i>` : '') +
@@ -115,15 +119,20 @@ const footer =
 // ---------- разбіццё на паведамленні (≤ 4096) ----------
 // ids[i] — запісы, што трапілі ў messages[i]: пазначаем іх адпраўленымі паштучна,
 // каб пасля збою на сярэдзіне дайджэсту паўтарылася толькі недасланая частка.
-const blocks = fresh.map((x, i) => ({ id: x.id, html: entry(x, i + 1) }));
+// у змяшаным дайджэсце перад першым фарміраваннем — падзагаловак (блок без id: адзнак пра адпраўку не патрабуе)
+const blocks = [];
+fresh.forEach((x, i) => {
+  if (x.list === 'f' && nM && !blocks.some((b) => b.id === null)) blocks.push({ id: null, html: FORM_HEADER });
+  blocks.push({ id: x.id, html: entry(x, i + 1) });
+});
 const messages = [], ids = [];
 let cur = header, curIds = [], count = 0;
 for (const b of blocks) {
   const next = `${cur}\n\n${b.html}`;
   if (next.length > LIMIT && count > 0) {
     messages.push(cur); ids.push(curIds);
-    cur = `<i>Працяг дайджэсту</i>\n\n${b.html}`; curIds = [b.id]; count = 1;
-  } else { cur = next; curIds.push(b.id); count++; }
+    cur = `<i>Працяг дайджэсту</i>\n\n${b.html}`; curIds = b.id ? [b.id] : []; count = 1;
+  } else { cur = next; if (b.id) curIds.push(b.id); count++; }
 }
 messages.push(`${cur}\n\n${footer}`); ids.push(curIds);
 if (messages.length > 1) messages.forEach((m, i) => { messages[i] = m.replace(/^(<i>Працяг дайджэсту<\/i>)/, `<i>Працяг дайджэсту (${i + 1}/${messages.length})</i>`); });
