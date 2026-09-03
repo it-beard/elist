@@ -15,8 +15,10 @@ export default function WatchPanel({ watch, meta, refreshing, refreshError, chec
   const fresh = checks.reduce((n, c) => n + c.fresh.length, 0);
   const empty = entries.length === 0;
   const tone = empty ? 'idle' : fresh ? 'alert' : hits ? 'warn' : 'ok';
+  // Захаваны стан паважаем заўсёды (у т. л. пры пустым спісе) — панэль перамантоўваецца пры кожным
+  // пераключэнні фільтраў, і без гэтага яна раскрывалася б зноў. Па змаўчанні (першы візіт) — адкрытая.
   const [stored, setStored] = useLocalStorage('watchOpen', true);
-  const [open, setOpenState] = useState(() => fresh > 0 || (empty ? true : stored));
+  const [open, setOpenState] = useState(() => fresh > 0 || stored);
   const setOpen = (f) => setOpenState((o) => { const n = typeof f === 'function' ? f(o) : f; setStored(n); return n; });
   const opened = useRef(false);
   useEffect(() => { if (fresh > 0 && !opened.current) { setOpen(true); opened.current = true; } }, [fresh]);
