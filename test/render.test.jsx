@@ -124,6 +124,12 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       expect(head).toContain(t.personsChecked);
       expect(head).toContain(t.personsDown('05.09.2026'));
       expect(head).not.toMatch(/undefined/);
+      // у бачным тэксце толькі апошняе абнаўленне (асобы ад 05.09), а падрабязнасці па кожным спісе — у title
+      expect(head).toMatch(new RegExp(`<p class="sub"[^>]*title="[^"]*${t.updatedMaterials}[^"]*${t.formationsChecked}[^"]*${t.personsChecked}`));
+      expect(head).toContain('class="updated-btn"');
+      expect(head).toContain('aria-expanded="false"');
+      expect(head).toContain('dateTime="2026-09-05T14:04:18.967Z"');
+      expect(head).not.toContain(` · ${t.formationsChecked} <time`);
       const cons = render(lang, <Consequences open formations persons />);
       expect(cons).toContain('crime person');
       expect(cons).toContain(t.crimeNote.slice(0, 30));

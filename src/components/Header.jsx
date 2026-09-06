@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { fmtDate, fmtLocalDate, fmtTime, relDay, STALE_HOURS, hoursSince } from '../lib/format.js';
 import { useLang } from '../hooks/useLang.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
@@ -6,6 +6,10 @@ import LangToggle from './LangToggle.jsx';
 
 export default function Header({ meta, online, onHelp }) {
   const { t, lang } = useLang();
+  const [showTip, setShowTip] = useState(false);
+  const timerRef = useRef(null);
+  const wrapRef = useRef(null);
+
   // Час апошняга абнаўлення базы (checkedAt пішацца пры кожным паспяховым запуску
   // update.mjs). Старыя кэшы meta без checkedAt — толькі дата.
   const updatedStr = updatedLabel(meta, t, lang);
@@ -16,10 +20,62 @@ export default function Header({ meta, online, onHelp }) {
   // другі і трэці спісы (пералікі МУС) правяраюцца асобнымі крокамі — свае даты і свае папярэджанні
   const fm = meta?.formations, pm = meta?.persons;
   const hasStamp = (m) => Boolean(m && (m.checkedAt || m.checked || m.updated));
-  const extra = [
-    hasStamp(fm) && { key: 'f', label: t.formationsChecked, title: t.formationsDaily, m: fm },
-    hasStamp(pm) && { key: 'p', label: t.personsChecked, title: t.personsDaily, m: pm },
+  const lists = [
+    hasStamp(meta) && { key: 'm', label: t.updatedMaterials, m: meta },
+    hasStamp(fm) && { key: 'f', label: t.formationsChecked, m: fm },
+    hasStamp(pm) && { key: 'p', label: t.personsChecked, m: pm },
   ].filter(Boolean);
+
+  const getStampTime = (m) => {
+    if (!m) return 0;
+    const val = m.checkedAt || m.checked || m.updated;
+    return val ? Date.parse(val) || 0 : 0;
+  };
+
+  let latest = lists[0] || null;
+  for (const it of lists) {
+    if (getStampTime(it.m) > getStampTime(latest?.m)) {
+      latest = it;
+    }
+  }
+
+  const latestStr = updatedLabel(latest?.m || meta, t, lang);
+  const latestIso = latest?.m?.checkedAt || latest?.m?.checked || latest?.m?.updated || meta?.checkedAt || meta?.updated;
+  const tooltip = lists.length ? lists.map((it) => `${it.label}: ${updatedLabel(it.m, t, lang)}`).join('\n') : undefined;
+
+  const toggleTip = () => {
+    setShowTip((prev) => {
+      const next = !prev;
+      clearTimeout(timerRef.current);
+      if (next) {
+        timerRef.current = setTimeout(() => setShowTip(false), 3500);
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    return () => clearTimeout(timerRef.current);
+  }, []);
+
+  useEffect(() => {
+    if (!showTip) return;
+    const onDocClick = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setShowTip(false);
+      }
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') setShowTip(false);
+    };
+    document.addEventListener('pointerdown', onDocClick);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDocClick);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [showTip]);
+
   return (
     <header className="top wrap">
       <div className="top-row">
@@ -28,20 +84,40 @@ export default function Header({ meta, online, onHelp }) {
         <LangToggle />
         <ThemeToggle />
       </div>
-      <p className="sub">
+      <p className="sub" title={tooltip}>
         {meta ? (
-          extra.length ? (
-            <>
-              {/* з дадатковымі спісамі — «абноўлена: матэрыялы сёння а 10:54 · фарміраванні ўчора а 04:20 · асобы …»,
-                  без іх — як раней. Лічыльнік новых за месяц тут не паказваем — ён ёсць на ўкладцы «Новае». */}
-              {t.updated}: {t.updatedMaterials} <time dateTime={meta.checkedAt || meta.updated} title={t.twiceDaily}>{updatedStr}</time>
-              {extra.map(({ key, label, title, m }) => (
-                <Fragment key={key}>{' · '}{label} <time dateTime={m.checkedAt || m.checked || m.updated} title={title}>{updatedLabel(m, t, lang)}</time></Fragment>
-              ))}
-            </>
-          ) : (
-            <>{t.updated} <time dateTime={meta.checkedAt || meta.updated} title={t.twiceDaily}>{updatedStr}</time></>
-          )
+          <span className="updated-wrap" ref={wrapRef}>
+            <button
+              type="button"
+              className="updated-btn"
+              onClick={toggleTip}
+              aria-expanded={showTip}
+              title={tooltip}
+            >
+              {t.updated} <time dateTime={latestIso}>{latestStr}</time>
+            </button>
+            {showTip && lists.length > 0 && (
+              <div
+                className="updated-tip"
+                role="tooltip"
+                onMouseEnter={() => clearTimeout(timerRef.current)}
+                onMouseLeave={() => {
+                  clearTimeout(timerRef.current);
+                  timerRef.current = setTimeout(() => setShowTip(false), 2000);
+                }}
+              >
+                {lists.map((it) => (
+                  <div key={it.key} className="updated-tip-row">
+                    <span className="tip-label">
+                      <span className={`tip-dot ${it.key}`} aria-hidden="true" />
+                      <span>{it.label}:</span>
+                    </span>
+                    <span className="tip-val">{updatedLabel(it.m, t, lang)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </span>
         ) : ' '}
       </p>
       {meta?.sourceError && <p className="notice warn">{t.sourceDown(fmtDate(meta.checked || meta.updated))}</p>}
