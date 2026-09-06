@@ -26,7 +26,7 @@ const META = {
   persons: { updated: '2026-09-05', checked: '2026-09-05', checkedAt: '2026-09-05T14:04:18.967Z', sourceError: 'HTTP 503', total: 6874 },
 };
 
-let ResultItem, RecordPage, Options, Facets, Header, Consequences, StatsPage;
+let ResultItem, RecordPage, Options, Facets, Header, Consequences, StatsPage, WhatsNew;
 beforeAll(async () => {
   // SSR-рэндэр без браўзера: кампанентам патрэбныя location/history толькі для спасылак
   globalThis.location = { href: 'https://elist.test/#/r/p1', hash: '#/r/p1', origin: 'https://elist.test', pathname: '/' };
@@ -38,6 +38,7 @@ beforeAll(async () => {
   ({ default: Header } = await import('../src/components/Header.jsx'));
   ({ default: Consequences } = await import('../src/components/Consequences.jsx'));
   ({ default: StatsPage } = await import('../src/components/StatsPage.jsx'));
+  ({ default: WhatsNew } = await import('../src/components/WhatsNew.jsx'));
 });
 
 const render = (lang, el) => renderToStaticMarkup(<LangContext.Provider value={{ lang, t: STRINGS[lang], setLang: () => {} }}>{el}</LangContext.Provider>);
@@ -145,6 +146,25 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
         expect(stats).toContain(t.statsPersons);
         if (list === 'p') { expect(stats).toContain(t.statsIntroP); expect(stats).toContain('key s-ext'); }
       }
+      // старонка «Новае» з фільтрамі па спісах і выдаленых
+      const newItems = [
+        { i: 0, id: 'm1', list: 'm', n: 1, date: '2026-09-04', added: '2026-09-04', removed: '', editOf: '', replacedBy: '', art: 'kgs', h: 'матэрыял 1' },
+        { i: 1, id: 'f1', list: 'f', n: 1, date: '2026-09-04', added: '2026-09-04', removed: '', editOf: '', replacedBy: '', art: 'mvd', h: 'фарміраванне 1' },
+        { i: 2, id: 'p1', list: 'p', n: 1, date: '2026-09-03', added: '2026-09-03', removed: '', editOf: '', replacedBy: '', art: 'speech', h: 'асоба 1' },
+        { i: 3, id: 'p2', list: 'p', n: 2, date: '2026-08-25', added: '', removed: '2026-08-25', editOf: '', replacedBy: '', art: 'speech', h: 'асоба выдаленая' },
+      ];
+      const wn = render(lang, <WhatsNew items={newItems} chunkSize={200} lists={{ f: true, p: true }} />);
+      expect(wn).toContain(t.newTitle.replace("'", '&#x27;'));
+      expect(wn).toContain('class="new-toolbar"');
+      expect(wn).toContain(t.facet.all);
+      expect(wn).toContain(t.facet.m);
+      expect(wn).toContain(t.facet.f);
+      expect(wn).toContain(t.facet.p);
+      expect(wn).toContain(t.showRemoved);
+      expect(wn).toContain('removed-facet');
+      expect(wn).toContain(t.newUpdate('04.09.2026', 2));
+      expect(wn).toContain(t.newUpdate('03.09.2026', 1));
+      expect(wn).not.toContain(t.newRemovedGroup(1));
     });
   }
 });

@@ -108,7 +108,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .chip.on.person { background: var(--person); border-color: var(--person); }
 
 /* ---- укладкі-спісы пад пошукам: «Усе запісы · Матэрыялы · Фарміраванні · Асобы» з лічбамі ---- */
-.facets { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 0 0 10px; }
+.facets { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 12px 0 16px; padding: 6px 8px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
 .facet { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .84rem; height: 30px; padding: 0 10px; border: 1px solid transparent; border-radius: 99px; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
 .facet:hover { border-color: var(--line-strong); color: var(--text); }
 .facet.on { background: var(--line); color: var(--text); font-weight: 600; }
@@ -119,6 +119,15 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .facet .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
 .facet.m .dot { background: var(--accent); } .facet.f .dot { background: var(--form); } .facet.p .dot { background: var(--person); }
 .facet .cnt { font-variant-numeric: tabular-nums; opacity: .8; font-weight: 400; }
+.new-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 18px 0 24px; padding: 6px 8px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.new-toolbar .facets { margin: 0; padding: 0; gap: 4px 6px; background: transparent; border: none; box-shadow: none; border-radius: 0; }
+.filter-divider { width: 1px; height: 18px; background: var(--line); flex: none; }
+.new-actions { display: flex; align-items: center; margin-left: auto; }
+.facet.removed-facet { border-color: transparent; }
+.facet.removed-facet:hover { border-color: var(--line-strong); color: var(--text); }
+.facet.removed-facet.on { background: var(--line); color: var(--text); font-weight: 600; border-color: transparent; }
+.facet.removed-facet .removed-dot { background: var(--muted); }
+.facet.removed-facet.on .removed-dot { background: var(--accent); }
 .sort { position: relative; display: inline-flex; align-items: center; flex: none; margin-left: auto; }
 .sort select { -webkit-appearance: none; appearance: none; padding-left: 12px; padding-right: 28px; color: var(--muted); }
 .sort select:hover { color: var(--text); border-color: var(--accent); }
@@ -250,6 +259,11 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
   .chip.share:not(.on) .lbl { display: none; }
   .watch-q .cnt { flex-direction: column; align-items: flex-end; gap: 2px; }
   .watch-actions .chip { flex: 1 1 auto; text-align: center; }
+  .facets { padding: 6px 8px; margin: 10px 0 14px; }
+  .new-toolbar { padding: 6px 8px; gap: 6px; margin: 14px 0 18px; }
+  .new-toolbar .facets { padding: 0; margin: 0; }
+  .filter-divider { display: none; }
+  .new-actions { margin-left: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } .chev { transition: none; } }
 
