@@ -3,7 +3,8 @@
   --accent: #b3261e; --accent-soft: #fbeae8; --mark: #ffe58a; --new: #1b7f3b; --new-soft: #e3f5e8;
   --warn: #9a6700; --warn-soft: #fff4d6;
   --form: #5b3fbf; --form-soft: #ece7fb; /* другі спіс — экстрэмісцкія фарміраванні (МУС/КДБ) */
-  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --trend: #16181d;
+  --person: #0f766e; --person-soft: #d5f0ec; /* трэці спіс — фізічныя асобы (пералік МУС) */
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #8a94a6; --trend: #16181d;
   --radius: 14px; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04);
 }
 :root[data-theme="dark"] { color-scheme: dark; }
@@ -14,7 +15,8 @@
     --accent: #ff6b5e; --accent-soft: #3a1f1d; --mark: #7a5e00; --new: #5ad07a; --new-soft: #1c3324;
     --warn: #e3b341; --warn-soft: #332a12;
     --form: #b39dfc; --form-soft: #2b2447;
-    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --trend: #e9ebef;
+    --person: #4fd1c5; --person-soft: #143530;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #6f7787; --trend: #e9ebef;
     --shadow: 0 1px 2px rgba(0,0,0,.4);
   }
 }
@@ -23,7 +25,8 @@
   --accent: #ff6b5e; --accent-soft: #3a1f1d; --mark: #7a5e00; --new: #5ad07a; --new-soft: #1c3324;
   --warn: #e3b341; --warn-soft: #332a12;
   --form: #b39dfc; --form-soft: #2b2447;
-  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --trend: #e9ebef;
+  --person: #4fd1c5; --person-soft: #143530;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #6f7787; --trend: #e9ebef;
   --shadow: 0 1px 2px rgba(0,0,0,.4);
 }
 * { box-sizing: border-box; }
@@ -84,8 +87,9 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .chip.star { font-weight: 600; }
 .chip.danger { color: var(--accent); }
 .chip:disabled { opacity: .6; cursor: default; }
-/* чып спіса «Фарміраванні» ва ўключаным стане — колерам другога спісу */
+/* чыпы спісаў «Фарміраванні» / «Асобы» ва ўключаным стане — колерам свайго спісу */
 .chip.on.form { background: var(--form); border-color: var(--form); }
+.chip.on.person { background: var(--person); border-color: var(--person); }
 .sort { flex: none; margin-left: auto; }
 .sort select { -webkit-appearance: none; appearance: none; padding-right: 30px; color: var(--muted);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -136,13 +140,19 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 /* другі спіс: фіялетавая палоска злева і плашка «Фарміраванне · МУС/КДБ» — каб адрозніваць у змяшанай выдачы */
 .item.formation { border-left: 3px solid var(--form); }
 .type.form { background: var(--form-soft); color: var(--form); }
+/* трэці спіс: бірузовая палоска і плашка «Асоба · МУС» */
+.item.person { border-left: 3px solid var(--person); }
+.type.person { background: var(--person-soft); color: var(--person); }
 .alias { margin: 4px 0 0; color: var(--muted); font-size: .9rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* фізічная асоба: дата нараджэння, грамадзянства, статус — адным радком пад транслітарацыяй */
+.facts { margin: 4px 0 0; color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; }
 .links { margin: 6px 0 0; font-size: .95rem; white-space: pre-wrap; overflow-wrap: anywhere; }
 .rec-details { margin: 14px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); font-size: .9rem; }
 .rec-details dt { margin: 10px 0 0; color: var(--muted); font-size: .8rem; font-weight: 600; }
 .rec-details dt:first-child { margin-top: 0; }
 .rec-details dd { margin: 2px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .crime { margin: 0 0 10px; padding: 8px 12px; border-radius: 10px; background: var(--form-soft); color: var(--form); font-size: .88rem; }
+.crime.person { background: var(--person-soft); color: var(--person); }
 .name { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; line-height: 1.45; }
 .court { white-space: pre-wrap; overflow-wrap: anywhere; margin: 10px 0 0; font-size: .85rem; color: var(--muted); border-left: 3px solid var(--line-strong); padding-left: 10px; }
 .skeleton { background: linear-gradient(90deg, var(--line), var(--bg), var(--line)); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 6px; min-height: 2.5em; }
@@ -245,7 +255,7 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
 .tl .grid { stroke: var(--line); stroke-width: 1; }
 .tl .base { stroke: var(--line-strong); stroke-width: 1; }
 .tl .band { fill: var(--line); opacity: .8; }
-.tl .s-gpk, .tl .s-mvd { fill: var(--s1); } .tl .s-kgs, .tl .s-kgb { fill: var(--s2); } .tl .s-none, .tl .s-court { fill: var(--s3); }
+.tl .s-gpk, .tl .s-mvd, .tl .s-protest { fill: var(--s1); } .tl .s-kgs, .tl .s-kgb, .tl .s-speech { fill: var(--s2); } .tl .s-none, .tl .s-court, .tl .s-ext { fill: var(--s3); } .tl .s-other { fill: var(--s4); }
 .tl .partial { fill: url(#tl-hatch); }
 .tl .hatch { stroke: var(--card); stroke-width: 2.5; }
 .tl .trend { fill: none; stroke: var(--trend); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; opacity: .75; }
@@ -259,7 +269,7 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
 .legend .cnt { color: var(--muted); }
 .legend .trend-key { display: inline-flex; align-items: center; gap: 7px; font-size: .8rem; height: 30px; padding: 0 10px; color: var(--muted); }
 .key { flex: none; width: 12px; height: 12px; border-radius: 3px; }
-.key.s-gpk, .key.s-mvd { background: var(--s1); } .key.s-kgs, .key.s-kgb { background: var(--s2); } .key.s-none, .key.s-court { background: var(--s3); }
+.key.s-gpk, .key.s-mvd, .key.s-protest { background: var(--s1); } .key.s-kgs, .key.s-kgb, .key.s-speech { background: var(--s2); } .key.s-none, .key.s-court, .key.s-ext { background: var(--s3); } .key.s-other { background: var(--s4); }
 .stats-switch { margin: 12px 0 0; }
 .key.line { width: 16px; height: 0; border-top: 2px solid var(--trend); border-radius: 0; opacity: .75; }
 .readout { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 10px 12px; margin: 0 0 12px; }

@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { fmtDate, fmtLocalDate, fmtTime, relDay, STALE_HOURS, hoursSince } from '../lib/format.js';
 import { useLang } from '../hooks/useLang.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
@@ -12,8 +13,13 @@ export default function Header({ meta, online, onHelp }) {
   // meta на сайце не змяняецца — таму папярэджваем па ўзросце апошняй праверкі на баку кліента.
   const checkedAgo = meta ? hoursSince(meta.checkedAt || meta.checked || meta.updated) : 0;
   const stale = Boolean(online && meta && !meta.sourceError && checkedAgo > STALE_HOURS);
-  // другі спіс (экстрэмісцкія фарміраванні МУС/КДБ) правяраецца раз на суткі — асобная дата і асобнае папярэджанне
-  const fm = meta?.formations;
+  // другі і трэці спісы (пералікі МУС) правяраюцца асобнымі крокамі — свае даты і свае папярэджанні
+  const fm = meta?.formations, pm = meta?.persons;
+  const hasStamp = (m) => Boolean(m && (m.checkedAt || m.checked || m.updated));
+  const extra = [
+    hasStamp(fm) && { key: 'f', label: t.formationsChecked, title: t.formationsDaily, m: fm },
+    hasStamp(pm) && { key: 'p', label: t.personsChecked, title: t.personsDaily, m: pm },
+  ].filter(Boolean);
   return (
     <header className="top wrap">
       <div className="top-row">
@@ -24,23 +30,24 @@ export default function Header({ meta, online, onHelp }) {
       </div>
       <p className="sub">
         {meta ? (
-          <>
-            {/* з другім спісам — «абноўлена: матэрыялы сёння а 10:54 · фарміраванні ўчора а 04:20», без яго — як раней.
-                Лічыльнік новых за месяц тут не паказваем — ён ёсць на ўкладцы «Новае». */}
-            {fm && (fm.checkedAt || fm.checked || fm.updated) ? (
-              <>
-                {t.updated}: {t.updatedMaterials} <time dateTime={meta.checkedAt || meta.updated} title={t.twiceDaily}>{updatedStr}</time>
-                {' · '}{t.formationsChecked} <time dateTime={fm.checkedAt || fm.checked || fm.updated} title={t.formationsDaily}>{updatedLabel(fm, t, lang)}</time>
-              </>
-            ) : (
-              <>{t.updated} <time dateTime={meta.checkedAt || meta.updated} title={t.twiceDaily}>{updatedStr}</time></>
-            )}
-          </>
+          extra.length ? (
+            <>
+              {/* з дадатковымі спісамі — «абноўлена: матэрыялы сёння а 10:54 · фарміраванні ўчора а 04:20 · асобы …»,
+                  без іх — як раней. Лічыльнік новых за месяц тут не паказваем — ён ёсць на ўкладцы «Новае». */}
+              {t.updated}: {t.updatedMaterials} <time dateTime={meta.checkedAt || meta.updated} title={t.twiceDaily}>{updatedStr}</time>
+              {extra.map(({ key, label, title, m }) => (
+                <Fragment key={key}>{' · '}{label} <time dateTime={m.checkedAt || m.checked || m.updated} title={title}>{updatedLabel(m, t, lang)}</time></Fragment>
+              ))}
+            </>
+          ) : (
+            <>{t.updated} <time dateTime={meta.checkedAt || meta.updated} title={t.twiceDaily}>{updatedStr}</time></>
+          )
         ) : ' '}
       </p>
       {meta?.sourceError && <p className="notice warn">{t.sourceDown(fmtDate(meta.checked || meta.updated))}</p>}
       {meta?.fallback && <p className="notice warn">{t.fallbackSrc}</p>}
       {fm?.sourceError && <p className="notice warn">{t.formationsDown(fmtDate(fm.checked || fm.updated))}</p>}
+      {pm?.sourceError && <p className="notice warn">{t.personsDown(fmtDate(pm.checked || pm.updated))}</p>}
       {stale && <p className="notice warn">{t.stale(updatedStr)}</p>}
       {!online && meta && <p className="notice">{t.offline(fmtDate(meta.updated))}</p>}
     </header>

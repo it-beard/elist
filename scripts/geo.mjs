@@ -71,7 +71,7 @@ export function llmsTxt({ site, facts, stats }) {
 
 > ${SUMMARY.be(f)}
 
-Неафіцыйны сайт з адкрытым кодам. Даныя аўтаматычна бяруцца з афіцыйных публікацый — Рэспубліканскага спісу экстрэмісцкіх матэрыялаў (Мінінфарм) і пераліку экстрэмісцкіх фарміраванняў (МУС) — і не рэдагуюцца; у выдачы запісы двух спісаў адрозніваюцца плашкай. Сайт статычны, без сервернай часткі: уся база спампоўваецца ў браўзер, запыты нікуды не адпраўляюцца.
+Неафіцыйны сайт з адкрытым кодам. Даныя аўтаматычна бяруцца з афіцыйных публікацый — Рэспубліканскага спісу экстрэмісцкіх матэрыялаў (Мінінфарм), пераліку экстрэмісцкіх фарміраванняў і пераліку фізічных асоб, прычастных да экстрэмісцкай дзейнасці (МУС) — і не рэдагуюцца; у выдачы запісы трох спісаў адрозніваюцца плашкай. Сайт статычны, без сервернай часткі: уся база спампоўваецца ў браўзер, запыты нікуды не адпраўляюцца.
 
 ## Ключавыя факты
 
@@ -84,10 +84,10 @@ ${years}
 ## Старонкі
 
 - [Пошук](${abs(site, '')}): галоўная старонка; запыт можна перадаць у адрасе — \`#q=запыт\` (прымаецца і \`?q=запыт\`), у адрасны радок ён пры гэтым не запісваецца.
-- [Пытанні і адказы](${abs(site, 'faq.html')}): што такое спіс, што пагражае за рэпост, чым ён адрозніваецца ад спісу экстрэмісцкіх фарміраванняў.
+- [Пытанні і адказы](${abs(site, 'faq.html')}): што такое спіс, што пагражае за рэпост, чым ён адрозніваецца ад спісу экстрэмісцкіх фарміраванняў і пераліку фізічных асоб.
 - [FAQ (English)](${abs(site, 'faq-en.html')}): тое самае па-англійску.
-- [Новае](${abs(site, '#/new')}): запісы абодвух спісаў за апошнія 30 дзён, згрупаваныя па даце з’яўлення.
-- [Статыстыка](${abs(site, '#/stats')}): таймлайн колькасці запісаў па месяцах і гадах — матэрыялы з разбіўкай па артыкуле рашэння; [фарміраванні](${abs(site, '#/stats/f')}) — па органе, які прыняў рашэнне (МУС, КДБ, суд).
+- [Новае](${abs(site, '#/new')}): запісы ўсіх спісаў за апошнія 30 дзён, згрупаваныя па даце з’яўлення.
+- [Статыстыка](${abs(site, '#/stats')}): таймлайн колькасці запісаў па месяцах і гадах — матэрыялы з разбіўкай па артыкуле рашэння; [фарміраванні](${abs(site, '#/stats/f')}) — па органе, які прыняў рашэнне (МУС, КДБ, суд); [фізічныя асобы](${abs(site, '#/stats/p')}) — па даце ўключэння ў пералік з разбіўкай па групе артыкулаў КК.
 - [RSS](${abs(site, 'feed.xml')}): стужка новых запісаў.
 
 ## Часта пытаюць
@@ -124,7 +124,7 @@ export function siteJsonLd({ site, facts, lang = 'be' }) {
       {
         '@type': 'Dataset',
         '@id': `${abs(site, '')}#dataset`,
-        name: lang === 'en' ? 'Extremist lists of Belarus: the Republican list of extremist materials and the list of extremist formations' : 'Экстрэмісцкія спісы Беларусі: Рэспубліканскі спіс экстрэмісцкіх матэрыялаў і пералік экстрэмісцкіх фарміраванняў',
+        name: lang === 'en' ? 'Extremist lists of Belarus: the Republican list of extremist materials, the list of extremist formations and the list of individuals involved in extremist activity' : 'Экстрэмісцкія спісы Беларусі: Рэспубліканскі спіс экстрэмісцкіх матэрыялаў, пералік экстрэмісцкіх фарміраванняў і пералік фізічных асоб, прычастных да экстрэмісцкай дзейнасці',
         description: SUMMARY[lang](f),
         url: abs(site, ''),
         inLanguage: 'ru',
@@ -135,7 +135,7 @@ export function siteJsonLd({ site, facts, lang = 'be' }) {
           { '@type': 'DataDownload', encodingFormat: 'application/rss+xml', contentUrl: abs(site, 'feed.xml') },
           { '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: abs(site, 'data/index.json') },
         ],
-        variableMeasured: ['тып матэрыялу', 'апісанне', 'суд', 'дата рашэння', 'дата з’яўлення ў спісе'],
+        variableMeasured: ['тып матэрыялу', 'апісанне', 'суд', 'дата рашэння', 'дата з’яўлення ў спісе', 'падстава ўключэння (для фарміраванняў і фізічных асоб)', 'дата ўключэння ў пералік'],
       },
       {
         '@type': 'WebApplication',
@@ -224,8 +224,8 @@ export function faqPage({ site, facts, stats, lang, base = '/' }) {
     ? 'FAQ: the extremist lists of Belarus'
     : 'Пытанні і адказы: экстрэмісцкія спісы Беларусі';
   const lead = en
-    ? `This page answers the most common questions about the extremist lists of Belarus — the Republican list of extremist materials and the list of extremist formations — and about this search site: what the lists are, how to check a channel or handle, what the penalties are, and what data the site stores. As of ${f.updatedStr} the database holds ${f.totalStr} material entries${f.formations ? ` and ${f.formationsStr} formations` : ''}; materials refresh twice a day, formations once a day.`
-    : `Гэтая старонка адказвае на самыя частыя пытанні пра экстрэмісцкія спісы Беларусі — Рэспубліканскі спіс экстрэмісцкіх матэрыялаў і пералік экстрэмісцкіх фарміраванняў — і пра гэты сайт: што гэта за спісы, як праверыць канал ці нік, што пагражае за рэпост і якія даныя сайт захоўвае. На ${f.updatedStr} у базе ${f.totalStr} запісаў матэрыялаў${f.formations ? ` і ${f.formationsStr} фарміраванняў` : ''}; матэрыялы абнаўляюцца двойчы на дзень, фарміраванні — раз на суткі.`;
+    ? `This page answers the most common questions about the extremist lists of Belarus — the Republican list of extremist materials, the list of extremist formations and the Interior Ministry list of individuals — and about this search site: what the lists are, how to check a channel, handle or name, what the penalties are, and what data the site stores. As of ${f.updatedStr} the database holds ${f.totalStr} material entries${f.formations ? `, ${f.formationsStr} formations` : ''}${f.persons ? ` and ${f.personsStr} individuals` : ''}; materials and individuals refresh twice a day, formations once a day.`
+    : `Гэтая старонка адказвае на самыя частыя пытанні пра экстрэмісцкія спісы Беларусі — Рэспубліканскі спіс экстрэмісцкіх матэрыялаў, пералік экстрэмісцкіх фарміраванняў і пералік фізічных асоб МУС — і пра гэты сайт: што гэта за спісы, як праверыць канал, нік ці імя, што пагражае за рэпост і якія даныя сайт захоўвае. На ${f.updatedStr} у базе ${f.totalStr} запісаў матэрыялаў${f.formations ? `, ${f.formationsStr} фарміраванняў` : ''}${f.persons ? ` і ${f.personsStr} фізічных асоб` : ''}; матэрыялы і асобы абнаўляюцца двойчы на дзень, фарміраванні — раз на суткі.`;
   const years = (stats.byYear || []).slice(0, 6);
   const yearsTitle = en ? 'Materials list: entries by year of the court decision' : 'Спіс матэрыялаў: запісы па годзе судовага рашэння';
   const factsTitle = en ? 'Key facts' : 'Ключавыя факты';
@@ -322,8 +322,9 @@ ${years}
 
 ## Як уладкаваны пошук
 
-- Індэкс абодвух спісаў (~600 КБ gzip) спампоўваецца ў браўзер цалкам, таму запыты нікуды не адпраўляюцца.
+- Індэкс усіх спісаў (~850 КБ gzip) спампоўваецца ў браўзер цалкам, таму запыты нікуды не адпраўляюцца.
 - Не ўлічваюцца рэгістар, «ё/е», лацінская і кірылічная «i», віды лапак; фраза ў лапках шукаецца цалкам.
+- Фізічныя асобы шукаюцца па імені кірыліцай і па лацінскай транслітарацыі з пераліку, а таксама па даце нараджэння («14.10.1983»), артыкуле КК і судзе.
 - «@nick», «t.me/nick», «https://nick.by/» і «nick» зводзяцца да аднаго выгляду.
 - Кірыліца ↔ лацінка ў абодва бакі: руская транслітарацыя і беларуская лацінка без дыякрытыкі.
 - Калі дакладных супадзенняў няма — прыблізны пошук па словах з памылкамі ў 1–2 літары.
@@ -356,7 +357,7 @@ export function openSearchXml({ site }) {
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">
   <ShortName>Экстр. спісы</ShortName>
   <LongName>Пошук па экстрэмісцкіх спісах Беларусі</LongName>
-  <Description>Пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў і пераліку экстрэмісцкіх фарміраванняў Беларусі</Description>
+  <Description>Пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў, пераліку экстрэмісцкіх фарміраванняў і пераліку фізічных асоб Беларусі</Description>
   <InputEncoding>UTF-8</InputEncoding>
   <Language>be</Language>
   <Image width="16" height="16" type="image/x-icon">${esc(abs(site, 'favicon.ico'))}</Image>

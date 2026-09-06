@@ -12,7 +12,9 @@
  * не абвяшчаецца, калі яго папярэднюю версію ўжо дасылалі.
  *
  * Другі спіс (data/formations.json, экстрэмісцкія фарміраванні МУС/КДБ) ідзе ў той жа дайджэст: 🟣 і подпіс
- * «экстрэмісцкае фарміраванне». Пры першым імпарце added = null — у дайджэст нічога не трапляе.
+ * «экстрэмісцкае фарміраванне». Трэці (data/persons.json, фізічныя асобы МУС) — 👤, імя, артыкулы КК і суд;
+ * дата нараджэння і адрас у канал не ідуць (яны на старонцы запісу). Пры першым імпарце added = null —
+ * у дайджэст нічога не трапляе.
  *
  * Фарматаванне — HTML-рэжым Bot API (дазволеныя толькі b/i/u/s/code/a/blockquote):
  * https://core.telegram.org/bots/api#html-style. Ліміт — 4096 сімвалаў на паведамленне,
@@ -22,6 +24,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { courtName } from '../src/lib/court.js';
+import { articlesLabel } from '../src/lib/person.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STATE_FILE = path.join(ROOT, 'data', 'notified.json');
@@ -42,7 +45,9 @@ const readJson = async (file, fallback) => {
 const meta = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'meta.json'), 'utf8'));
 const materials = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'materials.json'), 'utf8'));
 const formations = await readJson(path.join(ROOT, 'data', 'formations.json'), []);
-const db = [...materials, ...formations.map((x) => ({ ...x, list: 'f' }))];
+const persons = await readJson(path.join(ROOT, 'data', 'persons.json'), []);
+const RANK = { m: 0, f: 1, p: 2 }; // парадак спісаў у дайджэсце
+const db = [...materials.map((x) => ({ ...x, list: 'm' })), ...formations.map((x) => ({ ...x, list: 'f' })), ...persons.map((x) => ({ ...x, list: 'p' }))];
 const byId = new Map(db.map((x) => [x.id, x]));
 const sent = (await readJson(STATE_FILE, {})).sent || {};
 const today = new Date().toISOString().slice(0, 10);
@@ -51,9 +56,15 @@ const since = shiftDays(today, -WINDOW_DAYS);
 
 let fresh = test ? [] : db
   .filter((x) => x.added && x.added >= since && !sent[x.id] && !(x.editOf && sent[x.editOf]))
-  .sort((a, b) => a.added.localeCompare(b.added) || (a.list === 'f') - (b.list === 'f') || (a.order ?? 0) - (b.order ?? 0));
+  .sort((a, b) => a.added.localeCompare(b.added) || RANK[a.list] - RANK[b.list] || (a.order ?? 0) - (b.order ?? 0));
 // Пробны рэжым: заўсёды ўзор з апошніх запісаў, а не рэальныя новыя — інакш яны пайшлі б у канал двойчы.
-if (test) fresh = [...materials.filter((x) => !x.removed).sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 3), ...formations.filter((x) => !x.removed).slice(-1).map((x) => ({ ...x, list: 'f' }))];
+if (test) {
+  fresh = [
+    ...materials.filter((x) => !x.removed).sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 3).map((x) => ({ ...x, list: 'm' })),
+    ...formations.filter((x) => !x.removed).slice(-1).map((x) => ({ ...x, list: 'f' })),
+    ...persons.filter((x) => !x.removed).slice(-1).map((x) => ({ ...x, list: 'p' })),
+  ];
+}
 if (!fresh.length) { console.log('Новых запісаў няма — паведамленне не патрэбнае.'); process.exit(0); }
 const target = test && adminChat ? adminChat : chat;
 
@@ -74,6 +85,7 @@ const KINDS = [
 ];
 function icon(x) {
   if (x.list === 'f') return '🟣';
+  if (x.list === 'p') return '👤';
   const s = `${x.name}\n${x.type || ''}`.toLowerCase();
   let best = null;
   for (const [re, emoji] of KINDS) { const i = s.search(re); if (i !== -1 && (best === null || i < best.i)) best = { i, emoji }; }
@@ -90,11 +102,16 @@ function title(x) {
 const DECIDER = { mvd: 'рашэнне МУС', kgb: 'рашэнне КДБ', court: 'рашэнне суда' };
 const KIND = { formation: 'экстрэмісцкае фарміраванне', organization: 'экстрэмісцкая арганізацыя' };
 const FORM_HEADER = '🟣 <b>Пералік экстрэмісцкіх фарміраванняў (МУС/КДБ)</b> — за ўдзел, садзейнічанне ці данаты крымінальная адказнасць';
+const PERSON_HEADER = '👤 <b>Пералік фізічных асоб, прычастных да экстрэмісцкай дзейнасці (МУС)</b> — асуджаныя па «экстрэмісцкіх» артыкулах КК';
+const HEADERS = { f: FORM_HEADER, p: PERSON_HEADER };
 function entry(x, n) {
-  // матэрыял: ⚖️ суд; фарміраванне: 🟣 хто прыняў рашэнне + від запісу — каб у стужцы адрозніваліся з першага погляду
-  const metaLine = x.list === 'f'
-    ? [x.date && dateShort(x.date), `🟣 ${[DECIDER[x.decidedBy], KIND[x.kind] || KIND.formation].filter(Boolean).join(' · ')}`].filter(Boolean).join(' · ')
-    : [x.date && dateShort(x.date), x.court && `⚖️ ${esc(courtName(x.court).replace(/^суда\s+/i, 'суд '))}`].filter(Boolean).join(' · ');
+  // матэрыял: ⚖️ суд; фарміраванне: 🟣 хто прыняў рашэнне + від запісу; фізічная асоба: 👤 артыкулы КК + суд
+  // (дата — уключэння ў пералік) — каб у стужцы адрозніваліся з першага погляду
+  const metaLine = x.list === 'p'
+    ? [x.date && dateShort(x.date), `👤 ${[articlesLabel(x.articles), x.court && esc(x.court.replace(/^суда\s+/i, 'суд '))].filter(Boolean).join(' · ')}`].filter(Boolean).join(' · ')
+    : x.list === 'f'
+      ? [x.date && dateShort(x.date), `🟣 ${[DECIDER[x.decidedBy], KIND[x.kind] || KIND.formation].filter(Boolean).join(' · ')}`].filter(Boolean).join(' · ')
+      : [x.date && dateShort(x.date), x.court && `⚖️ ${esc(courtName(x.court).replace(/^суда\s+/i, 'суд '))}`].filter(Boolean).join(' · ');
   return (
     `<blockquote>${icon(x)} <b>${n}.</b> ${esc(title(x))}` +
     (metaLine ? `\n<i>${metaLine}</i>` : '') +
@@ -102,16 +119,23 @@ function entry(x, n) {
   );
 }
 
-const n = fresh.length, nF = fresh.filter((x) => x.list === 'f').length, nM = n - nF;
+const n = fresh.length;
+const nBy = { m: 0, f: 0, p: 0 };
+for (const x of fresh) nBy[x.list]++;
+const { m: nM, f: nF, p: nP } = nBy;
+const kinds = Object.values(nBy).filter(Boolean).length;
 // дата дайджэсту — калі запісы трапілі ў базу, а не калі мы дасылаем (важна для дабору за мінулыя дні)
 const day = test ? today : fresh[fresh.length - 1].added;
+const newN = `+${n} ${plural(n, 'новы запіс', 'новыя запісы', 'новых запісаў')}`;
 const header = test
   ? `🧪 <b>Пробнае паведамленне</b> — так будуць выглядаць дайджэсты\n<i>${dateBe(day)} · ${num(meta.total)} ${plural(meta.total, 'запіс', 'запісы', 'запісаў')} у спісе</i>`
-  : nM && nF
-    ? `🔴 <b>Спісы экстрэмісцкіх матэрыялаў і фарміраванняў: +${n} ${plural(n, 'новы запіс', 'новыя запісы', 'новых запісаў')}</b>\n<i>${dateBe(day)} · матэрыялаў +${nM}, фарміраванняў +${nF} · усяго матэрыялаў у спісе ${num(meta.total)}</i>`
-    : nF
-      ? `🟣 <b>Пералік экстрэмісцкіх фарміраванняў (МУС/КДБ): +${n} ${plural(n, 'новы запіс', 'новыя запісы', 'новых запісаў')}</b>\n<i>${dateBe(day)}</i>`
-      : `🔴 <b>Спіс экстрэмісцкіх матэрыялаў: +${n} ${plural(n, 'новы запіс', 'новыя запісы', 'новых запісаў')}</b>\n<i>${dateBe(day)} · усяго ў спісе ${num(meta.total)}</i>`;
+  : kinds > 1
+    ? `🔴 <b>Экстрэмісцкія спісы: ${newN}</b>\n<i>${dateBe(day)} · ${[nM && `матэрыялаў +${nM}`, nF && `фарміраванняў +${nF}`, nP && `асоб +${nP}`].filter(Boolean).join(', ')}${nM ? ` · усяго матэрыялаў у спісе ${num(meta.total)}` : ''}</i>`
+    : nP
+      ? `👤 <b>Пералік фізічных асоб, прычастных да экстрэмісцкай дзейнасці (МУС): ${newN}</b>\n<i>${dateBe(day)}</i>`
+      : nF
+        ? `🟣 <b>Пералік экстрэмісцкіх фарміраванняў (МУС/КДБ): ${newN}</b>\n<i>${dateBe(day)}</i>`
+        : `🔴 <b>Спіс экстрэмісцкіх матэрыялаў: ${newN}</b>\n<i>${dateBe(day)} · усяго ў спісе ${num(meta.total)}</i>`;
 const footer =
   `🔎 <a href="${SITE}">Праверыць сябе і свой спіс назірання</a>\n` +
   `📰 <a href="${SITE}#/new">Усе новыя запісы</a> · <a href="${SITE}feed.xml">RSS</a>`;
@@ -119,10 +143,11 @@ const footer =
 // ---------- разбіццё на паведамленні (≤ 4096) ----------
 // ids[i] — запісы, што трапілі ў messages[i]: пазначаем іх адпраўленымі паштучна,
 // каб пасля збою на сярэдзіне дайджэсту паўтарылася толькі недасланая частка.
-// у змяшаным дайджэсце перад першым фарміраваннем — падзагаловак (блок без id: адзнак пра адпраўку не патрабуе)
+// у змяшаным дайджэсце перад першым фарміраваннем / першай асобай — падзагаловак (блок без id: адзнак пра адпраўку не патрабуе)
 const blocks = [];
+const headed = new Set();
 fresh.forEach((x, i) => {
-  if (x.list === 'f' && nM && !blocks.some((b) => b.id === null)) blocks.push({ id: null, html: FORM_HEADER });
+  if (HEADERS[x.list] && kinds > 1 && !headed.has(x.list)) { headed.add(x.list); blocks.push({ id: null, html: HEADERS[x.list] }); }
   blocks.push({ id: x.id, html: entry(x, i + 1) });
 });
 const messages = [], ids = [];

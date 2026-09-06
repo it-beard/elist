@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "update": "node scripts/update.mjs",
     "update:formations": "node scripts/update-formations.mjs",
+    "update:persons": "node scripts/update-persons.mjs",
     "build:index": "node scripts/build-index.mjs",
     "test": "vitest run"
   },

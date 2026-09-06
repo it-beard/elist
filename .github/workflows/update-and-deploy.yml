@@ -30,7 +30,7 @@ jobs:
     name: Абнавіць базу
     runs-on: ubuntu-latest
     if: github.event_name != 'push'
-    timeout-minutes: 30
+    timeout-minutes: 45   # тры крыніцы, ~25 МБ файлаў з павольных сервераў і паўторы спроб
     permissions:
       contents: write   # каміт data/ у main
     steps:
@@ -55,6 +55,14 @@ jobs:
         if: github.event.schedule != '17 16 * * *'
         continue-on-error: true
         run: npm run update:formations
+        env:
+          UPDATE_FORCE: ${{ inputs.force }}
+      # Трэці спіс — пералік фізічных асоб (МУС, некалькі .doc на той жа старонцы). Апошняя частка дапаўняецца амаль
+      # штотыдня, таму правяраем пры кожным запуску. Файлы вялікія (~20 МБ разам), сервер МУС часам абрывае спампоўку —
+      # скрыпт паўтарае спробы сам; збой не спыняе дэплой (sourceError у persons-meta.json, сайт папярэдзіць, адмін-алерт).
+      - name: Абнавіць пералік фізічных асоб (МУС)
+        continue-on-error: true
+        run: npm run update:persons
         env:
           UPDATE_FORCE: ${{ inputs.force }}
       - name: Дайджэст у Telegram (калі наладжаны сакрэты)
@@ -99,6 +107,7 @@ jobs:
               git reset -q --hard origin/main
               npm run update
               npm run update:formations || true
+              npm run update:persons || true
               commit_data || { echo "Пасля паўтору зменаў няма"; exit 0; }
             fi
             sleep 10

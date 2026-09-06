@@ -48,7 +48,7 @@ export default function App() {
   // Запыт — у стане і history.state укладкі, не ў адрасным радку (гл. lib/entry.js).
   const [query, setQuery] = useQuery();
   const [sort, setSort] = useLocalStorage('sort', 'newest');
-  const [flags, setFlags] = useState({ any: false, onlyNew: false, list: '' }); // list: '' | 'm' | 'f' — абодва / матэрыялы / фарміраванні
+  const [flags, setFlags] = useState({ any: false, onlyNew: false, list: '' }); // list: '' | 'm' | 'f' | 'p' — усе / матэрыялы / фарміраванні / асобы
   const [help, setHelp] = useState(false);
   const [copied, setCopied] = useState(false);
   const opts = useMemo(() => ({ ...flags, sort }), [flags, sort]);
@@ -119,11 +119,12 @@ export default function App() {
 
   const active = tokens.length > 0 || opts.onlyNew || Boolean(opts.list);
   const newCount = items ? items.filter((it) => !it.replacedBy && isRecent(it.added)).length : 0;
-  // другі спіс (экстрэмісцкія фарміраванні): пераключальнік і асобны падлік — толькі калі ён ёсць у базе
-  const hasLists = Boolean(counts?.f);
-  const fInResults = useMemo(() => results.reduce((n, r) => n + (r.list === 'f' ? 1 : 0), 0), [results]);
+  // дадатковыя спісы (фарміраванні МУС/КДБ, фізічныя асобы МУС): чыпы і асобны падлік — толькі калі яны ёсць у базе
+  const lists = useMemo(() => ({ f: Boolean(counts?.f), p: Boolean(counts?.p) }), [counts]);
+  const hasLists = lists.f || lists.p;
+  const inResults = useMemo(() => results.reduce((c, r) => { c[r.list] = (c[r.list] || 0) + 1; return c; }, {}), [results]);
   // «Усяго запісаў» — адно правіла ўсюды (шапка, статыстыка, FAQ): запісы, якія цяпер ёсць у спісе — без выдаленых і старых версій
-  const live = useMemo(() => results.reduce((c, r) => { if (!r.removed) c[r.list === 'f' ? 'f' : 'm']++; return c; }, { m: 0, f: 0 }), [results]);
+  const live = useMemo(() => results.reduce((c, r) => { if (!r.removed) c[r.list in c ? r.list : 'm']++; return c; }, { m: 0, f: 0, p: 0 }), [results]);
 
   return (
     <>
@@ -133,12 +134,12 @@ export default function App() {
       <main className="wrap">
         {status === 'ready' && route.name === 'new' && <WhatsNew items={items} chunkSize={chunkSize} />}
         {status === 'ready' && route.name === 'r' && <RecordPage id={route.arg} items={items} chunkSize={chunkSize} watch={watch} />}
-        {route.name === 'stats' && (status === 'ready' ? <StatsPage items={items} initialList={route.arg === 'f' ? 'f' : 'm'} /> : <p className="summary">{status === 'error' ? t.loadError(error) : t.loading}</p>)}
+        {route.name === 'stats' && (status === 'ready' ? <StatsPage items={items} initialList={['f', 'p'].includes(route.arg) ? route.arg : 'm'} /> : <p className="summary">{status === 'error' ? t.loadError(error) : t.loading}</p>)}
         {!['new', 'r', 'stats'].includes(route.name) && (
           <>
             <div className="search">
               <SearchBar value={query} onChange={setQuery} />
-              <Options value={opts} onChange={setOpts} watch={watchChip} share={shareChip} lists={hasLists} />
+              <Options value={opts} onChange={setOpts} watch={watchChip} share={shareChip} lists={lists} />
             </div>
             {status === 'loading' && <p className="summary">{t.loading}</p>}
             {status === 'error' && <p className="summary error">{t.loadError(error)}</p>}
@@ -151,9 +152,9 @@ export default function App() {
                   />
                 )}
                 <p className="summary" aria-live="polite">
-                  {!active ? (hasLists ? t.totalBoth(live.m, live.f) : t.total(live.m + live.f)) : mode === 'fuzzy' ? t.fuzzy(results.length) : results.length ? t.found(results.length) : t.nothing}
+                  {!active ? (hasLists ? t.totalAll(live, lists) : t.total(live.m + live.f + live.p)) : mode === 'fuzzy' ? t.fuzzy(results.length) : results.length ? t.found(results.length) : t.nothing}
                 </p>
-                {active && results.length > 0 && <Consequences formations={fInResults > 0} />}
+                {active && results.length > 0 && <Consequences formations={Boolean(inResults.f)} persons={Boolean(inResults.p)} />}
                 <ResultList results={results} tokens={hl} chunkSize={chunkSize} />
               </>
             )}
@@ -162,7 +163,7 @@ export default function App() {
       </main>
       <footer className="wrap foot">
         <p>
-          {t.footSrc1}<a href={LINKS.mininform} target="_blank" rel="noopener noreferrer">{t.footSrcM}</a>{t.footSrc2}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcF}</a>{t.footSrc3}
+          {t.footSrc1}<a href={LINKS.mininform} target="_blank" rel="noopener noreferrer">{t.footSrcM}</a>{t.footSrc2}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcF}</a>{t.footSrc3}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcP}</a>{t.footSrc4}
         </p>
         <p className="travel-warn">⚠️ {t.footSrcWarn}</p>
         <p>{t.footPrivacy} <button type="button" className="linklike" onClick={clearAll}>{t.clearAll}</button>.</p>

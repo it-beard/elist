@@ -26,17 +26,20 @@ const iso = (t) => new Date(t).toISOString().slice(0, 10);
 const pct = (n, d) => (d ? Math.round((n / d) * 100) : 0);
 const delta = (cur, prev) => (prev ? Math.round(((cur - prev) / prev) * 100) : null);
 
+const LIST_CLASS = { f: ' form', p: ' person' };
+
 /**
  * Старонка «Статыстыка»: пліткі, таймлайн з маштабам, легенда, картка перыяду, табліца.
- * Два спісы — асобна, праз пераключальнік: матэрыялы (серыі — артыкул рашэння суда) і фарміраванні
- * (серыі — хто прыняў рашэнне). У адзін графік іх не змешваем: сотні матэрыялаў у месяц схавалі б адзінкі фарміраванняў.
+ * Спісы — асобна, праз пераключальнік: матэрыялы (серыі — артыкул рашэння суда), фарміраванні
+ * (серыі — хто прыняў рашэнне) і фізічныя асобы (серыі — група артыкулаў КК; дата — дата ўключэння ў пералік).
+ * У адзін графік іх не змешваем: сотні матэрыялаў у месяц схавалі б адзінкі фарміраванняў.
  */
 export default function StatsPage({ items, initialList = 'm' }) {
   const { t } = useLang();
   const now = useMemo(() => floorTo(Date.now(), 'day'), []);
-  const hasF = useMemo(() => items.some((it) => it.list === 'f'), [items]);
-  // #/stats — матэрыялы, #/stats/f — фарміраванні (спасылкай можна падзяліцца)
-  const [list, setList] = useState(hasF && initialList === 'f' ? 'f' : 'm');
+  const has = useMemo(() => ({ f: items.some((it) => it.list === 'f'), p: items.some((it) => it.list === 'p') }), [items]);
+  // #/stats — матэрыялы, #/stats/f — фарміраванні, #/stats/p — фізічныя асобы (спасылкай можна падзяліцца)
+  const [list, setList] = useState(has[initialList] ? initialList : 'm');
   const SERIES = SERIES_BY_LIST[list];
   // адно правіла ўсюды: лічым запісы, якія цяпер ёсць у спісе — без выдаленых і старых версій выпраўленых
   const inList = (it, l) => (it.list || 'm') === l && !it.removed && !it.replacedBy;
@@ -61,7 +64,7 @@ export default function StatsPage({ items, initialList = 'm' }) {
   const switchList = (l) => {
     if (l === list) return;
     setList(l); setHidden(new Set()); setSel(null); setHover(null);
-    history.replaceState(history.state, '', l === 'f' ? '#/stats/f' : '#/stats'); // без hashchange — старонка не перамантоўваецца
+    history.replaceState(history.state, '', l === 'm' ? '#/stats' : `#/stats/${l}`); // без hashchange — старонка не перамантоўваецца
     const d = dailyCounts(items.filter((it) => inList(it, l)), SERIES_BY_LIST[l]);
     const min = d[0]?.[0] ?? now - 365 * DAY;
     setState({ range: clampRange(presets.y3, min, maxT, MIN_SPAN), preset: 'y3' });
@@ -131,13 +134,14 @@ export default function StatsPage({ items, initialList = 'm' }) {
   return (
     <>
       <h2 className="page-title">{t.statsTitle}</h2>
-      {hasF && (
+      {(has.f || has.p) && (
         <div className="options stats-switch" role="group">
           <button type="button" className={`chip${list === 'm' ? ' on' : ''}`} aria-pressed={list === 'm'} onClick={() => switchList('m')}>{t.statsMaterials}</button>
-          <button type="button" className={`chip${list === 'f' ? ' on form' : ''}`} aria-pressed={list === 'f'} onClick={() => switchList('f')}>{t.statsFormations}</button>
+          {has.f && <button type="button" className={`chip${list === 'f' ? ` on${LIST_CLASS.f}` : ''}`} aria-pressed={list === 'f'} onClick={() => switchList('f')}>{t.statsFormations}</button>}
+          {has.p && <button type="button" className={`chip${list === 'p' ? ` on${LIST_CLASS.p}` : ''}`} aria-pressed={list === 'p'} onClick={() => switchList('p')}>{t.statsPersons}</button>}
         </div>
       )}
-      <p className="hint">{list === 'f' ? t.statsIntroF : t.statsIntro}</p>
+      <p className="hint">{list === 'p' ? t.statsIntroP : list === 'f' ? t.statsIntroF : t.statsIntro}</p>
 
       <div className="tiles">
         <div className="tile"><span className="lbl">{t.tileTotal}</span><span className="val">{fmtNum(listItems.length)}</span>{sum.first && <span className="dlt">{t.since(fmtDate(iso(sum.first)))}</span>}</div>

@@ -1,10 +1,13 @@
 import { useLang } from '../hooks/useLang.jsx';
 
 /**
- * Чыпы-опцыі пошуку. lists — у базе ёсць абодва спісы: чыпы «Матэрыялы» / «Фарміраванні» абмяжоўваюць пошук адным
- * спісам (паўторны націск здымае абмежаванне). «Новыя за N дзён» тут няма — гэта ўкладка «Новае».
+ * Чыпы-опцыі пошуку. lists — якія дадатковыя спісы ёсць у базе ({ f: фарміраванні, p: фізічныя асобы }):
+ * чыпы «Толькі матэрыялы» / «Толькі фарміраванні» / «Толькі асобы» абмяжоўваюць пошук адным спісам
+ * (паўторны націск здымае абмежаванне). «Новыя за N дзён» тут няма — гэта ўкладка «Новае».
  */
-export default function Options({ value, onChange, watch, share, lists = false }) {
+const LIST_CLASS = { f: ' form', p: ' person' };
+
+export default function Options({ value, onChange, watch, share, lists = {} }) {
   const { t } = useLang();
   const set = (patch) => onChange({ ...value, ...patch });
   const Chip = ({ k, children }) => (
@@ -13,9 +16,10 @@ export default function Options({ value, onChange, watch, share, lists = false }
     </button>
   );
   const list = value.list || '';
+  const hasLists = Boolean(lists.f || lists.p);
   const ListChip = ({ k, children }) => (
     <button
-      type="button" className={`chip${list === k ? ` on${k === 'f' ? ' form' : ''}` : ''}`} aria-pressed={list === k}
+      type="button" className={`chip${list === k ? ` on${LIST_CLASS[k] || ''}` : ''}`} aria-pressed={list === k}
       title={t.listFilterTitle} onClick={() => set({ list: list === k ? '' : k })}
     >
       {children}
@@ -33,8 +37,9 @@ export default function Options({ value, onChange, watch, share, lists = false }
           {share.copied ? t.copied : t.shareQuery}
         </button>
       )}
-      {lists && <ListChip k="m">{t.listMaterials}</ListChip>}
-      {lists && <ListChip k="f">{t.listFormations}</ListChip>}
+      {hasLists && <ListChip k="m">{t.listMaterials}</ListChip>}
+      {lists.f && <ListChip k="f">{t.listFormations}</ListChip>}
+      {lists.p && <ListChip k="p">{t.listPersons}</ListChip>}
       <Chip k="any">{t.any}</Chip>
       <label className="sort" title={t.sortTitle}>
         <span className="vh">{t.sort}</span>

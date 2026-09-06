@@ -12,7 +12,7 @@ export const fmtDay = (iso) => (iso ? String(iso).split('-').reverse().join('.')
 
 /** Базавыя факты з публічнага meta.json (даступныя і без самой базы). */
 export function siteFacts(meta = {}) {
-  const fm = meta.formations || {};
+  const fm = meta.formations || {}, pm = meta.persons || {};
   return {
     total: meta.total || 0,
     totalStr: fmtNum(meta.total || 0),
@@ -22,12 +22,18 @@ export function siteFacts(meta = {}) {
     formations: fm.total || 0,
     formationsStr: fmtNum(fm.total || 0),
     formationsUpdatedStr: fmtDay(fm.checked || fm.updated),
+    // трэці спіс — пералік фізічных асоб МУС (0, пакуль не імпартаваны)
+    persons: pm.total || 0,
+    personsStr: fmtNum(pm.total || 0),
+    personsUpdatedStr: fmtDay(pm.checked || pm.updated),
   };
 }
 
-/** Фраза-дадатак пра другі спіс, калі ён ёсць у базе. */
+/** Фразы-дадаткі пра другі і трэці спісы, калі яны ёсць у базе. */
 const FORM_BE = (f) => (f.formations ? ` Акрамя таго, у базе ${f.formationsStr} запісаў з пераліку «экстрэмісцкіх фарміраванняў» МУС/КДБ (правяраецца раз на суткі).` : '');
 const FORM_EN = (f) => (f.formations ? ` The database also holds ${f.formationsStr} entries from the Interior Ministry / KGB list of “extremist formations” (checked once a day).` : '');
+const PERS_BE = (f) => (f.persons ? ` Трэці спіс — пералік фізічных асоб, «прычастных да экстрэмісцкай дзейнасці» (МУС): ${f.personsStr} чалавек з прысудам па «экстрэмісцкіх» артыкулах КК (правяраецца двойчы на дзень).` : '');
+const PERS_EN = (f) => (f.persons ? ` The third list is the Interior Ministry list of individuals “involved in extremist activity”: ${f.personsStr} people convicted under “extremism” articles of the Criminal Code (checked twice a day).` : '');
 
 /** Статыстыка па самой базе — толькі там, дзе яна ёсць (зборка). */
 export function dataStats(db = []) {
@@ -47,10 +53,12 @@ export function dataStats(db = []) {
 const LEGAL_BE = {
   admin: 'Распаўсюд (рэпост, перасылка, публікацыя), выраб, захоўванне і перавозка матэрыялаў са спісу — адміністрацыйнае парушэнне паводле арт. 19.11 КаАП: штраф да 20 базавых велічынь або арышт для фізічных асоб, да 100 БВ для індывідуальных прадпрымальнікаў і да 500 БВ для арганізацый.',
   crime: 'За ўдзел у «экстрэмісцкім фарміраванні», садзейнічанне, данаты ці перадачу інфармацыі — крымінальная адказнасць (арт. 361-1 і 361-4 КК).',
+  persons: 'У пералік фізічных асоб трапляюць людзі з прысудам, які ўступіў у сілу, па «экстрэмісцкіх» артыкулах КК (найчасцей 342, 130, 368, 369, 361-х); уключэнне цягне дадатковыя абмежаванні паводле закона «О противодействии экстремизму» — у прыватнасці, на педагагічную і выдавецкую дзейнасць, дзяржаўную службу і валоданне зброяй. Выключаюць з пераліку рашэннем МУС, як правіла, пасля пагашэння судзімасці.',
 };
 const LEGAL_EN = {
   admin: 'Distribution (repost, forwarding, publishing), production, storage and transport of listed materials is an administrative offence under Art. 19.11 of the Administrative Code: a fine of up to 20 base units or arrest for individuals, up to 100 base units for sole traders and up to 500 for organisations.',
   crime: 'Participation in an “extremist formation”, assistance, donations or passing information to one is a criminal offence (Art. 361-1 and 361-4 of the Criminal Code).',
+  persons: 'The persons list holds people with a final conviction under “extremism” articles of the Criminal Code (most often 342, 130, 368, 369, 361-x); listing brings extra restrictions under the Law on Countering Extremism — in particular on teaching, publishing, state service and owning weapons. Removal is decided by the Interior Ministry, usually after the conviction is expunged.',
 };
 
 /**
@@ -61,15 +69,19 @@ export const FAQ = {
   be: [
     {
       q: 'Што такое Рэспубліканскі спіс экстрэмісцкіх матэрыялаў?',
-      a: (f) => `Рэспубліканскі спіс экстрэмісцкіх матэрыялаў — афіцыйны пералік тэкстаў, відэа, каналаў, сайтаў, акаўнтаў, кніг і сімвалікі, якія беларускія суды прызналі экстрэмісцкімі. На ${f.updatedStr} у ім ${f.totalStr} запісаў. Кожны запіс з’яўляецца пасля рашэння канкрэтнага суда і змяшчае тып матэрыялу, яго апісанне, назву суда і дату рашэння. ${LEGAL_BE.admin}${FORM_BE(f)}`,
+      a: (f) => `Рэспубліканскі спіс экстрэмісцкіх матэрыялаў — афіцыйны пералік тэкстаў, відэа, каналаў, сайтаў, акаўнтаў, кніг і сімвалікі, якія беларускія суды прызналі экстрэмісцкімі. На ${f.updatedStr} у ім ${f.totalStr} запісаў. Кожны запіс з’яўляецца пасля рашэння канкрэтнага суда і змяшчае тып матэрыялу, яго апісанне, назву суда і дату рашэння. ${LEGAL_BE.admin}${FORM_BE(f)}${PERS_BE(f)}`,
     },
     {
-      q: 'Як праверыць, ці трапіў мой Telegram-канал, нік ці сайт у спіс?',
-      a: () => 'Увядзіце нік, назву канала, спасылку, імя ці назву ў поле пошуку на галоўнай старонцы — вынік з’явіцца адразу, за мілісекунды, і адразу па абодвух спісах (запісы пераліку фарміраванняў пазначаныя фіялетавай плашкай). Пошук не ўлічвае рэгістар, «ё/е», лацінскую і кірылічную «i», віды лапак і хвост «/» у спасылках, а «@nick», «t.me/nick» і «nick» лічацца адным і тым жа. Калі дакладных супадзенняў няма, сайт паказвае падобныя словы — з памылкамі ў 1–2 літары і ў лацінскай транслітарацыі.',
+      q: 'Як праверыць, ці трапіў мой Telegram-канал, нік, сайт ці я сам у спіс?',
+      a: () => 'Увядзіце нік, назву канала, спасылку, назву ці імя і прозвішча (кірыліцай або лацінкай, як у пашпарце) у поле пошуку на галоўнай старонцы — вынік з’явіцца адразу, за мілісекунды, і адразу па ўсіх спісах (запісы пераліку фарміраванняў пазначаныя фіялетавай плашкай, пераліку фізічных асоб — бірузовай, з датай нараджэння, каб адрозніць цёзак). Пошук не ўлічвае рэгістар, «ё/е», лацінскую і кірылічную «i», віды лапак і хвост «/» у спасылках, а «@nick», «t.me/nick» і «nick» лічацца адным і тым жа. Калі дакладных супадзенняў няма, сайт паказвае падобныя словы — з памылкамі ў 1–2 літары і ў лацінскай транслітарацыі.',
     },
     {
       q: 'Колькі запісаў у спісе і як часта ён абнаўляецца?',
-      a: (f) => `На ${f.updatedStr} у базе ${f.totalStr} запісаў спісу экстрэмісцкіх матэрыялаў${f.formations ? ` і ${f.formationsStr} запісаў пераліку экстрэмісцкіх фарміраванняў` : ''}. Спіс матэрыялаў абнаўляецца аўтаматычна двойчы на дзень: сайт правярае афіцыйную крыніцу раніцай і ўвечары, і новыя запісы трапляюць на сайт праз некалькі хвілін пасля праверкі; пералік фарміраванняў правяраецца раз на суткі. ${f.infoShare ? `${f.infoShare}% запісаў — «інфармацыйная прадукцыя» (каналы, сайты, акаўнты, відэа, чаты), астатняе — друкаваныя выданні, кнігі, сімваліка і атрыбутыка.` : ''}`.trim(),
+      a: (f) => `На ${f.updatedStr} у базе ${f.totalStr} запісаў спісу экстрэмісцкіх матэрыялаў${f.formations ? `, ${f.formationsStr} запісаў пераліку экстрэмісцкіх фарміраванняў` : ''}${f.persons ? ` і ${f.personsStr} запісаў пераліку фізічных асоб` : ''}. Спіс матэрыялаў і пералік фізічных асоб абнаўляюцца аўтаматычна двойчы на дзень: сайт правярае афіцыйныя крыніцы раніцай і ўвечары, і новыя запісы трапляюць на сайт праз некалькі хвілін пасля праверкі; пералік фарміраванняў правяраецца раз на суткі. ${f.infoShare ? `${f.infoShare}% запісаў спісу матэрыялаў — «інфармацыйная прадукцыя» (каналы, сайты, акаўнты, відэа, чаты), астатняе — друкаваныя выданні, кнігі, сімваліка і атрыбутыка.` : ''}`.trim(),
+    },
+    {
+      q: 'Што такое пералік фізічных асоб, прычастных да экстрэмісцкай дзейнасці?',
+      a: (f) => `Пералік грамадзян Беларусі, замежнікаў і асоб без грамадзянства, «прычастных да экстрэмісцкай дзейнасці», вядзе МУС і публікуе некалькімі .doc-файламі на сваім сайце${f.persons ? ` (на ${f.personsUpdatedStr} у ім ${f.personsStr} чалавек)` : ''}. ${LEGAL_BE.persons} У кожным запісе — прозвішча, імя і імя па бацьку, лацінская транслітарацыя, грамадзянства, дата нараджэння, падстава (суд і артыкулы прысуду), дата ўключэння, месцазнаходжанне і статус («адбывае пакаранне», «судзімасць не пагашана»). Сайт паказвае гэтыя запісы з бірузовай плашкай «Асоба» і дазваляе шукаць па імені кірыліцай ці лацінкай, а даты нараджэння дапамагаюць адрозніць цёзак.`,
     },
     {
       q: 'Што пагражае за рэпост ці захоўванне матэрыялу са спісу?',
@@ -80,8 +92,8 @@ export const FAQ = {
       a: () => 'Сама падпіска на канал са спісу ў законе як парушэнне не названая, але пры праверцы тэлефона падпіскі і захаваныя матэрыялы разглядаюць як «захоўванне» і падставу для пытанняў. Перад паездкай у Беларусь праваабаронцы раяць адпісацца, выдаліць чаты, файлы і кэш, і ў ідэале не везці прыладу з такой гісторыяй.',
     },
     {
-      q: 'Чым спіс экстрэмісцкіх матэрыялаў адрозніваецца ад спісу экстрэмісцкіх фарміраванняў?',
-      a: (f) => `Гэта два розныя спісы, і сайт шукае адразу па абодвух. Спіс «экстрэмісцкіх матэрыялаў» фармуюць суды — за яго парушэнне адміністрацыйная адказнасць. Пералік «экстрэмісцкіх фарміраванняў» вядуць МУС і КДБ${f.formations ? ` (${f.formationsStr} запісаў, правяраецца раз на суткі)` : ''}; у выдачы такія запісы пазначаныя фіялетавай плашкай «Фарміраванне», а чыпы «Толькі матэрыялы» / «Толькі фарміраванні» абмяжоўваюць пошук адным спісам. ${LEGAL_BE.crime} Многія рэсурсы ёсць у абодвух спісах.`,
+      q: 'Чым спіс экстрэмісцкіх матэрыялаў адрозніваецца ад спісу экстрэмісцкіх фарміраванняў і пераліку фізічных асоб?',
+      a: (f) => `Гэта тры розныя спісы, і сайт шукае адразу па ўсіх. Спіс «экстрэмісцкіх матэрыялаў» фармуюць суды — за яго парушэнне адміністрацыйная адказнасць. Пералік «экстрэмісцкіх фарміраванняў» вядуць МУС і КДБ${f.formations ? ` (${f.formationsStr} запісаў, правяраецца раз на суткі)` : ''}; у выдачы такія запісы пазначаныя фіялетавай плашкай «Фарміраванне». ${LEGAL_BE.crime} Пералік фізічных асоб, «прычастных да экстрэмісцкай дзейнасці», вядзе МУС${f.persons ? ` (${f.personsStr} чалавек, правяраецца двойчы на дзень)` : ''}: гэта людзі, ужо асуджаныя па «экстрэмісцкіх» артыкулах, пазначаныя бірузовай плашкай «Асоба». Чыпы «Толькі матэрыялы» / «Толькі фарміраванні» / «Толькі асобы» абмяжоўваюць пошук адным спісам. Многія рэсурсы і людзі ёсць адразу ў некалькіх спісах.`,
     },
     {
       q: 'Ці бяспечна карыстацца гэтым сайтам?',
@@ -93,11 +105,11 @@ export const FAQ = {
     },
     {
       q: 'Ці афіцыйны гэта сайт?',
-      a: () => 'Не, сайт неафіцыйны і зроблены незалежна, з адкрытым кодам на GitHub. Даныя аўтаматычна бяруцца з афіцыйных публікацый — Рэспубліканскага спісу экстрэмісцкіх матэрыялаў (Мінінфарм) і пераліку экстрэмісцкіх фарміраванняў (МУС) — і не рэдагуюцца: тэкст запісу, падстава і даты захоўваюцца як у крыніцы. Пры юрыдычна значных рашэннях звяраць варта з афіцыйнай публікацыяй, памятаючы, што афіцыйныя сайты могуць збіраць даныя наведнікаў.',
+      a: () => 'Не, сайт неафіцыйны і зроблены незалежна, з адкрытым кодам на GitHub. Даныя аўтаматычна бяруцца з афіцыйных публікацый — Рэспубліканскага спісу экстрэмісцкіх матэрыялаў (Мінінфарм), пераліку экстрэмісцкіх фарміраванняў і пераліку фізічных асоб (МУС) — і не рэдагуюцца: тэкст запісу, падстава і даты захоўваюцца як у крыніцы. Пры юрыдычна значных рашэннях звяраць варта з афіцыйнай публікацыяй, памятаючы, што афіцыйныя сайты могуць збіраць даныя наведнікаў.',
     },
     {
       q: 'Што рабіць, калі я знайшоў сябе ці свой рэсурс у спісе?',
-      a: () => 'Праверце тэкст запісу, дату і падставу — назву суда для матэрыялаў ці рашэнне МУС/КДБ для фарміраванняў: менавіта яны вызначаюць, што і калі прызналі экстрэмісцкім. Для фарміравання адказнасць крымінальная, таму варта звярнуцца па кансультацыю адразу. Дадайце запыт у спіс назірання, каб убачыць, калі з’явіцца новы звязаны запіс. Пра свае рызыкі і магчымасць абскарджання пракансультуйцеся з праваабаронцамі: Праваабарончы цэнтр «Вясна» і Human Constanta.',
+      a: () => 'Праверце тэкст запісу, дату і падставу — назву суда для матэрыялаў, рашэнне МУС/КДБ для фарміраванняў, прысуд і дату нараджэння для фізічнай асобы (у пераліку шмат цёзак): менавіта яны вызначаюць, што і калі прызналі экстрэмісцкім. Для фарміравання адказнасць крымінальная, таму варта звярнуцца па кансультацыю адразу. Дадайце запыт у спіс назірання, каб убачыць, калі з’явіцца новы звязаны запіс. Пра свае рызыкі і магчымасць абскарджання пракансультуйцеся з праваабаронцамі: Праваабарончы цэнтр «Вясна» і Human Constanta.',
     },
     {
       q: 'Ці працуе пошук без інтэрнэту?',
@@ -111,15 +123,19 @@ export const FAQ = {
   en: [
     {
       q: 'What is the Republican list of extremist materials of Belarus?',
-      a: (f) => `The Republican list of extremist materials is the official register of texts, videos, channels, websites, accounts, books and symbols that Belarusian courts have ruled extremist. As of ${f.updatedStr} it contains ${f.totalStr} entries. Each entry follows a decision by a specific court and carries the material type, its description, the court name and the decision date. ${LEGAL_EN.admin}${FORM_EN(f)}`,
+      a: (f) => `The Republican list of extremist materials is the official register of texts, videos, channels, websites, accounts, books and symbols that Belarusian courts have ruled extremist. As of ${f.updatedStr} it contains ${f.totalStr} entries. Each entry follows a decision by a specific court and carries the material type, its description, the court name and the decision date. ${LEGAL_EN.admin}${FORM_EN(f)}${PERS_EN(f)}`,
     },
     {
-      q: 'How do I check whether my Telegram channel, handle or website is on the list?',
-      a: () => 'Type the handle, channel name, link, personal name or title into the search box on the front page — results appear instantly, in milliseconds, across both lists at once (entries from the formations list carry a purple label). Search ignores case, “ё/е”, Latin vs Cyrillic “i”, quote styles and a trailing “/” in links, and treats “@nick”, “t.me/nick” and “nick” as the same thing. When there is no exact match, the site shows near matches: 1–2 letter typos and Latin transliteration.',
+      q: 'How do I check whether my Telegram channel, handle, website or I myself am on the list?',
+      a: () => 'Type the handle, channel name, link, title, or a first name and surname (Cyrillic or Latin, as in a passport) into the search box on the front page — results appear instantly, in milliseconds, across all lists at once (entries from the formations list carry a purple label, entries from the persons list a teal one with the date of birth to tell namesakes apart). Search ignores case, “ё/е”, Latin vs Cyrillic “i”, quote styles and a trailing “/” in links, and treats “@nick”, “t.me/nick” and “nick” as the same thing. When there is no exact match, the site shows near matches: 1–2 letter typos and Latin transliteration.',
     },
     {
       q: 'How many entries are on the list and how often is it updated?',
-      a: (f) => `As of ${f.updatedStr} the database holds ${f.totalStr} entries of the list of extremist materials${f.formations ? ` and ${f.formationsStr} entries of the list of extremist formations` : ''}. The materials list refreshes automatically twice a day: the official source is checked in the morning and in the evening, and new entries reach the site a few minutes after each check; the formations list is checked once a day. ${f.infoShare ? `${f.infoShare}% of entries are “information products” (channels, websites, accounts, videos, chats); the rest are printed editions, books, symbols and paraphernalia.` : ''}`.trim(),
+      a: (f) => `As of ${f.updatedStr} the database holds ${f.totalStr} entries of the list of extremist materials${f.formations ? `, ${f.formationsStr} entries of the list of extremist formations` : ''}${f.persons ? ` and ${f.personsStr} entries of the list of individuals` : ''}. The materials list and the persons list refresh automatically twice a day: the official sources are checked in the morning and in the evening, and new entries reach the site a few minutes after each check; the formations list is checked once a day. ${f.infoShare ? `${f.infoShare}% of the materials list entries are “information products” (channels, websites, accounts, videos, chats); the rest are printed editions, books, symbols and paraphernalia.` : ''}`.trim(),
+    },
+    {
+      q: 'What is the list of individuals involved in extremist activity?',
+      a: (f) => `The list of citizens of Belarus, foreign nationals and stateless persons “involved in extremist activity” is kept by the Interior Ministry and published as several .doc files on its website${f.persons ? ` (${f.personsStr} people as of ${f.personsUpdatedStr})` : ''}. ${LEGAL_EN.persons} Each entry carries the surname, first name and patronymic, a Latin transliteration, citizenship, date of birth, the grounds (court and articles of the verdict), the date of inclusion, location and status (“serving the sentence”, “conviction not expunged”). The site shows these entries with a teal “Person” label, lets you search by name in Cyrillic or Latin, and the dates of birth help tell namesakes apart.`,
     },
     {
       q: 'What are the penalties for reposting or storing a listed material?',
@@ -130,8 +146,8 @@ export const FAQ = {
       a: () => 'Merely subscribing to a listed channel is not named as an offence in the law, but during phone checks subscriptions and saved materials are treated as “storage” and grounds for questioning. Before travelling to Belarus, rights defenders advise unsubscribing, deleting chats, files and caches — ideally not carrying a device with such history at all.',
     },
     {
-      q: 'How does the list of extremist materials differ from the list of extremist formations?',
-      a: (f) => `They are two different lists, and the site searches both at once. The list of “extremist materials” is formed by courts and carries administrative liability. The list of “extremist formations” is maintained by the Interior Ministry and the KGB${f.formations ? ` (${f.formationsStr} entries, checked once a day)` : ''}; such results carry a purple “Formation” label, and the “Materials only” / “Formations only” chips limit the search to one list. ${LEGAL_EN.crime} Many resources appear on both lists.`,
+      q: 'How does the list of extremist materials differ from the list of extremist formations and the list of individuals?',
+      a: (f) => `They are three different lists, and the site searches all of them at once. The list of “extremist materials” is formed by courts and carries administrative liability. The list of “extremist formations” is maintained by the Interior Ministry and the KGB${f.formations ? ` (${f.formationsStr} entries, checked once a day)` : ''}; such results carry a purple “Formation” label. ${LEGAL_EN.crime} The list of individuals “involved in extremist activity” is kept by the Interior Ministry${f.persons ? ` (${f.personsStr} people, checked twice a day)` : ''}: people already convicted under “extremism” articles, marked with a teal “Person” label. The “Materials only” / “Formations only” / “Persons only” chips limit the search to one list. Many resources and people appear on several lists at once.`,
     },
     {
       q: 'Is this site safe to use?',
@@ -143,11 +159,11 @@ export const FAQ = {
     },
     {
       q: 'Is this an official site?',
-      a: () => 'No. The site is unofficial and independent, with open source code on GitHub. Data is pulled automatically from the official publications — the Republican list of extremist materials (Ministry of Information) and the list of extremist formations (Interior Ministry) — and is never edited: entry text, grounds and dates are kept exactly as in the source. For legally significant decisions, verify against the official publication, bearing in mind that official sites may collect visitor data.',
+      a: () => 'No. The site is unofficial and independent, with open source code on GitHub. Data is pulled automatically from the official publications — the Republican list of extremist materials (Ministry of Information), the list of extremist formations and the list of individuals (Interior Ministry) — and is never edited: entry text, grounds and dates are kept exactly as in the source. For legally significant decisions, verify against the official publication, bearing in mind that official sites may collect visitor data.',
     },
     {
       q: 'What should I do if I find myself or my resource on the list?',
-      a: () => 'Check the entry text, the date and the grounds — the court name for materials, or the Interior Ministry / KGB decision for formations: they define what was ruled extremist and when. For a formation the liability is criminal, so seek advice right away. Add the query to your watchlist to see when a related entry appears. Consult human rights defenders about your risks and possible appeal: Viasna Human Rights Centre and Human Constanta.',
+      a: () => 'Check the entry text, the date and the grounds — the court name for materials, the Interior Ministry / KGB decision for formations, the verdict and the date of birth for a person (the list has many namesakes): they define what was ruled extremist and when. For a formation the liability is criminal, so seek advice right away. Add the query to your watchlist to see when a related entry appears. Consult human rights defenders about your risks and possible appeal: Viasna Human Rights Centre and Human Constanta.',
     },
     {
       q: 'Does the search work offline?',
@@ -162,8 +178,8 @@ export const FAQ = {
 
 /** Кароткае апісанне сайта з лічбамі — для meta description, llms.txt і JSON-LD. */
 export const SUMMARY = {
-  be: (f) => `Пошук па экстрэмісцкіх спісах Беларусі: ${f.totalStr} запісаў Рэспубліканскага спісу экстрэмісцкіх матэрыялаў${f.formations ? ` і ${f.formationsStr} запісаў пераліку экстрэмісцкіх фарміраванняў МУС/КДБ` : ''} на ${f.updatedStr}, абнаўленне штодня. Праверце нік, Telegram-канал, сайт ці кнігу, дадайце запыт у спіс назірання. Працуе афлайн, не збірае ніякіх даных.`,
-  en: (f) => `Search the extremist lists of Belarus: ${f.totalStr} entries of the Republican list of extremist materials${f.formations ? ` and ${f.formationsStr} entries of the Interior Ministry / KGB list of extremist formations` : ''} as of ${f.updatedStr}, updated daily. Check a handle, Telegram channel, website or book and add it to your watchlist. Works offline, collects no data.`,
+  be: (f) => `Пошук па экстрэмісцкіх спісах Беларусі: ${f.totalStr} запісаў Рэспубліканскага спісу экстрэмісцкіх матэрыялаў${f.formations ? `, ${f.formationsStr} запісаў пераліку экстрэмісцкіх фарміраванняў МУС/КДБ` : ''}${f.persons ? ` і ${f.personsStr} чалавек з пераліку фізічных асоб МУС` : ''} на ${f.updatedStr}, абнаўленне штодня. Праверце нік, Telegram-канал, сайт, кнігу ці імя, дадайце запыт у спіс назірання. Працуе афлайн, не збірае ніякіх даных.`,
+  en: (f) => `Search the extremist lists of Belarus: ${f.totalStr} entries of the Republican list of extremist materials${f.formations ? `, ${f.formationsStr} entries of the Interior Ministry / KGB list of extremist formations` : ''}${f.persons ? ` and ${f.personsStr} people from the Interior Ministry list of individuals` : ''} as of ${f.updatedStr}, updated daily. Check a handle, Telegram channel, website, book or name and add it to your watchlist. Works offline, collects no data.`,
 };
 
 /** Ключавыя факты табліцай — структураваныя фрагменты лягчэй цытаваць. */
@@ -171,8 +187,9 @@ export const KEY_FACTS = {
   be: (f) => [
     ['Запісаў у базе', `${f.totalStr} (на ${f.updatedStr})`],
     ...(f.formations ? [['Экстрэмісцкіх фарміраванняў (МУС/КДБ)', `${f.formationsStr} (на ${f.formationsUpdatedStr}), правяраецца раз на суткі`]] : []),
+    ...(f.persons ? [['Фізічных асоб у пераліку МУС', `${f.personsStr} (на ${f.personsUpdatedStr}), правяраецца двойчы на дзень`]] : []),
     ['Абнаўленне', 'аўтаматычна, двойчы на дзень'],
-    ['Крыніца', 'афіцыйная публікацыя Рэспубліканскага спісу экстрэмісцкіх матэрыялаў; пералік экстрэмісцкіх фарміраванняў — сайт МУС'],
+    ['Крыніца', 'афіцыйная публікацыя Рэспубліканскага спісу экстрэмісцкіх матэрыялаў; пералікі экстрэмісцкіх фарміраванняў і фізічных асоб — сайт МУС'],
     ['Пошук', 'цалкам у браўзеры; кірыліца ↔ лацінка, памылкі ў 1–2 літары'],
     ['Даныя пра карыстальніка', 'не збіраюцца: ні запытаў, ні cookies, ні статыстыкі'],
     ['Афлайн', 'так, PWA — база застаецца ў браўзеры'],
@@ -182,8 +199,9 @@ export const KEY_FACTS = {
   en: (f) => [
     ['Entries', `${f.totalStr} (as of ${f.updatedStr})`],
     ...(f.formations ? [['Extremist formations (Interior Ministry / KGB)', `${f.formationsStr} (as of ${f.formationsUpdatedStr}), checked once a day`]] : []),
+    ...(f.persons ? [['Individuals on the Interior Ministry list', `${f.personsStr} (as of ${f.personsUpdatedStr}), checked twice a day`]] : []),
     ['Updates', 'automatic, twice a day'],
-    ['Source', 'official publication of the Republican list of extremist materials; the list of extremist formations — Interior Ministry website'],
+    ['Source', 'official publication of the Republican list of extremist materials; the lists of extremist formations and individuals — Interior Ministry website'],
     ['Search', 'entirely in the browser; Cyrillic ↔ Latin, 1–2 letter typos'],
     ['User data', 'none collected: no queries, no cookies, no analytics'],
     ['Offline', 'yes, PWA — the database stays in the browser'],

@@ -34,12 +34,12 @@ function fallback(base, f) {
   return `
       <header class="top wrap">
         <div class="top-row"><h1>Пошук па экстрэмісцкіх спісах Беларусі</h1></div>
-        <p class="sub">${f.total ? `${esc(f.totalStr)} ${f.formations ? `матэрыялаў · ${esc(f.formationsStr)} фарміраванняў` : 'запісаў'} · абноўлена ${esc(f.updatedStr)}` : 'Пошук па афіцыйных спісах'}</p>
+        <p class="sub">${f.total ? `${f.formations || f.persons ? [`${esc(f.totalStr)} матэрыялаў`, f.formations && `${esc(f.formationsStr)} фарміраванняў`, f.persons && `${esc(f.personsStr)} асоб`].filter(Boolean).join(' · ') : `${esc(f.totalStr)} запісаў`} · абноўлена ${esc(f.updatedStr)}` : 'Пошук па афіцыйных спісах'}</p>
       </header>
       <main class="wrap">
         <p class="summary">Загрузка індэкса…</p>
         <noscript>
-          <h2>Пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў і пераліку экстрэмісцкіх фарміраванняў Беларусі</h2>
+          <h2>Пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў, пераліку экстрэмісцкіх фарміраванняў і пераліку фізічных асоб Беларусі</h2>
           <p>${esc(SUMMARY.be(f))}</p>
           <p>Сам пошук патрабуе JavaScript, бо ўся база працуе ў браўзеры і запыты нікуды не адпраўляюцца. Без JavaScript даступныя тэкставыя старонкі:</p>
           <ul>

@@ -4,7 +4,7 @@
  *   node scripts/alert.mjs failed   — джоб упаў (ALERT_JOB, ALERT_RUN_URL)
  *   node scripts/alert.mjs source   — стан крыніцы ў data/meta.json змяніўся адносна HEAD:
  *                                     крыніца перастала/пачала адказваць, уключылася/выключылася запасная;
- *                                     тое ж для другога спісу (data/formations-meta.json, пералік МУС)
+ *                                     тое ж для пералікаў МУС (data/formations-meta.json, data/persons-meta.json)
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const META = path.join(ROOT, 'data', 'meta.json');
 const FMETA = path.join(ROOT, 'data', 'formations-meta.json');
+const PMETA = path.join(ROOT, 'data', 'persons-meta.json');
 const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_ADMIN_CHAT_ID;
 const mode = process.argv[2];
 
@@ -51,6 +52,13 @@ if (mode === 'failed') {
   try { prevF = JSON.parse(execFileSync('git', ['show', 'HEAD:data/formations-meta.json'], { cwd: ROOT, encoding: 'utf8' })); } catch { /* файла яшчэ не было */ }
   if (Boolean(curF.sourceError) !== Boolean(prevF.sourceError)) {
     msgs.push(curF.sourceError ? `⚠️ Пералік фарміраванняў (МУС) не адказвае: ${esc(curF.sourceError)}` : '✅ Пералік фарміраванняў (МУС) зноў адказвае.');
+  }
+  // трэці спіс: пералік фізічных асоб (МУС, некалькі .doc)
+  const curP = await readJson(PMETA, {});
+  let prevP = {};
+  try { prevP = JSON.parse(execFileSync('git', ['show', 'HEAD:data/persons-meta.json'], { cwd: ROOT, encoding: 'utf8' })); } catch { /* файла яшчэ не было */ }
+  if (Boolean(curP.sourceError) !== Boolean(prevP.sourceError)) {
+    msgs.push(curP.sourceError ? `⚠️ Пералік фізічных асоб (МУС) не адказвае: ${esc(curP.sourceError)}` : '✅ Пералік фізічных асоб (МУС) зноў адказвае.');
   }
   if (!msgs.length) { console.log('Стан крыніцы не змяніўся.'); process.exit(0); }
   await send(`<b>elist: стан крыніцы</b>\n${msgs.join('\n')}`);

@@ -3,15 +3,17 @@ import { LINKS } from '../lib/i18n.js';
 
 /**
  * «Што гэта значыць для мяне» — згорнуты блок з тлумачэннем наступстваў.
- * formations — сярод вынікаў ёсць экстрэмісцкія фарміраванні (МУС/КДБ): зверху заўвага пра крымінальную адказнасць.
+ * formations — сярод вынікаў ёсць экстрэмісцкія фарміраванні (МУС/КДБ): зверху заўвага пра крымінальную адказнасць;
+ * persons — ёсць запісы пераліку фізічных асоб (МУС): заўвага, што гэта за пералік і якія абмежаванні ён цягне.
  */
-export default function Consequences({ open = false, formations = false }) {
+export default function Consequences({ open = false, formations = false, persons = false }) {
   const { t } = useLang();
   return (
     <details className="legal" open={open || undefined}>
       <summary>{t.legalTitle}</summary>
       <div className="legal-body">
         {formations && <p className="crime">{t.crimeNote}</p>}
+        {persons && <p className="crime person">{t.personNote}</p>}
         {t.legal.map(([h, p]) => (
           <section key={h}><h3>{h}</h3><p>{p}</p></section>
         ))}
