@@ -42,7 +42,7 @@ export default function WatchPanel({ watch, meta, refreshing, refreshError, chec
       )}
       <span className="watch-label">{t.watchLabel}</span>
       <span className="watch-label-short">{t.watchShort}</span>
-      {!empty && <span className="watch-count">{fresh || entries.length}</span>}
+      {!empty && <span className="watch-count">{hits > 0 ? `${entries.length}/${hits}` : entries.length}</span>}
       <svg className={`chev${open ? ' up' : ''}`} viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
     </button>
   ) : null;
