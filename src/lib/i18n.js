@@ -106,8 +106,20 @@ export const STRINGS = {
     positionF: (n) => `Пазіцыя №${n} у пераліку экстрэмісцкіх фарміраванняў.`,
     recIncluded: 'Уключана ў пералік', recAddress: 'Адрас / рэсурс', recInfo: 'Даведка з пераліку', recLogo: 'Апісанне лагатыпа',
     // трэці спіс — фізічныя асобы (пералік МУС)
-    personLabel: 'Асоба · МУС',
-    personTitle: 'Фізічная асоба з пераліку МУС «прычастных да экстрэмісцкай дзейнасці» — прысуд ці іншае рашэнне суда па «экстрэмісцкіх» артыкулах КК',
+    personLabel: (art) => {
+      const sub = {
+        ext: 'экстрэміст',
+        speech: 'выказванні',
+        protest: 'гр.дз.',
+      }[art];
+      return sub ? `Асоба · ${sub}` : 'Асоба';
+    },
+    personTitle: (art) => ({
+      protest: 'Фізічная асоба з пераліку МУС — групавыя дзеянні (арт. 342, 293 КК)',
+      speech: 'Фізічная асоба з пераліку МУС — выказванні (арт. 130, 367–370 КК)',
+      ext: 'Фізічная асоба з пераліку МУС — экстрэмісцкія артыкулы (361-х КК)',
+      other: 'Фізічная асоба з пераліку МУС — іншыя артыкулы КК',
+    }[art] || 'Фізічная асоба з пераліку МУС «прычастных да экстрэмісцкай дзейнасці» — прысуд ці іншае рашэнне суда па «экстрэмісцкіх» артыкулах КК'),
     permalinkP: 'Пастаянная спасылка на запіс пераліку фізічных асоб МУС',
     born: 'нар.', includedTitle: 'Дата ўключэння ў пералік',
     noNum: 'б/н', // без афіцыйнага нумара — свежае дапаўненне пераліку
@@ -306,8 +318,20 @@ export const STRINGS = {
     recTitleF: 'Interior Ministry / KGB list entry',
     positionF: (n) => `Position #${n} in the list of extremist formations.`,
     recIncluded: 'Added to the list', recAddress: 'Address / resource', recInfo: 'Reference note from the list', recLogo: 'Logo description',
-    personLabel: 'Person · MIA',
-    personTitle: 'Individual on the Interior Ministry list of persons “involved in extremist activity” — a verdict or another court decision under “extremism” articles of the Criminal Code',
+    personLabel: (art) => {
+      const sub = {
+        ext: 'extremist',
+        speech: 'speech',
+        protest: 'group act.',
+      }[art];
+      return sub ? `Person · ${sub}` : 'Person';
+    },
+    personTitle: (art) => ({
+      protest: 'Individual from the Interior Ministry list — group actions (Art. 342, 293 CC)',
+      speech: 'Individual from the Interior Ministry list — speech (Art. 130, 367–370 CC)',
+      ext: 'Individual from the Interior Ministry list — extremist articles (361-x CC)',
+      other: 'Individual from the Interior Ministry list — other Criminal Code articles',
+    }[art] || 'Individual on the Interior Ministry list of persons “involved in extremist activity” — a verdict or another court decision under “extremism” articles of the Criminal Code'),
     permalinkP: 'Permanent link to this Interior Ministry persons list entry',
     born: 'b.', includedTitle: 'Date of inclusion in the list',
     noNum: 'no №',

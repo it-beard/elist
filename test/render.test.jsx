@@ -53,14 +53,20 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       expect(html).toContain('class="item person"');
       expect(html).toContain('class="item formation"');
       expect(html).toContain('class="type person"');
-      expect(html).toContain(t.personLabel);
+      expect(html).toContain(t.personLabel('speech'));
       expect(html).toContain('KAVALEUSKI MIKALAI');
       expect(html).toContain(`${t.born} 14.10.1983`);
       expect(html).toContain('Отбывает наказание');
       expect(html).toContain('<mark>Свабода</mark>'); // падсветка ў матэрыяле не зламалася
-      // асоба без афіцыйнага нумара — «б/н», а не выдуманы «№2»; з нумарам — «№1»
+      // плашкі асоб паводле артыкулаў («экстрэміст», «выказванні», «гр.дз.») і пазнака ў тайтле
+      expect(t.personLabel('ext')).toContain(lang === 'be' ? 'экстрэміст' : 'extremist');
+      expect(t.personLabel('speech')).toContain(lang === 'be' ? 'выказванні' : 'speech');
+      expect(t.personLabel('protest')).toContain(lang === 'be' ? 'гр.дз.' : 'group act.');
+      expect(t.personTitle('protest')).toContain(lang === 'be' ? 'групавыя дзеянні' : 'group actions');
+      // асоба без афіцыйнага нумара — значок спасылкі замест «б/н», а не выдуманы «№2»; з нумарам — «№1»
       const card2 = render(lang, <ResultItem item={ITEMS[3]} tokens={[]} chunkSize={200} />);
-      expect(card2).toContain(`>${t.noNum}<`);
+      expect(card2).toContain('<svg class="ico"');
+      expect(card2).not.toContain(`>${t.noNum}<`);
       expect(card2).not.toContain('№2');
       expect(render(lang, <ResultItem item={ITEMS[2]} tokens={[]} chunkSize={200} />)).toContain('>№1<');
       // фрагмент не супаў з індэксам — чужы запіс не паказваецца, толькі падказка перазагрузіць

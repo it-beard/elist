@@ -171,14 +171,15 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .item.removed { opacity: .55; }
 .meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: .8rem; color: var(--muted); margin-bottom: 8px; }
 .meta .badge-new { margin: 0; }
-.meta .idx { margin-left: auto; opacity: .7; color: inherit; text-decoration: none; }
+.meta .idx { margin-left: auto; opacity: .7; color: inherit; text-decoration: none; display: inline-flex; align-items: center; }
 .meta .idx:hover { opacity: 1; color: var(--accent); text-decoration: underline; }
+.meta .idx .ico { width: 14px; height: 14px; }
 .type { background: var(--accent-soft); color: var(--accent); padding: 1px 9px; border-radius: 99px; font-weight: 600; }
 .gone { color: var(--accent); }
 /* другі спіс: фіялетавая палоска злева і плашка «Фарміраванне · МУС/КДБ» — каб адрозніваць у змяшанай выдачы */
 .item.formation { border-left: 3px solid var(--form); }
 .type.form { background: var(--form-soft); color: var(--form); }
-/* трэці спіс: бірузовая палоска і плашка «Асоба · МУС» */
+/* трэці спіс: бірузовая палоска і плашка асобы */
 .item.person { border-left: 3px solid var(--person); }
 .type.person { background: var(--person-soft); color: var(--person); }
 .alias { margin: 4px 0 0; color: var(--muted); font-size: .9rem; white-space: pre-wrap; overflow-wrap: anywhere; }
