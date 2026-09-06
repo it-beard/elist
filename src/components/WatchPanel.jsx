@@ -2,7 +2,6 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { useLang } from '../hooks/useLang.jsx';
 import { fmtDate, fmtTime } from '../lib/format.js';
 import { LINKS } from '../lib/i18n.js';
-import { useLocalStorage } from '../hooks/useLocalStorage.js';
 
 /**
  * Спіс назірання: статус («супадзенняў няма» / «новыя супадзенні»),
@@ -15,10 +14,8 @@ export default function WatchPanel({ watch, meta, refreshing, refreshError, chec
   const fresh = checks.reduce((n, c) => n + c.fresh.length, 0);
   const empty = entries.length === 0;
   const tone = empty ? 'idle' : fresh ? 'alert' : hits ? 'warn' : 'ok';
-  // Захаваны стан паважаем заўсёды (у т. л. пры пустым спісе). Па змаўчанні — адкрытая.
-  const [stored, setStored] = useLocalStorage('watchOpen', true);
-  const [open, setOpenState] = useState(() => (visible && fresh > 0) || stored);
-  const setOpen = (f) => setOpenState((o) => { const n = typeof f === 'function' ? f(o) : f; setStored(n); return n; });
+  // Па змаўчанні — схаваны. Адкрываецца толькі пры наяўнасці новых супадзенняў (fresh > 0) або па кліку.
+  const [open, setOpen] = useState(() => Boolean(visible && fresh > 0));
   const opened = useRef(false);
   const panelId = useId();
   useEffect(() => { if (visible && fresh > 0 && !opened.current) { setOpen(true); opened.current = true; } }, [visible, fresh]);

@@ -153,7 +153,7 @@ export default function App() {
           <>
             <WatchPanel
               watch={watch} meta={meta} refreshing={refreshing} refreshError={refreshError} checkedAt={checkedAt}
-              onReload={reload} onOpen={openWatch} onClearAll={clearAll} visible={status === 'ready' && !active}
+              onReload={reload} onOpen={openWatch} onClearAll={clearAll} visible={status === 'ready'}
               renderControls={(watchPanel) => (
                 <div className="search">
                   <SearchBar value={query} onChange={setQuery} />
