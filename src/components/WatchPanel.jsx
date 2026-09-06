@@ -14,8 +14,23 @@ export default function WatchPanel({ watch, meta, refreshing, refreshError, chec
   const fresh = checks.reduce((n, c) => n + c.fresh.length, 0);
   const empty = entries.length === 0;
   const tone = empty ? 'idle' : fresh ? 'alert' : hits ? 'warn' : 'ok';
-  // Па змаўчанні — схаваны. Адкрываецца толькі пры наяўнасці новых супадзенняў (fresh > 0) або па кліку.
-  const [open, setOpen] = useState(() => Boolean(visible && fresh > 0));
+  // Па змаўчанні — схаваны. Захоўваем стан у localStorage, калі карыстальнік сам адкрыў ці схаваў.
+  const [open, setOpenState] = useState(() => {
+    if (visible && fresh > 0) return true;
+    try {
+      const v = typeof localStorage !== 'undefined' ? localStorage.getItem('watchOpen') : null;
+      return v === null ? false : JSON.parse(v) === true;
+    } catch {
+      return false;
+    }
+  });
+  const setOpen = (f) => {
+    const next = typeof f === 'function' ? f(open) : f;
+    try {
+      if (typeof localStorage !== 'undefined') localStorage.setItem('watchOpen', JSON.stringify(next));
+    } catch {}
+    setOpenState(next);
+  };
   const opened = useRef(false);
   const panelId = useId();
   useEffect(() => { if (visible && fresh > 0 && !opened.current) { setOpen(true); opened.current = true; } }, [visible, fresh]);
