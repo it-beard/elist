@@ -262,7 +262,7 @@ export function faqPage({ site, facts, stats, lang, base = '/' }) {
 <div class="wrap">
 <header class="top">
 <h1>${esc(title)}</h1>
-<p class="sub">${en ? 'Updated' : 'Абноўлена'} <time datetime="${esc(f.updated)}">${esc(f.updatedStr)}</time> · <a href="${base}">${esc(en ? 'to the search' : 'да пошуку')}</a> · <a href="${base}${en ? 'faq.html' : 'faq-en.html'}">${en ? 'Па-беларуску' : 'English'}</a></p>
+<p class="sub">${en ? 'Checked' : 'Праверана'} <time datetime="${esc(f.updated)}">${esc(f.updatedStr)}</time> · <a href="${base}">${esc(en ? 'to the search' : 'да пошуку')}</a> · <a href="${base}${en ? 'faq.html' : 'faq-en.html'}">${en ? 'Па-беларуску' : 'English'}</a></p>
 </header>
 
 <main>
@@ -310,7 +310,7 @@ export function llmsFullTxt({ site, facts, stats }) {
 
 > ${SUMMARY.be(f)}
 
-Крыніца: ${abs(site, '')} · абноўлена ${f.updatedStr}
+Крыніца: ${abs(site, '')} · праверана ${f.updatedStr}
 
 ## Ключавыя факты
 

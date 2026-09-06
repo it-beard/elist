@@ -95,3 +95,42 @@ describe('праўкі запісаў (editOf / replacedBy)', () => {
     expect(checkWatchlist(rows, [{ q: 'свабода', seen: [] }])[0].fresh.map((x) => x.id)).toEqual(['new']);
   });
 });
+
+describe('сартаванне (sort: newest / oldest / source)', () => {
+  const multiItems = [
+    { i: 0, id: 'm1', list: 'm', date: '2020-05-10', h: 'газета' },
+    { i: 1, id: 'm2', list: 'm', date: '2025-01-15', h: 'сайт' },
+    { i: 2, id: 'm3', list: 'm', date: '', h: 'без даты' },
+    { i: 3, id: 'f1', list: 'f', date: '2022-10-01', h: 'фарміраванне 1' },
+    { i: 4, id: 'f2', list: 'f', date: '2025-01-15', h: 'фарміраванне 2' },
+    { i: 5, id: 'p1', list: 'p', date: '2024-03-20', h: 'асоба 1' },
+    { i: 6, id: 'p2', list: 'p', date: '2026-09-01', h: 'асоба 2' },
+  ];
+
+  it('newest: па змяншэнні даты, аднолькавыя даты — вышэйшы індэкс, без даты — у канец', () => {
+    const res = search(multiItems, [], { sort: 'newest' });
+    expect(res.map((x) => x.id)).toEqual(['p2', 'f2', 'm2', 'p1', 'f1', 'm1', 'm3']);
+  });
+
+  it('oldest: па росце даты, аднолькавыя даты — ніжэйшы індэкс, без даты — у канец', () => {
+    const res = search(multiItems, [], { sort: 'oldest' });
+    expect(res.map((x) => x.id)).toEqual(['m1', 'f1', 'p1', 'm2', 'f2', 'p2', 'm3']);
+  });
+
+  it('source: строга па парадку крыніцы (індэкс i)', () => {
+    const res = search(multiItems, [], { sort: 'source' });
+    expect(res.map((x) => x.id)).toEqual(['m1', 'm2', 'm3', 'f1', 'f2', 'p1', 'p2']);
+  });
+
+  it('сартаванне працуе пры фільтрацыі па канкрэтным спісе', () => {
+    expect(search(multiItems, [], { list: 'm', sort: 'newest' }).map((x) => x.id)).toEqual(['m2', 'm1', 'm3']);
+    expect(search(multiItems, [], { list: 'm', sort: 'oldest' }).map((x) => x.id)).toEqual(['m1', 'm2', 'm3']);
+    expect(search(multiItems, [], { list: 'm', sort: 'source' }).map((x) => x.id)).toEqual(['m1', 'm2', 'm3']);
+
+    expect(search(multiItems, [], { list: 'f', sort: 'newest' }).map((x) => x.id)).toEqual(['f2', 'f1']);
+    expect(search(multiItems, [], { list: 'f', sort: 'oldest' }).map((x) => x.id)).toEqual(['f1', 'f2']);
+
+    expect(search(multiItems, [], { list: 'p', sort: 'newest' }).map((x) => x.id)).toEqual(['p2', 'p1']);
+    expect(search(multiItems, [], { list: 'p', sort: 'oldest' }).map((x) => x.id)).toEqual(['p1', 'p2']);
+  });
+});

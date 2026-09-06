@@ -112,6 +112,7 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       expect(base).not.toContain(t.facet.p);
       expect(base).not.toContain(t.any);
       expect(base).toContain(t.sortNewest);
+      expect(base).toContain(`title="${t.sortTitle}"`);
       const multi = render(lang, <Options value={{ ...OPTS, any: true }} onChange={() => {}} multiWord share={{ copy() {}, copied: false }} watch={{ on: false, toggle() {} }} />);
       expect(multi).toContain(t.any);
       expect(multi).toContain(`aria-pressed="true" title="${t.anyTitle}"`);
@@ -141,6 +142,8 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       expect(head).toContain(t.personsChecked);
       expect(head).toContain(t.personsDown('05.09.2026'));
       expect(head).not.toMatch(/undefined/);
+      expect(head).toContain(t.updated);
+      expect(head).toContain(t.updatedTipHint);
       // у бачным тэксце толькі апошняе абнаўленне (асобы ад 05.09), а падрабязнасці па кожным спісе — у title
       expect(head).toMatch(new RegExp(`<p class="sub"[^>]*title="[^"]*${t.updatedMaterials}[^"]*${t.formationsChecked}[^"]*${t.personsChecked}`));
       expect(head).toContain('class="updated-btn"');

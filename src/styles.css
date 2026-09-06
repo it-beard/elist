@@ -57,9 +57,11 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .updated-btn { background: transparent; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; display: inline-flex; align-items: baseline; gap: .35em; }
 .updated-btn time { text-decoration: underline dotted var(--muted); text-underline-offset: 3px; transition: color .15s, text-decoration-color .15s; }
 .updated-btn:hover time, .updated-btn:focus-visible time { color: var(--text); text-decoration-color: var(--accent); }
-.updated-tip { position: absolute; top: calc(100% + 8px); left: 0; z-index: 30; min-width: 250px; max-width: min(340px, calc(100vw - 32px)); padding: 10px 14px; background: var(--card); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--radius); box-shadow: 0 4px 20px rgba(0, 0, 0, .15); font-size: .84rem; line-height: 1.4; display: flex; flex-direction: column; gap: 8px; animation: tipFade .15s ease-out; pointer-events: auto; }
+.updated-tip { position: absolute; top: calc(100% + 8px); left: 0; z-index: 30; min-width: 270px; max-width: min(360px, calc(100vw - 32px)); padding: 12px 14px; background: var(--card); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--radius); box-shadow: 0 4px 20px rgba(0, 0, 0, .15); font-size: .84rem; line-height: 1.4; display: flex; flex-direction: column; gap: 8px; animation: tipFade .15s ease-out; pointer-events: auto; }
 .updated-tip::before { content: ''; position: absolute; top: -5px; left: 20px; width: 8px; height: 8px; background: var(--card); border-left: 1px solid var(--line-strong); border-top: 1px solid var(--line-strong); transform: rotate(45deg); }
 @keyframes tipFade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.updated-tip-desc { font-size: .8rem; color: var(--muted); line-height: 1.35; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.updated-tip-list { display: flex; flex-direction: column; gap: 6px; }
 .updated-tip-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .tip-label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); white-space: nowrap; }
 .tip-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }

@@ -41,7 +41,9 @@ export default function Header({ meta, online, onHelp }) {
 
   const latestStr = updatedLabel(latest?.m || meta, t, lang);
   const latestIso = latest?.m?.checkedAt || latest?.m?.checked || latest?.m?.updated || meta?.checkedAt || meta?.updated;
-  const tooltip = lists.length ? lists.map((it) => `${it.label}: ${updatedLabel(it.m, t, lang)}`).join('\n') : undefined;
+  const tooltip = lists.length
+    ? `${t.updatedTipHint}\n\n` + lists.map((it) => `${it.label}: ${updatedLabel(it.m, t, lang)}`).join('\n')
+    : undefined;
 
   const toggleTip = () => {
     setShowTip((prev) => {
@@ -106,15 +108,18 @@ export default function Header({ meta, online, onHelp }) {
                   timerRef.current = setTimeout(() => setShowTip(false), 2000);
                 }}
               >
-                {lists.map((it) => (
-                  <div key={it.key} className="updated-tip-row">
-                    <span className="tip-label">
-                      <span className={`tip-dot ${it.key}`} aria-hidden="true" />
-                      <span>{it.label}:</span>
-                    </span>
-                    <span className="tip-val">{updatedLabel(it.m, t, lang)}</span>
-                  </div>
-                ))}
+                <div className="updated-tip-desc">{t.updatedTipHint}</div>
+                <div className="updated-tip-list">
+                  {lists.map((it) => (
+                    <div key={it.key} className="updated-tip-row">
+                      <span className="tip-label">
+                        <span className={`tip-dot ${it.key}`} aria-hidden="true" />
+                        <span>{it.label}:</span>
+                      </span>
+                      <span className="tip-val">{updatedLabel(it.m, t, lang)}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </span>

@@ -34,7 +34,7 @@ function fallback(base, f) {
   return `
       <header class="top wrap">
         <div class="top-row"><h1>Пошук па экстрэмісцкіх спісах Беларусі</h1></div>
-        <p class="sub">${f.total ? `${f.formations || f.persons ? [`${esc(f.totalStr)} матэрыялаў`, f.formations && `${esc(f.formationsStr)} фарміраванняў`, f.persons && `${esc(f.personsStr)} асоб`].filter(Boolean).join(' · ') : `${esc(f.totalStr)} запісаў`} · абноўлена ${esc(f.updatedStr)}` : 'Пошук па афіцыйных спісах'}</p>
+        <p class="sub">${f.total ? `${f.formations || f.persons ? [`${esc(f.totalStr)} матэрыялаў`, f.formations && `${esc(f.formationsStr)} фарміраванняў`, f.persons && `${esc(f.personsStr)} асоб`].filter(Boolean).join(' · ') : `${esc(f.totalStr)} запісаў`} · праверана ${esc(f.updatedStr)}` : 'Пошук па афіцыйных спісах'}</p>
       </header>
       <main class="wrap">
         <p class="summary">Загрузка індэкса…</p>

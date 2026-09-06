@@ -4,10 +4,11 @@ const has = (h, t) => (Array.isArray(t) ? t.some((v) => v && h.includes(v)) : h.
 
 /**
  * Фільтруе і сартуе запісы індэкса. Кожны item мае: i, id, date, added, removed, h (радок для пошуку),
- * list ('m' — матэрыял, 'f' — экстрэмісцкае фарміраванне; адсутнасць = 'm').
+ * list ('m' — матэрыял, 'f' — экстрэмісцкае фарміраванне, 'p' — фізічная асоба; адсутнасць = 'm').
  * Токен — радок або масіў варыянтаў (дастаткова любога з іх).
  * replacedBy — старая версія выпраўленага запісу: у выніках не паказваем (пастаянная спасылка вядзе на новую).
- * list — абмежаваць адным спісам; без яго выдача змяшаная.
+ * list — абмежаваць адным спісам ('m', 'f', 'p'); без яго выдача змяшаная.
+ * sort — 'newest' (па даце рашэння спачатку новыя), 'oldest' (спачатку старыя), 'source' (як у афіцыйнай крыніцы).
  */
 export function search(items, tokens, { any = false, onlyNew = false, sort = 'newest', list = '' } = {}) {
   const hit = tokens.length
@@ -19,5 +20,6 @@ export function search(items, tokens, { any = false, onlyNew = false, sort = 'ne
   const out = items.filter((it) => !it.replacedBy && inList(it) && hit(it) && (!onlyNew || isRecent(it.added)));
   if (sort === 'newest') out.sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.i - a.i);
   else if (sort === 'oldest') out.sort((a, b) => (a.date || '9').localeCompare(b.date || '9') || a.i - b.i);
+  else if (sort === 'source') out.sort((a, b) => a.i - b.i);
   return out;
 }
