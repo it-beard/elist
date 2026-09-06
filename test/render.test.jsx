@@ -51,12 +51,22 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
     it(`${lang}: карткі матэрыялу, фарміравання і асобы — без «undefined» і з патрэбнымі плашкамі`, () => {
       const html = ITEMS.slice(0, 4).map((it) => render(lang, <ResultItem item={it} tokens={[['свабода']]} chunkSize={200} />)).join('\n');
       expect(html).not.toMatch(/undefined|\[object Object\]|NaN/);
+      expect(html).toContain('class="item material"');
       expect(html).toContain('class="item person"');
       expect(html).toContain('class="item formation"');
       expect(html).toContain('class="type person"');
       expect(html).toContain(t.personLabel('speech'));
       expect(html).toContain('KAVALEUSKI MIKALAI');
       expect(html).toContain(`${t.born} 14.10.1983`);
+      if (lang === 'be') {
+        expect(t.born).toBe('д.н.');
+        expect(html).toContain('д.н. 14.10.1983');
+        expect(html).toContain('Матэрыял · 302 КГС');
+      } else {
+        expect(t.born).toBe('b.');
+        expect(html).toContain('b. 14.10.1983');
+        expect(html).toContain('Material · 302 CCP');
+      }
       expect(html).toContain('Отбывает наказание');
       expect(html).toContain('<mark>Свабода</mark>'); // падсветка ў матэрыяле не зламалася
       // плашкі асоб паводле артыкулаў («экстрэміст», «выказванні», «гр.дз.») і пазнака ў тайтле

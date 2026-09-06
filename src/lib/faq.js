@@ -73,7 +73,7 @@ export const FAQ = {
     },
     {
       q: 'Як праверыць, ці трапіў мой Telegram-канал, нік, сайт ці я сам у спіс?',
-      a: () => 'Увядзіце нік, назву канала, спасылку, назву ці імя і прозвішча (кірыліцай або лацінкай, як у пашпарце) у поле пошуку на галоўнай старонцы — вынік з’явіцца адразу, за мілісекунды, і адразу па ўсіх спісах (запісы пераліку фарміраванняў пазначаныя фіялетавай плашкай, пераліку фізічных асоб — бірузовай, з датай нараджэння, каб адрозніць цёзак). Пошук не ўлічвае рэгістар, «ё/е», лацінскую і кірылічную «i», віды лапак і хвост «/» у спасылках, а «@nick», «t.me/nick» і «nick» лічацца адным і тым жа. Калі дакладных супадзенняў няма, сайт паказвае падобныя словы — з памылкамі ў 1–2 літары і ў лацінскай транслітарацыі.',
+      a: () => 'Увядзіце нік, назву канала, спасылку, назву ці імя і прозвішча (кірыліцай або лацінкай, як у пашпарце) у поле пошуку на галоўнай старонцы — вынік з’явіцца адразу, за мілісекунды, і адразу па ўсіх спісах (запісы спісу матэрыялаў пазначаныя чырвонай палоскай і плашкай «Матэрыял», пераліку фарміраванняў — фіялетавай палоскай і плашкай «Фарміраванне», пераліку фізічных асоб — бірузовай палоскай і плашкай «Асоба», з датай нараджэння «д.н.», каб адрозніць цёзак). Пошук не ўлічвае рэгістар, «ё/е», лацінскую і кірылічную «i», віды лапак і хвост «/» у спасылках, а «@nick», «t.me/nick» і «nick» лічацца адным і тым жа. Калі дакладных супадзенняў няма, сайт паказвае падобныя словы — з памылкамі ў 1–2 літары і ў лацінскай транслітарацыі.',
     },
     {
       q: 'Колькі запісаў у спісе і як часта ён абнаўляецца?',
@@ -81,7 +81,7 @@ export const FAQ = {
     },
     {
       q: 'Што такое пералік фізічных асоб, прычастных да экстрэмісцкай дзейнасці?',
-      a: (f) => `Пералік грамадзян Беларусі, замежнікаў і асоб без грамадзянства, «прычастных да экстрэмісцкай дзейнасці», вядзе МУС і публікуе некалькімі .doc-файламі на сваім сайце${f.persons ? ` (на ${f.personsUpdatedStr} у ім ${f.personsStr} чалавек)` : ''}. ${LEGAL_BE.persons} У кожным запісе — прозвішча, імя і імя па бацьку, лацінская транслітарацыя, грамадзянства, дата нараджэння, падстава (суд і артыкулы прысуду), дата ўключэння, месцазнаходжанне і статус («адбывае пакаранне», «судзімасць не пагашана»). Сайт паказвае гэтыя запісы з бірузовай плашкай «Асоба» і дазваляе шукаць па імені кірыліцай ці лацінкай, а даты нараджэння дапамагаюць адрозніць цёзак.`,
+      a: (f) => `Пералік грамадзян Беларусі, замежнікаў і асоб без грамадзянства, «прычастных да экстрэмісцкай дзейнасці», вядзе МУС і публікуе некалькімі .doc-файламі на сваім сайце${f.persons ? ` (на ${f.personsUpdatedStr} у ім ${f.personsStr} чалавек)` : ''}. ${LEGAL_BE.persons} У кожным запісе — прозвішча, імя і імя па бацьку, лацінская транслітарацыя, грамадзянства, дата нараджэння, падстава (суд і артыкулы прысуду), дата ўключэння, месцазнаходжанне і статус («адбывае пакаранне», «судзімасць не пагашана»). Сайт паказвае гэтыя запісы з бірузовай палоскай і плашкай «Асоба» і дазваляе шукаць па імені кірыліцай ці лацінкай, а даты нараджэння («д.н.») дапамагаюць адрозніць цёзак.`,
     },
     {
       q: 'Што пагражае за рэпост ці захоўванне матэрыялу са спісу?',
@@ -93,7 +93,7 @@ export const FAQ = {
     },
     {
       q: 'Чым спіс экстрэмісцкіх матэрыялаў адрозніваецца ад спісу экстрэмісцкіх фарміраванняў і пераліку фізічных асоб?',
-      a: (f) => `Гэта тры розныя спісы, і сайт шукае адразу па ўсіх. Спіс «экстрэмісцкіх матэрыялаў» фармуюць суды — за яго парушэнне адміністрацыйная адказнасць. Пералік «экстрэмісцкіх фарміраванняў» вядуць МУС і КДБ${f.formations ? ` (${f.formationsStr} запісаў, правяраецца раз на суткі)` : ''}; у выдачы такія запісы пазначаныя фіялетавай плашкай «Фарміраванне». ${LEGAL_BE.crime} Пералік фізічных асоб, «прычастных да экстрэмісцкай дзейнасці», вядзе МУС${f.persons ? ` (${f.personsStr} чалавек, правяраецца двойчы на дзень)` : ''}: гэта людзі з прысудам ці іншым рашэннем суда па «экстрэмісцкіх» артыкулах, пазначаныя бірузовай плашкай «Асоба». Укладкі пад полем пошуку «Усе · Матэрыялы · Фарміраванні · Асобы» паказваюць, колькі знойдзена ў кожным спісе, і абмяжоўваюць выдачу адным спісам. Многія рэсурсы і людзі ёсць адразу ў некалькіх спісах.`,
+      a: (f) => `Гэта тры розныя спісы, і сайт шукае адразу па ўсіх. Спіс «экстрэмісцкіх матэрыялаў» фармуюць суды — за яго парушэнне адміністрацыйная адказнасць; запісы маюць чырвоную палоску і плашку «Матэрыял» з артыкулам рашэння. Пералік «экстрэмісцкіх фарміраванняў» вядуць МУС і КДБ${f.formations ? ` (${f.formationsStr} запісаў, правяраецца раз на суткі)` : ''}; у выдачы такія запісы пазначаныя фіялетавай палоскай і плашкай «Фарміраванне». ${LEGAL_BE.crime} Пералік фізічных асоб, «прычастных да экстрэмісцкай дзейнасці», вядзе МУС${f.persons ? ` (${f.personsStr} чалавек, правяраецца двойчы на дзень)` : ''}: гэта людзі з прысудам ці іншым рашэннем суда па «экстрэмісцкіх» артыкулах, пазначаныя бірузовай палоскай і плашкай «Асоба». Укладкі пад полем пошуку «Усе · Матэрыялы · Фарміраванні · Асобы» паказваюць, колькі знойдзена ў кожным спісе, і абмяжоўваюць выдачу адным спісам. Многія рэсурсы і людзі ёсць адразу ў некалькіх спісах.`,
     },
     {
       q: 'Ці бяспечна карыстацца гэтым сайтам?',
@@ -101,7 +101,7 @@ export const FAQ = {
     },
     {
       q: 'Як даведацца, што ў спіс дадалі нешта новае?',
-      a: () => 'Укладка «Новае» паказвае ўсё, што дадалі ва ўсе тры спісы за апошнія 30 дзён. Каб не сачыць уручную, ёсць тры спосабы. Спіс назірання: увядзіце свой нік ці канал і націсніце «Сачыць» — пры кожным адкрыцці сайт правярае ўсе такія запыты і паказвае зверху, ці з’явілася нешта новае (з неабавязковымі браўзернымі апавяшчэннямі). RSS-стужка feed.xml — для любога чытача стужак, з фільтрам па сваіх словах. Telegram-канал @elist_by — дайджэст новых запісаў пасля кожнага абнаўлення.',
+      a: () => 'Укладка «Новае» паказвае ўсё, што дадалі ва ўсе тры спісы за апошнія 30 дзён (з фільтрамі па спісах і кнопкай «Выдаленыя» для зніклых запісаў). Каб не сачыць уручную, ёсць тры спосабы. Назіранне: увядзіце свой нік ці канал і націсніце «Сачыць» — пры кожным адкрыцці сайт правярае ўсе такія запыты і паказвае зверху, ці з’явілася нешта новае (з неабавязковымі браўзернымі апавяшчэннямі). RSS-стужка feed.xml — для любога чытача стужак, з фільтрам па сваіх словах. Telegram-канал @elist_by — дайджэст новых запісаў пасля кожнага абнаўлення.',
     },
     {
       q: 'Ці афіцыйны гэта сайт?',
@@ -127,7 +127,7 @@ export const FAQ = {
     },
     {
       q: 'How do I check whether my Telegram channel, handle, website or I myself am on the list?',
-      a: () => 'Type the handle, channel name, link, title, or a first name and surname (Cyrillic or Latin, as in a passport) into the search box on the front page — results appear instantly, in milliseconds, across all lists at once (entries from the formations list carry a purple label, entries from the persons list a teal one with the date of birth to tell namesakes apart). Search ignores case, “ё/е”, Latin vs Cyrillic “i”, quote styles and a trailing “/” in links, and treats “@nick”, “t.me/nick” and “nick” as the same thing. When there is no exact match, the site shows near matches: 1–2 letter typos and Latin transliteration.',
+      a: () => 'Type the handle, channel name, link, title, or a first name and surname (Cyrillic or Latin, as in a passport) into the search box on the front page — results appear instantly, in milliseconds, across all lists at once (entries from the materials list carry a red left border and “Material” label, formations a purple left border and “Formation” label, persons a teal left border and “Person” label with the date of birth “b.” to tell namesakes apart). Search ignores case, “ё/е”, Latin vs Cyrillic “i”, quote styles and a trailing “/” in links, and treats “@nick”, “t.me/nick” and “nick” as the same thing. When there is no exact match, the site shows near matches: 1–2 letter typos and Latin transliteration.',
     },
     {
       q: 'How many entries are on the list and how often is it updated?',
@@ -135,7 +135,7 @@ export const FAQ = {
     },
     {
       q: 'What is the list of individuals involved in extremist activity?',
-      a: (f) => `The list of citizens of Belarus, foreign nationals and stateless persons “involved in extremist activity” is kept by the Interior Ministry and published as several .doc files on its website${f.persons ? ` (${f.personsStr} people as of ${f.personsUpdatedStr})` : ''}. ${LEGAL_EN.persons} Each entry carries the surname, first name and patronymic, a Latin transliteration, citizenship, date of birth, the grounds (court and articles of the verdict), the date of inclusion, location and status (“serving the sentence”, “conviction not expunged”). The site shows these entries with a teal “Person” label, lets you search by name in Cyrillic or Latin, and the dates of birth help tell namesakes apart.`,
+      a: (f) => `The list of citizens of Belarus, foreign nationals and stateless persons “involved in extremist activity” is kept by the Interior Ministry and published as several .doc files on its website${f.persons ? ` (${f.personsStr} people as of ${f.personsUpdatedStr})` : ''}. ${LEGAL_EN.persons} Each entry carries the surname, first name and patronymic, a Latin transliteration, citizenship, date of birth, the grounds (court and articles of the verdict), the date of inclusion, location and status (“serving the sentence”, “conviction not expunged”). The site shows these entries with a teal left border and “Person” label, lets you search by name in Cyrillic or Latin, and the dates of birth (“b.”) help tell namesakes apart.`,
     },
     {
       q: 'What are the penalties for reposting or storing a listed material?',
@@ -147,7 +147,7 @@ export const FAQ = {
     },
     {
       q: 'How does the list of extremist materials differ from the list of extremist formations and the list of individuals?',
-      a: (f) => `They are three different lists, and the site searches all of them at once. The list of “extremist materials” is formed by courts and carries administrative liability. The list of “extremist formations” is maintained by the Interior Ministry and the KGB${f.formations ? ` (${f.formationsStr} entries, checked once a day)` : ''}; such results carry a purple “Formation” label. ${LEGAL_EN.crime} The list of individuals “involved in extremist activity” is kept by the Interior Ministry${f.persons ? ` (${f.personsStr} people, checked twice a day)` : ''}: people with a conviction or another court decision under “extremism” articles, marked with a teal “Person” label. The tabs under the search box — “All · Materials · Formations · Persons” — show how many matches each list has and limit the results to one list. Many resources and people appear on several lists at once.`,
+      a: (f) => `They are three different lists, and the site searches all of them at once. The list of “extremist materials” is formed by courts (red left border and “Material” label) and carries administrative liability. The list of “extremist formations” is maintained by the Interior Ministry and the KGB${f.formations ? ` (${f.formationsStr} entries, checked once a day)` : ''}; such results carry a purple left border and “Formation” label. ${LEGAL_EN.crime} The list of individuals “involved in extremist activity” is kept by the Interior Ministry${f.persons ? ` (${f.personsStr} people, checked twice a day)` : ''}: people with a conviction or another court decision under “extremism” articles, marked with a teal left border and “Person” label. The tabs under the search box — “All · Materials · Formations · Persons” — show how many matches each list has and limit the results to one list. Many resources and people appear on several lists at once.`,
     },
     {
       q: 'Is this site safe to use?',
@@ -155,7 +155,7 @@ export const FAQ = {
     },
     {
       q: 'How do I find out when something new is added to the list?',
-      a: () => 'The “What’s new” tab shows everything added to all three lists in the last 30 days. To avoid checking by hand there are three ways. The watchlist: type your handle or channel and press “Watch” — every time you open the site it re-checks all such queries and shows at the top whether anything new appeared, with optional browser notifications. The RSS feed feed.xml works in any feed reader and can be filtered by your own keywords. The Telegram channel @elist_by posts a digest after every update.',
+      a: () => 'The “What’s new” tab shows everything added to all three lists in the last 30 days (with list filters and a toggle for removed entries). To avoid checking by hand there are three ways. Watchlist: type your handle or channel and press “Watch” — every time you open the site it re-checks all such queries and shows at the top whether anything new appeared, with optional browser notifications. The RSS feed feed.xml works in any feed reader and can be filtered by your own keywords. The Telegram channel @elist_by posts a digest after every update.',
     },
     {
       q: 'Is this an official site?',

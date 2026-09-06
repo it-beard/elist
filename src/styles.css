@@ -108,7 +108,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .chip.on.person { background: var(--person); border-color: var(--person); }
 
 /* ---- укладкі-спісы пад пошукам: «Усе запісы · Матэрыялы · Фарміраванні · Асобы» з лічбамі ---- */
-.facets { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 12px 0 16px; padding: 6px 8px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.facets { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 0 0 10px; padding: 6px 8px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
 .facet { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .84rem; height: 30px; padding: 0 10px; border: 1px solid transparent; border-radius: 99px; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
 .facet:hover { border-color: var(--line-strong); color: var(--text); }
 .facet.on { background: var(--line); color: var(--text); font-weight: 600; }
@@ -119,7 +119,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .facet .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
 .facet.m .dot { background: var(--accent); } .facet.f .dot { background: var(--form); } .facet.p .dot { background: var(--person); }
 .facet .cnt { font-variant-numeric: tabular-nums; opacity: .8; font-weight: 400; }
-.new-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 18px 0 24px; padding: 6px 8px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.new-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 10px 0 10px; padding: 6px 8px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
 .new-toolbar .facets { margin: 0; padding: 0; gap: 4px 6px; background: transparent; border: none; box-shadow: none; border-radius: 0; }
 .filter-divider { width: 1px; height: 18px; background: var(--line); flex: none; }
 .new-actions { display: flex; align-items: center; margin-left: auto; }
@@ -135,7 +135,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .sort:hover .chev { color: var(--text); }
 
 /* ---- спіс назірання ---- */
-.watch { margin: 6px 0 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
+.watch { margin: 0 0 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
 .watch-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; font-weight: 600; }
 .watch-label-short { display: none; }
 .watch-toggle .ico { width: 14px; height: 14px; flex: none; color: var(--muted); }
@@ -173,7 +173,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .hint.travel-warn { color: var(--warn); } /* як у даведцы: .hint не мусіць перабіваць колер папярэджання */
 
 /* ---- вынікі ---- */
-.summary { color: var(--muted); font-size: .88rem; margin: 12px 2px; }
+.summary { color: var(--muted); font-size: .88rem; margin: 0 2px 10px; }
 .error { color: var(--accent); }
 .results { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .item { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
@@ -185,6 +185,8 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .meta .idx .ico { width: 14px; height: 14px; }
 .type { background: var(--accent-soft); color: var(--accent); padding: 1px 9px; border-radius: 99px; font-weight: 600; }
 .gone { color: var(--accent); }
+/* першы спіс: чырвоная палоска матэрыялаў */
+.item.material { border-left: 3px solid var(--accent); }
 /* другі спіс: фіялетавая палоска злева і плашка «Фарміраванне · МУС/КДБ» — каб адрозніваць у змяшанай выдачы */
 .item.formation { border-left: 3px solid var(--form); }
 .type.form { background: var(--form-soft); color: var(--form); }
@@ -210,7 +212,7 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
 .more:hover { border-color: var(--accent); }
 
 /* ---- «што гэта значыць» ---- */
-.legal { margin: 0 0 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
+.legal { margin: 0 0 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
 .legal summary { padding: 11px 14px; cursor: pointer; font-weight: 600; font-size: .92rem; list-style: none; display: flex; align-items: center; gap: 8px; }
 .legal summary::-webkit-details-marker { display: none; }
 .legal summary::before { content: "?"; flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: .8rem; }
@@ -259,8 +261,8 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
   .chip.share:not(.on) .lbl { display: none; }
   .watch-q .cnt { flex-direction: column; align-items: flex-end; gap: 2px; }
   .watch-actions .chip { flex: 1 1 auto; text-align: center; }
-  .facets { padding: 6px 8px; margin: 10px 0 14px; }
-  .new-toolbar { padding: 6px 8px; gap: 6px; margin: 14px 0 18px; }
+  .facets { padding: 6px 8px; margin: 0 0 10px; }
+  .new-toolbar { padding: 6px 8px; gap: 6px; margin: 10px 0 10px; }
   .new-toolbar .facets { padding: 0; margin: 0; }
   .filter-divider { display: none; }
   .new-actions { margin-left: 0; }

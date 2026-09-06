@@ -1,7 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useLang } from '../hooks/useLang.jsx';
 import { fmtDate, fmtTime } from '../lib/format.js';
-import { LINKS } from '../lib/i18n.js';
 
 /**
  * Спіс назірання: статус («супадзенняў няма» / «новыя супадзенні»),
@@ -103,7 +102,6 @@ export default function WatchPanel({ watch, meta, refreshing, refreshError, chec
             {refreshError && <p className="hint error">{t.recheckError(refreshError)}</p>}
             <p className="hint">{t.watchPrivacy}</p>
             <p className="hint travel-warn">⚠️ {t.travelWarn}</p>
-            <p className="hint">{t.tgHint1}<a href={LINKS.telegram} target="_blank" rel="noopener">{t.tgHint2}</a>{t.tgHint3}</p>
           </div>
         )}
       </section>

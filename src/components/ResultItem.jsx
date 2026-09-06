@@ -22,7 +22,7 @@ export default function ResultItem({ item, tokens, chunkSize }) {
   const pArt = isP ? (item.art || (rec?.articles ? personSeries(rec.articles) : 'other')) : null;
   const facts = isP && rec ? [rec.birth && `${t.born} ${rec.birth}`, rec.citizenship, rec.info].filter(Boolean).join(' · ') : '';
   return (
-    <li className={`item${isF ? ' formation' : ''}${isP ? ' person' : ''}${item.removed ? ' removed' : ''}`}>
+    <li className={`item${isF ? ' formation' : isP ? ' person' : ' material'}${item.removed ? ' removed' : ''}`}>
       <div className="meta">
         {isP ? (
           <span className="type person" title={t.personTitle(pArt)}>{t.personLabel(pArt)}</span>

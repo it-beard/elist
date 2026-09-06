@@ -83,4 +83,19 @@ describe('WatchPanel: закрытасць па змаўчанні і захав
     const htmlNoHits = render(<WatchPanel watch={baseWatch} visible={true} />);
     expect(htmlNoHits).toContain('class="watch-count">1</span>');
   });
+
+  it('кнопка адлюстроўвае скарочаную назву "Назіранне" і не змяшчае старога "Спіс назірання"', () => {
+    const html = render(<WatchPanel watch={baseWatch} visible={true} />);
+    expect(html).toContain('class="watch-label">Назіранне</span>');
+    expect(html).toContain('class="watch-label-short">Назіранне</span>');
+    expect(html).not.toContain('>Спіс назірання<');
+  });
+
+  it('у адкрытай панэлі назірання няма падказкі са спасылкай на Telegram-канал', () => {
+    globalThis.localStorage.setItem('watchOpen', 'true');
+    const html = render(<WatchPanel watch={baseWatch} visible={true} />);
+    expect(html).not.toContain('t.me/elist_by');
+    expect(html).not.toContain('@elist_by');
+    expect(html).not.toContain('Каб даведвацца пра новыя запісы першым');
+  });
 });
