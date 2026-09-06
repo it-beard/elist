@@ -1,4 +1,5 @@
 import { useLang } from '../hooks/useLang.jsx';
+import { LinkIcon, ChevronIcon } from './icons.jsx';
 
 /**
  * Чыпы-опцыі пошуку ў ліпкім радку: «Любое са слоў» (для двух і больш слоў), «Сачыць» і «Спасылка» (пры запыце),
@@ -9,7 +10,7 @@ export default function Options({ value, onChange, watch, share, watchPanel, mul
   const { t } = useLang();
   const set = (patch) => onChange({ ...value, ...patch });
   return (
-    <div className={`options${multiWord ? ' has-any' : ''}${watchPanel || watch || share ? ' has-actions' : ''}`}>
+    <div className="options">
       {watchPanel}
       {multiWord && (
         <button type="button" className={`chip option-any${value.any ? ' on' : ''}`} aria-pressed={value.any} title={t.anyTitle} onClick={() => set({ any: !value.any })}>
@@ -25,7 +26,7 @@ export default function Options({ value, onChange, watch, share, watchPanel, mul
         {share && (
           // на вузкім экране — толькі іконка (подпіс застаецца ў title/aria-label), пасля капіявання — «Скапіявана»
           <button type="button" className={`chip share${share.copied ? ' on' : ''}`} title={t.shareQueryTitle} aria-label={t.shareQuery} onClick={share.copy}>
-            <svg className="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.5 1.5M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.5-1.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+            <LinkIcon />
             <span className="lbl">{share.copied ? t.copied : t.shareQuery}</span>
           </button>
         )}
@@ -37,7 +38,7 @@ export default function Options({ value, onChange, watch, share, watchPanel, mul
           <option value="oldest">{t.sortOldest}</option>
           <option value="source">{t.sortSource}</option>
         </select>
-        <svg className="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        <ChevronIcon />
       </label>
     </div>
   );

@@ -15,6 +15,7 @@ import crypto from 'node:crypto';
 import { idNormalize } from '../src/lib/identity.js';
 import { levenshtein } from '../src/lib/fuzzy.js';
 import { allDates, extractArticles, firstDateIso, personCourt } from '../src/lib/person.js';
+import { mergeList, pairEdits } from './merge.mjs';
 
 const DATE = /\d{1,2}\.\d{2}\.\d{2,4}/;      // «07.04.198» (памылка друку) — таксама дата, каб не зрушыць калонкі
 // Падстава: «приговор(а/ы)» / «постановление» / «определение» асобным словам («определенного места жительства» —
@@ -44,8 +45,9 @@ export const personId = (name, birth, included) =>
 /**
  * Цела .doc → запісы. Радок распазнаецца па ячэйцы падставы, побач з якой ёсць дата (нараджэння перад ёй
  * ці ўключэння за ёй); далей назад да канца папярэдняга запісу збіраецца «галава»: нумар (апошняя лічбавая
- * ячэйка, за якой ідуць даныя, а не прочыркі), імя (апошняя кірылічная ячэйка, падобная на імя), транслітарацыя
- * (лацінская), грамадзянства (кірылічныя пасля імя). Лішнія ячэйкі ў галаве — рэшткі сапсаванага радка —
+ * ячэйка, за якой ідуць даныя, а не прочыркі), імя (апошняя кірылічная ячэйка, падобная на імя; няма такой — першая
+ * кірылічная, што не грамадзянства/статус/адрас, інакш якар прапускаецца), транслітарацыя (лацінская),
+ * грамадзянства (кірылічныя пасля імя). Лішнія ячэйкі ў галаве — рэшткі сапсаванага радка —
  * адкідаюцца і лічацца, а не трапляюць у запіс. Нумары з прочыркамі ці пустымі ячэйкамі — выключаныя асобы.
  * stats (неабавязкова) запаўняецца для логу і меты: excluded — выключаных, skipped — якараў без імя,
  * unanchored — падстаў без даты побач, leftover — адкінутых ячэек (пасля першага запісу; загаловак табліцы
@@ -86,7 +88,8 @@ export function parsePersons(body, stats = {}) {
     const cyr = rest.filter((c) => CYR.test(c) && !isLatin(c));
     let nameAt = -1;
     cyr.forEach((c, k) => { if (nameLike(c)) nameAt = k; });
-    if (nameAt < 0 && cyr.length) nameAt = 0;
+    // няма ячэйкі, падобнай на імя, — першая кірылічная, што не грамадзянства/статус/адрас (імя з аднаго слова); няма — якар без імя
+    if (nameAt < 0) nameAt = cyr.findIndex((c) => !NOT_NAME.test(c));
     if (nameAt < 0) { stats.skipped++; prevEnd = i + (dateAfter ? 3 : 2); continue; }
     drop(cyr.slice(0, nameAt));
     const name = oneLine(cyr[nameAt]);
@@ -129,78 +132,34 @@ function similarName(a, b) {
   return levenshtein(na, nb, max) <= max;
 }
 
+const sameName = (a, b) => idNormalize(a.name || '') === idNormalize(b.name || '');
+
 /**
  * Праўка ў крыніцы (а не новы чалавек): тая ж дата ўключэння і — або тая ж дата нараджэння з амаль тым жа
  * імем (выпраўлена памылка друку ў імені), або тое ж імя з іншай датай нараджэння (выпраўлена дата).
+ * Стары запіс без даты ўключэння (прапушчаная ці з памылкай друку, пазней выпраўленая) — праўка пры тым жа імені
+ * і той жа непустой даце нараджэння.
  */
-export const isPersonEdit = (oldRec, newRec) =>
-  Boolean(oldRec.date) && oldRec.date === newRec.date && (
+export const isPersonEdit = (oldRec, newRec) => {
+  if (!oldRec.date) return Boolean(oldRec.birth) && oldRec.birth === newRec.birth && sameName(oldRec, newRec);
+  return oldRec.date === newRec.date && (
     (oldRec.birth === newRec.birth && similarName(oldRec, newRec))
-    || (oldRec.birth !== newRec.birth && idNormalize(oldRec.name || '') === idNormalize(newRec.name || ''))
+    || (oldRec.birth !== newRec.birth && sameName(oldRec, newRec))
   );
+};
 
-/** Пары [стары, новы] сярод зніклых і новых; кожны ўдзельнічае не болей за раз, неадназначнасць — прапускаем. */
-export function pairPersonEdits(removed, added) {
-  if (!removed.length || !added.length || removed.length > MAX_PAIRS) return [];
-  const pairs = [], used = new Set();
-  for (const old of removed) {
-    const cand = added.filter((n) => !used.has(n.id) && isPersonEdit(old, n));
-    if (cand.length !== 1) continue;
-    used.add(cand[0].id);
-    pairs.push([old, cand[0]]);
-  }
-  return pairs;
-}
+/** Пары [стары, новы] сярод зніклых і новых (гл. pairEdits у merge.mjs); зніклых больш за MAX_PAIRS — не праўкі. */
+export const pairPersonEdits = (removed, added) => pairEdits(removed, added, isPersonEdit, MAX_PAIRS);
 
 /** Палі, змена якіх лічыцца праўкай існага запісу (нумар, дапісаная дата ўключэння, статус, адрас…). */
 const FIELDS = ['num', 'name', 'translit', 'citizenship', 'birth', 'basis', 'court', 'articles', 'included', 'date', 'address', 'info'];
-const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
 /**
- * Зліццё разабраных запісаў з базай (запісы базы мяняюцца на месцы). Той жа id — праўка палёў моўчкі
- * (edited); новы id — дададзены (added = today, пры першым імпарце null); зніклы — removed = today;
+ * Зліццё разабраных запісаў з базай — mergeList (merge.mjs) з палямі FIELDS і праўкамі isPersonEdit: той жа id —
+ * праўка палёў моўчкі (edited); новы id — added = today (пры першым імпарце null); зніклы — removed = today;
  * «зніклы» + «новы» з той жа датай уключэння і амаль тым жа імем ці датай нараджэння — праўка (editOf/replacedBy).
  * Засцярогі: знікла больш за max(20, 5 %) або дадалося больш за maxAdded (без force) — памылка, база не змяняецца.
  * Вяртае { out, added, removed, edited, edits, initial }.
  */
-export function mergePersons(db, parsed, { today, force = false, maxAdded = 300 } = {}) {
-  const byId = new Map(db.map((x) => [x.id, x]));
-  const initial = db.length === 0;
-  const addedRecs = [];
-  let edited = 0;
-  const seen = new Set();
-  parsed.forEach((it, i) => {
-    seen.add(it.id);
-    const ex = byId.get(it.id);
-    if (ex) {
-      const changed = FIELDS.some((k) => !same(ex[k], it[k]));
-      if (changed) { Object.assign(ex, it); ex.edited = today; edited++; }
-      ex.order = i;
-      if (ex.removed) { delete ex.removed; delete ex.replacedBy; } // запіс вярнуўся ў пералік
-    } else {
-      const rec = { ...it, order: i, added: initial ? null : today };
-      byId.set(it.id, rec);
-      addedRecs.push(rec);
-    }
-  });
-  const removedRecs = [];
-  for (const it of byId.values()) if (!seen.has(it.id) && !it.removed) removedRecs.push(it);
-  const edits = initial ? [] : pairPersonEdits(removedRecs, addedRecs);
-  const paired = new Set();
-  for (const [old, rec] of edits) {
-    rec.added = old.added; rec.edited = today; rec.editOf = old.id;
-    old.removed = today; old.replacedBy = rec.id;
-    paired.add(old.id); paired.add(rec.id);
-  }
-  const added = addedRecs.filter((r) => !paired.has(r.id)).length;
-  const removedList = removedRecs.filter((r) => !paired.has(r.id));
-  if (!initial && removedList.length > Math.max(20, db.length * 0.05)) {
-    throw new Error(`Падазрона: ${removedList.length} запісаў знікла з пераліку, ${added} дададзена. Абнаўленне спынена — праверце файлы крыніцы.`);
-  }
-  if (!initial && !force && added > maxAdded) {
-    throw new Error(`Падазрона: ${added} новых запісаў за адзін раз (ліміт ${maxAdded}). Абнаўленне спынена; каб прыняць, задайце UPDATE_FORCE=1.`);
-  }
-  for (const it of removedList) it.removed = today;
-  const out = [...byId.values()].sort((a, b) => a.order - b.order);
-  return { out, added, removed: removedList.length, edited, edits, initial };
-}
+export const mergePersons = (db, parsed, { today, force = false, maxAdded = 300 } = {}) =>
+  mergeList(db, parsed, { today, force, maxAdded, fields: FIELDS, isEdit: isPersonEdit, maxPairs: MAX_PAIRS });

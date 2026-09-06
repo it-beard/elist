@@ -4,24 +4,19 @@
  *   node scripts/alert.mjs failed   — джоб упаў (ALERT_JOB, ALERT_RUN_URL)
  *   node scripts/alert.mjs source   — стан крыніцы ў data/meta.json змяніўся адносна HEAD:
  *                                     крыніца перастала/пачала адказваць, уключылася/выключылася запасная;
- *                                     тое ж для пералікаў МУС (data/formations-meta.json, data/persons-meta.json)
+ *                                     тое ж для пералікаў МУС (data/formations-meta.json, data/persons-meta.json),
+ *                                     а таксама крок пераліку, што не завяршыўся (FORMATIONS_STEP / PERSONS_STEP —
+ *                                     steps.<id>.outcome з воркфлоў). Логіка — scripts/alert-logic.mjs.
  */
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { DATA_DIR, ROOT, readJson } from './common.mjs';
+import { esc, sourceMessages } from './alert-logic.mjs';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const META = path.join(ROOT, 'data', 'meta.json');
-const FMETA = path.join(ROOT, 'data', 'formations-meta.json');
-const PMETA = path.join(ROOT, 'data', 'persons-meta.json');
 const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_ADMIN_CHAT_ID;
 const mode = process.argv[2];
 
 if (!token || !chat) { console.log('Адмін-чат Telegram не наладжаны — прапускаю.'); process.exit(0); }
-
-const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const readJson = async (file, fallback) => { try { return JSON.parse(await fs.readFile(file, 'utf8')); } catch { return fallback; } };
 
 async function send(text) {
   const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -32,35 +27,21 @@ async function send(text) {
   if (!r.ok) { console.error(`Telegram: HTTP ${r.status} ${await r.text()}`); process.exit(1); }
 }
 
+/** Мета з HEAD (стан да гэтага запуску); няма — першы запуск ці файла яшчэ не было. */
+function headJson(file) {
+  try { return JSON.parse(execFileSync('git', ['show', `HEAD:data/${file}`], { cwd: ROOT, encoding: 'utf8' })); } catch { return {}; }
+}
+
 if (mode === 'failed') {
   const job = process.env.ALERT_JOB || '?', url = process.env.ALERT_RUN_URL || '';
   await send(`🛑 <b>elist: збой джоба «${esc(job)}»</b>${url ? `\n<a href="${esc(url)}">Лог запуску</a>` : ''}`);
 } else if (mode === 'source') {
-  const cur = await readJson(META, {});
-  let prev = {};
-  try { prev = JSON.parse(execFileSync('git', ['show', 'HEAD:data/meta.json'], { cwd: ROOT, encoding: 'utf8' })); } catch { /* першы запуск */ }
-  const msgs = [];
-  if (Boolean(cur.sourceError) !== Boolean(prev.sourceError)) {
-    msgs.push(cur.sourceError ? `⚠️ Крыніца не адказвае: ${esc(cur.sourceError)}` : '✅ Крыніца зноў адказвае.');
-  }
-  if (Boolean(cur.fallback) !== Boolean(prev.fallback)) {
-    msgs.push(cur.fallback ? `⚠️ Афіцыйная крыніца недаступная, узятая запасная: ${esc(cur.sourcePage || '')}` : '✅ Зноў афіцыйная крыніца.');
-  }
-  // другі спіс: пералік экстрэмісцкіх фарміраванняў (МУС)
-  const curF = await readJson(FMETA, {});
-  let prevF = {};
-  try { prevF = JSON.parse(execFileSync('git', ['show', 'HEAD:data/formations-meta.json'], { cwd: ROOT, encoding: 'utf8' })); } catch { /* файла яшчэ не было */ }
-  // sourceError у пераліках МУС — і недаступная крыніца, і засцярога, што спыніла абнаўленне (падазроныя лічбы, змена фармату)
-  if (Boolean(curF.sourceError) !== Boolean(prevF.sourceError)) {
-    msgs.push(curF.sourceError ? `⚠️ Пералік фарміраванняў (МУС) не абнаўляецца: ${esc(curF.sourceError)}` : '✅ Пералік фарміраванняў (МУС) зноў абнаўляецца.');
-  }
-  // трэці спіс: пералік фізічных асоб (МУС, некалькі .doc)
-  const curP = await readJson(PMETA, {});
-  let prevP = {};
-  try { prevP = JSON.parse(execFileSync('git', ['show', 'HEAD:data/persons-meta.json'], { cwd: ROOT, encoding: 'utf8' })); } catch { /* файла яшчэ не было */ }
-  if (Boolean(curP.sourceError) !== Boolean(prevP.sourceError)) {
-    msgs.push(curP.sourceError ? `⚠️ Пералік фізічных асоб (МУС) не абнаўляецца: ${esc(curP.sourceError)}` : '✅ Пералік фізічных асоб (МУС) зноў абнаўляецца.');
-  }
+  const msgs = sourceMessages({
+    cur: await readJson(path.join(DATA_DIR, 'meta.json'), {}), prev: headJson('meta.json'),
+    curF: await readJson(path.join(DATA_DIR, 'formations-meta.json'), {}), prevF: headJson('formations-meta.json'),
+    curP: await readJson(path.join(DATA_DIR, 'persons-meta.json'), {}), prevP: headJson('persons-meta.json'),
+    steps: { formations: process.env.FORMATIONS_STEP, persons: process.env.PERSONS_STEP },
+  });
   if (!msgs.length) { console.log('Стан крыніцы не змяніўся.'); process.exit(0); }
   await send(`<b>elist: стан крыніцы</b>\n${msgs.join('\n')}`);
 } else {

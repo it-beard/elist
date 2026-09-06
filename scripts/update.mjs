@@ -9,27 +9,22 @@
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import WordExtractor from 'word-extractor';
+import { CACHE_DIR, DATA_DIR, FORCE, UA, downloadBuffer, readJson, runMain, writeSourceError } from './common.mjs';
 import { parseRows } from './parse.mjs';
-import { pairEdits } from './merge.mjs';
+import { isEdit, mergeList } from './merge.mjs';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const DATA_DIR = path.join(ROOT, 'data');
 const DB_FILE = path.join(DATA_DIR, 'materials.json');
 const META_FILE = path.join(DATA_DIR, 'meta.json');
-const CACHE_DIR = path.join(ROOT, '.cache');
 // Крыніцы па парадку прыярытэту. Афіцыйная — Мінінфарм; Звязда — люстэрка, якое
 // адстае на дні (у жніўні 2026 — на 23 запісы), таму яно толькі запасны варыянт.
 const SOURCES = [
   { page: 'https://mininform.gov.by/ru/respublikanskiy-spisok-ekstremistskikh-materialov-ru/', primary: true },
   { page: 'https://zviazda.by/respublikanski-spis-ekstremistskikh-materyyala/', primary: false },
 ];
-const UA = 'Mozilla/5.0 (compatible; extremist-materials-search; +https://github.com)';
 const PAGE_TIMEOUT = 60_000, FILE_TIMEOUT = 180_000; // каб джоб не вісеў гадзінамі, калі крыніца «маўчыць»
 const MAX_CANDIDATES = 3;  // колькі .doc са старонкі параўноўваем, калі іх некалькі
 const MAX_ADDED = Number(process.env.MAX_ADDED) || 400; // больш «новых» за раз — падазрона
-const FORCE = ['1', 'true'].includes(process.env.UPDATE_FORCE);
 
 const now = new Date().toISOString();
 const today = now.slice(0, 10);
@@ -46,15 +41,6 @@ async function findDocUrls(pageUrl) {
   return urls.slice(0, MAX_CANDIDATES); // у парадку старонкі
 }
 
-async function download(url) {
-  const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(FILE_TIMEOUT) });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const buf = Buffer.from(await res.arrayBuffer());
-  if (buf.length < 10_000) throw new Error('файл падазрона малы');
-  console.log(`Спампавана: ${url} (${(buf.length / 1e6).toFixed(1)} MB, Last-Modified: ${res.headers.get('last-modified') || '?'})`);
-  return buf;
-}
-
 async function parseDoc(buf) {
   const doc = await new WordExtractor().extract(buf);
   return parseRows(doc.getBody());
@@ -65,7 +51,7 @@ async function fetchBest(urls) {
   let best = null, lastErr;
   for (const url of urls) {
     try {
-      const buf = await download(url);
+      const { buf } = await downloadBuffer(url, { timeout: FILE_TIMEOUT });
       const items = await parseDoc(buf);
       console.log(`Разабрана запісаў: ${items.length} (${url})`);
       if (!best || items.length > best.items.length) best = { url, buf, items };
@@ -96,10 +82,6 @@ async function fetchFromSources() {
 }
 
 // ---------- крок 2: зліццё з базай ----------
-async function readJson(file, fallback) {
-  try { return JSON.parse(await fs.readFile(file, 'utf8')); } catch { return fallback; }
-}
-
 async function main() {
   let sourceUrl = localFile ? `file://${localFile}` : null;
   let sourcePage = localFile ? null : SOURCES[0].page;
@@ -113,8 +95,7 @@ async function main() {
       ({ page: sourcePage, primary, url: sourceUrl, buf, items: parsed } = await fetchFromSources());
     } catch (e) {
       // Крыніца недаступная — база застаецца, а сайт пакажа папярэджанне «магла састарэць».
-      const meta = await readJson(META_FILE, {});
-      await fs.writeFile(META_FILE, JSON.stringify({ ...meta, checked: today, checkedAt: now, sourceError: e.message }, null, 2));
+      await writeSourceError(META_FILE, e.message, now);
       console.warn(`Крыніца недаступная: ${e.message}. meta.sourceError запісаны, база не зменена.`);
       return;
     }
@@ -127,50 +108,11 @@ async function main() {
 
   await fs.mkdir(DATA_DIR, { recursive: true });
   const db = await readJson(DB_FILE, []);
-  const byId = new Map(db.map((x) => [x.id, x]));
-  const initial = db.length === 0; // першы імпарт: не пазначаем усё як «новае»
-  const addedRecs = [];
-  const seen = new Set();
-  parsed.forEach((it, i) => {
-    seen.add(it.id);
-    const ex = byId.get(it.id);
-    if (ex) {
-      ex.order = i; // свежы парадак з крыніцы
-      if (primary && ex.removed) { delete ex.removed; delete ex.replacedBy; } // запіс вярнуўся ў афіцыйную крыніцу
-    } else {
-      const rec = { ...it, order: i, added: initial ? null : today };
-      byId.set(it.id, rec);
-      addedRecs.push(rec);
-    }
-  });
-  // Запісы, якіх ужо няма ў крыніцы, пакідаем, але пазначаем. Толькі для асноўнай
-  // крыніцы: запасное люстэрка можа быць старэйшым за базу, і яго «адсутнасць» нічога не значыць.
-  const removedRecs = [];
-  if (primary) for (const it of byId.values()) if (!seen.has(it.id) && !it.removed) removedRecs.push(it);
-
-  // Праўкі: «зніклы» + «новы» з тым жа судом і амаль той жа назвай — адзін запіс з выпраўленым тэкстам.
-  // Новы наследуе дату з’яўлення (не ідзе ў Telegram/RSS/«Новае»), стары вядзе на новы (replacedBy).
-  const edits = initial ? [] : pairEdits(removedRecs, addedRecs);
-  const edited = new Set();
-  for (const [old, rec] of edits) {
-    rec.added = old.added; rec.edited = today; rec.editOf = old.id;
-    old.removed = today; old.replacedBy = rec.id;
-    edited.add(old.id); edited.add(rec.id);
-    console.log(`Праўка запісу ${old.id} → ${rec.id}: ${rec.name.replace(/\s+/g, ' ').slice(0, 90)}`);
-  }
-  const added = addedRecs.filter((r) => !edited.has(r.id)).length;
-  let removed = 0;
-  for (const it of removedRecs) if (!edited.has(it.id)) { it.removed = today; removed++; }
-
-  // Засцярога: спіс амаль ніколі не скарачаецца. Калі «знікла» болей за 5%
-  // базы — хутчэй за ўсё змянілася формула id або фармат файла. Не псуем базу.
-  if (!initial && removed > Math.max(50, db.length * 0.05)) {
-    throw new Error(`Падазрона: ${removed} запісаў знікла з крыніцы, ${added} дададзена. Абнаўленне спынена — праверце формулу id / фармат файла.`);
-  }
-  if (!initial && !FORCE && added > MAX_ADDED) {
-    throw new Error(`Падазрона: ${added} новых запісаў за адзін раз (ліміт ${MAX_ADDED}). Абнаўленне спынена — праверце файл крыніцы; каб прыняць, задайце UPDATE_FORCE=1.`);
-  }
-  const out = [...byId.values()].sort((a, b) => a.order - b.order);
+  // Зліццё (merge.mjs): новыя — added = today; зніклыя пазначаюцца толькі для асноўнай крыніцы (запасное люстэрка
+  // можа быць старэйшым за базу); «зніклы» + «новы» з тым жа судом і амаль той жа назвай — праўка тэксту: новы
+  // наследуе дату з’яўлення (не ідзе ў Telegram/RSS/«Новае»), стары вядзе на новы (replacedBy).
+  const { out, added, removed, edits, initial } = mergeList(db, parsed, { today, force: FORCE, maxAdded: MAX_ADDED, isEdit, minRemoved: 50, primary });
+  for (const [old, rec] of edits) console.log(`Праўка запісу ${old.id} → ${rec.id}: ${rec.name.replace(/\s+/g, ' ').slice(0, 90)}`);
   await fs.writeFile(DB_FILE, JSON.stringify(out));
 
   const meta = await readJson(META_FILE, {});
@@ -190,4 +132,5 @@ async function main() {
   console.log(`Дададзена новых: ${added}, выпраўлена: ${edits.length}, знікла з крыніцы: ${removed}, усяго ў базе: ${out.length}`);
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+// збой засцярог ці разбору — exit 1 (джоб падае, alert.mjs failed скажа адміну); meta.json пры гэтым не кранаем
+runMain(import.meta.url, main);

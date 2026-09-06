@@ -1,75 +1,49 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useId } from 'react';
 import { fmtDate, fmtLocalDate, fmtTime, relDay, STALE_HOURS, hoursSince } from '../lib/format.js';
 import { useLang } from '../hooks/useLang.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import LangToggle from './LangToggle.jsx';
 
+/** Апошняя пазнака праверкі ў меце спіса (checkedAt пішацца пры кожным запуску; старыя кэшы — толькі дата). */
+export const stampOf = (m) => m?.checkedAt || m?.checked || m?.updated || '';
+
+/**
+ * Даты праверкі па спісах для шапкі: lists — усе, у якіх ёсць пазнака ({ key, label, iso, value }),
+ * latest — самая свежая з іх (у бачным радку), астатнія — у папове. Чыстая функцыя.
+ */
+export function listStamps(meta, t, lang) {
+  const lists = [
+    ['m', t.updatedMaterials, meta],
+    ['f', t.formationsChecked, meta?.formations],
+    ['p', t.personsChecked, meta?.persons],
+  ].filter(([, , m]) => stampOf(m)).map(([key, label, m]) => ({ key, label, iso: stampOf(m), value: updatedLabel(m, t, lang) }));
+  let latest = lists[0] || null;
+  for (const it of lists) if ((Date.parse(it.iso) || 0) > (Date.parse(latest.iso) || 0)) latest = it;
+  return { lists, latest };
+}
+
 export default function Header({ meta, online, onHelp }) {
   const { t, lang } = useLang();
   const [showTip, setShowTip] = useState(false);
-  const timerRef = useRef(null);
   const wrapRef = useRef(null);
+  const tipId = useId();
 
-  // Час апошняга абнаўлення базы (checkedAt пішацца пры кожным паспяховым запуску
-  // update.mjs). Старыя кэшы meta без checkedAt — толькі дата.
+  // Час апошняй праверкі спісу матэрыялаў — для папярэджання «база не абнаўлялася»: калі аўтаматычнае
+  // абнаўленне спынілася зусім (cron адключаны, парсер зламаўся, джоб падае), meta на сайце не змяняецца —
+  // таму папярэджваем па ўзросце апошняй праверкі на баку кліента.
   const updatedStr = updatedLabel(meta, t, lang);
-  // Калі аўтаматычнае абнаўленне спынілася зусім (cron адключаны, парсер зламаўся, джоб падае),
-  // meta на сайце не змяняецца — таму папярэджваем па ўзросце апошняй праверкі на баку кліента.
-  const checkedAgo = meta ? hoursSince(meta.checkedAt || meta.checked || meta.updated) : 0;
+  const checkedAgo = meta ? hoursSince(stampOf(meta)) : 0;
   const stale = Boolean(online && meta && !meta.sourceError && checkedAgo > STALE_HOURS);
   // другі і трэці спісы (пералікі МУС) правяраюцца асобнымі крокамі — свае даты і свае папярэджанні
   const fm = meta?.formations, pm = meta?.persons;
-  const hasStamp = (m) => Boolean(m && (m.checkedAt || m.checked || m.updated));
-  const lists = [
-    hasStamp(meta) && { key: 'm', label: t.updatedMaterials, m: meta },
-    hasStamp(fm) && { key: 'f', label: t.formationsChecked, m: fm },
-    hasStamp(pm) && { key: 'p', label: t.personsChecked, m: pm },
-  ].filter(Boolean);
+  const { lists, latest } = listStamps(meta, t, lang);
 
-  const getStampTime = (m) => {
-    if (!m) return 0;
-    const val = m.checkedAt || m.checked || m.updated;
-    return val ? Date.parse(val) || 0 : 0;
-  };
-
-  let latest = lists[0] || null;
-  for (const it of lists) {
-    if (getStampTime(it.m) > getStampTime(latest?.m)) {
-      latest = it;
-    }
-  }
-
-  const latestStr = updatedLabel(latest?.m || meta, t, lang);
-  const latestIso = latest?.m?.checkedAt || latest?.m?.checked || latest?.m?.updated || meta?.checkedAt || meta?.updated;
-  const tooltip = lists.length
-    ? `${t.updatedTipHint}\n\n` + lists.map((it) => `${it.label}: ${updatedLabel(it.m, t, lang)}`).join('\n')
-    : undefined;
-
-  const toggleTip = () => {
-    setShowTip((prev) => {
-      const next = !prev;
-      clearTimeout(timerRef.current);
-      if (next) {
-        timerRef.current = setTimeout(() => setShowTip(false), 3500);
-      }
-      return next;
-    });
-  };
-
-  useEffect(() => {
-    return () => clearTimeout(timerRef.current);
-  }, []);
-
+  // Папоў з датамі па кожным спісе: адкрываецца кнопкай, зачыняецца ёю ж, Escape ці націскам па-за ім;
+  // сам не знікае, пакуль чытаюць (даступнасць: hoverable, persistent, dismissible).
   useEffect(() => {
     if (!showTip) return;
-    const onDocClick = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
-        setShowTip(false);
-      }
-    };
-    const onKey = (e) => {
-      if (e.key === 'Escape') setShowTip(false);
-    };
+    const onDocClick = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setShowTip(false); };
+    const onKey = (e) => { if (e.key === 'Escape') setShowTip(false); };
     document.addEventListener('pointerdown', onDocClick);
     window.addEventListener('keydown', onKey);
     return () => {
@@ -86,28 +60,20 @@ export default function Header({ meta, online, onHelp }) {
         <LangToggle />
         <ThemeToggle />
       </div>
-      <p className="sub" title={tooltip}>
+      <p className="sub">
         {meta ? (
           <span className="updated-wrap" ref={wrapRef}>
             <button
               type="button"
               className="updated-btn"
-              onClick={toggleTip}
+              onClick={() => setShowTip((v) => !v)}
               aria-expanded={showTip}
-              title={tooltip}
+              aria-describedby={showTip ? tipId : undefined}
             >
-              {t.updated} <time dateTime={latestIso}>{latestStr}</time>
+              {t.updated} <time dateTime={latest?.iso || stampOf(meta)}>{latest?.value ?? updatedStr}</time>
             </button>
             {showTip && lists.length > 0 && (
-              <div
-                className="updated-tip"
-                role="tooltip"
-                onMouseEnter={() => clearTimeout(timerRef.current)}
-                onMouseLeave={() => {
-                  clearTimeout(timerRef.current);
-                  timerRef.current = setTimeout(() => setShowTip(false), 2000);
-                }}
-              >
+              <div id={tipId} className="updated-tip" role="tooltip">
                 <div className="updated-tip-desc">{t.updatedTipHint}</div>
                 <div className="updated-tip-list">
                   {lists.map((it) => (
@@ -116,7 +82,7 @@ export default function Header({ meta, online, onHelp }) {
                         <span className={`tip-dot ${it.key}`} aria-hidden="true" />
                         <span>{it.label}:</span>
                       </span>
-                      <span className="tip-val">{updatedLabel(it.m, t, lang)}</span>
+                      <span className="tip-val">{it.value}</span>
                     </div>
                   ))}
                 </div>

@@ -33,3 +33,54 @@ describe('parseHash', () => {
     expect(parseHash('#/r/%')).toEqual({ name: 'r', arg: '%' });
   });
 });
+
+// --- спасылка «падзяліцца» і history.state: глабальныя location/history падменныя (дапісана ў канец, каб не чапаць існуючае) ---
+import { vi, afterEach } from 'vitest';
+import { queryLink, takeEntryQuery, rememberQuery } from '../src/lib/entry.js';
+
+describe('queryLink / takeEntryQuery / rememberQuery', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('queryLink: хэш, а не ?q= — і #, &, + і прабел закадаваныя; чытаецца назад без страт', () => {
+    vi.stubGlobal('location', { origin: 'https://x.test' });
+    expect(queryLink('#a &b+c')).toBe('https://x.test/#q=%23a%20%26b%2Bc');
+    expect(queryLink('свабода', '/elist/')).toBe('https://x.test/elist/#q=%D1%81%D0%B2%D0%B0%D0%B1%D0%BE%D0%B4%D0%B0');
+    expect(parseEntryUrl(queryLink('#a &b+c', '/elist/'))).toEqual({ q: '#a &b+c', url: 'https://x.test/elist/' });
+  });
+
+  it('takeEntryQuery: забірае ?q= у history.state (захоўваючы астатні state) і чысціць адрас', () => {
+    const replaceState = vi.fn();
+    vi.stubGlobal('location', { href: 'https://x.test/?q=%40nick&x=1' });
+    vi.stubGlobal('history', { state: { foo: 1 }, replaceState });
+    expect(takeEntryQuery()).toBe('@nick');
+    expect(replaceState).toHaveBeenCalledWith({ foo: 1, q: '@nick' }, '', 'https://x.test/?x=1');
+  });
+
+  it('takeEntryQuery: #q= — тое самае, хэш ачышчаецца', () => {
+    const replaceState = vi.fn();
+    vi.stubGlobal('location', { href: 'https://x.test/elist/#q=a+b' });
+    vi.stubGlobal('history', { state: null, replaceState });
+    expect(takeEntryQuery()).toBe('a b');
+    expect(replaceState).toHaveBeenCalledWith({ q: 'a b' }, '', 'https://x.test/elist/');
+  });
+
+  it('takeEntryQuery: без запыту ў адрасе — з history.state (ці пусты), адрас не чапае', () => {
+    const replaceState = vi.fn();
+    vi.stubGlobal('location', { href: 'https://x.test/#/new' });
+    vi.stubGlobal('history', { state: { q: 'з укладкі' }, replaceState });
+    expect(takeEntryQuery()).toBe('з укладкі');
+    vi.stubGlobal('history', { state: null, replaceState });
+    expect(takeEntryQuery()).toBe('');
+    expect(replaceState).not.toHaveBeenCalled();
+  });
+
+  it('rememberQuery: толькі ў history.state, адрас той самы; памылка replaceState глытаецца', () => {
+    const replaceState = vi.fn();
+    vi.stubGlobal('location', { href: 'https://x.test/#/new' });
+    vi.stubGlobal('history', { state: { a: 1 }, replaceState });
+    rememberQuery('свабода');
+    expect(replaceState).toHaveBeenCalledWith({ a: 1, q: 'свабода' }, '', 'https://x.test/#/new');
+    vi.stubGlobal('history', { state: null, replaceState: () => { throw new Error('SecurityError'); } });
+    expect(() => rememberQuery('x')).not.toThrow();
+  });
+});

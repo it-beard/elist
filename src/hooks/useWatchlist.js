@@ -5,11 +5,41 @@ import { search } from '../lib/search.js';
 
 const norm = (q) => q.trim();
 
+/**
+ * Захаванае значэнне → спіс запісаў { q, seen, at }. localStorage можна сапсаваць (не масіў, запісы без q,
+ * null замест аб'екта) — такое адкідаем, каб адзін чужы ключ не клаў увесь сайт.
+ * Міграцыя: у старых зборках id не было, seen мог захавацца як [null, …] — тады seen ачышчаем.
+ * Чысты ўваход вяртаецца як ёсць (той самы масіў) — ад гэтага залежыць, што markSeen без зменаў не перарэндэрвае App.
+ */
+export function sanitizeEntries(raw) {
+  if (!Array.isArray(raw)) return [];
+  let changed = false;
+  const out = [];
+  for (const e of raw) {
+    if (!e || typeof e !== 'object' || typeof e.q !== 'string') { changed = true; continue; }
+    if (Array.isArray(e.seen) && e.seen.every((x) => typeof x === 'string')) out.push(e);
+    else { out.push({ ...e, seen: [] }); changed = true; }
+  }
+  return changed ? out : raw;
+}
+
+/** Дадаць запіс, калі такога запыту яшчэ няма (інакш — той самы спіс). */
+export const withEntry = (list, entry) => (list.some((e) => e.q === entry.q) ? list : [...list, entry]);
+
+/** Пазначыць супадзенні запыту бачанымі. Нічога не змянілася — вяртае той самы масіў, інакш эфект у App зацыкліцца. */
+export function withSeen(list, q, ids) {
+  const e = list.find((x) => x.q === q);
+  const seen = Array.isArray(e?.seen) ? e.seen : [];
+  const same = e && seen.length === ids.length && ids.every((id) => seen.includes(id));
+  return !e || same ? list : list.map((x) => (x.q === q ? { ...x, seen: ids } : x));
+}
+
 /** Спіс назірання — толькі ў localStorage гэтага браўзера. */
 export function useWatchlist(items) {
-  const [rawEntries, setEntries] = useLocalStorage('watch', []);
-  // міграцыя: у старых зборках id не было, seen мог захавацца як [null, …]
-  const entries = useMemo(() => rawEntries.map((e) => (Array.isArray(e.seen) && e.seen.every((x) => typeof x === 'string') ? e : { ...e, seen: [] })), [rawEntries]);
+  const [rawEntries, setRaw] = useLocalStorage('watch', []);
+  const entries = useMemo(() => sanitizeEntries(rawEntries), [rawEntries]);
+  // абнаўленні заўсёды бачаць чысты спіс: сапсаванае сховішча не кладзе «дадаць» ці «бачана», а лечыцца першым запісам
+  const setEntries = useCallback((v) => setRaw((prev) => (typeof v === 'function' ? v(sanitizeEntries(prev)) : v)), [setRaw]);
   const [notify, setNotify] = useLocalStorage('watchNotify', false);
 
   const checks = useMemo(() => (items ? checkWatchlist(items, entries) : []), [items, entries]);
@@ -21,16 +51,10 @@ export function useWatchlist(items) {
     const v = norm(q);
     if (!v) return;
     const seen = items ? search(items, watchTokens(v)).map((m) => m.id) : [];
-    setEntries((list) => (list.some((e) => e.q === v) ? list : [...list, { q: v, seen, at: new Date().toISOString().slice(0, 10) }]));
+    setEntries((list) => withEntry(list, { q: v, seen, at: new Date().toISOString().slice(0, 10) }));
   }, [setEntries, items]);
   const remove = useCallback((q) => setEntries((list) => list.filter((e) => e.q !== q)), [setEntries]);
-  const markSeen = useCallback((q, ids) => setEntries((list) => {
-    const e = list.find((x) => x.q === q);
-    const seen = Array.isArray(e?.seen) ? e.seen : [];
-    const same = e && seen.length === ids.length && ids.every((id) => seen.includes(id));
-    // нічога не змянілася — вяртаем той самы масіў, інакш эфект у App зацыкліцца
-    return !e || same ? list : list.map((x) => (x.q === q ? { ...x, seen: ids } : x));
-  }), [setEntries]);
+  const markSeen = useCallback((q, ids) => setEntries((list) => withSeen(list, q, ids)), [setEntries]);
   const clear = useCallback(() => setEntries([]), [setEntries]);
 
   return { entries, checks, has, add, remove, markSeen, clear, notify, setNotify };

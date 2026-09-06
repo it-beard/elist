@@ -26,7 +26,7 @@ const META = {
   persons: { updated: '2026-09-05', checked: '2026-09-05', checkedAt: '2026-09-05T14:04:18.967Z', sourceError: 'HTTP 503', total: 6874 },
 };
 
-let ResultItem, RecordPage, Options, Facets, Header, Consequences, StatsPage, WhatsNew, HelpDialog;
+let ResultItem, RecordPage, Options, Facets, Header, listStamps, Consequences, StatsPage, WhatsNew, HelpDialog;
 beforeAll(async () => {
   // SSR-рэндэр без браўзера: кампанентам патрэбныя location/history толькі для спасылак
   globalThis.location = { href: 'https://elist.test/#/r/p1', hash: '#/r/p1', origin: 'https://elist.test', pathname: '/' };
@@ -35,7 +35,7 @@ beforeAll(async () => {
   ({ default: RecordPage } = await import('../src/components/RecordPage.jsx'));
   ({ default: Options } = await import('../src/components/Options.jsx'));
   ({ default: Facets } = await import('../src/components/Facets.jsx'));
-  ({ default: Header } = await import('../src/components/Header.jsx'));
+  ({ default: Header, listStamps } = await import('../src/components/Header.jsx'));
   ({ default: Consequences } = await import('../src/components/Consequences.jsx'));
   ({ default: StatsPage } = await import('../src/components/StatsPage.jsx'));
   ({ default: WhatsNew } = await import('../src/components/WhatsNew.jsx'));
@@ -44,7 +44,7 @@ beforeAll(async () => {
 
 const render = (lang, el) => renderToStaticMarkup(<LangContext.Provider value={{ lang, t: STRINGS[lang], setLang: () => { } }}>{el}</LangContext.Provider>);
 const watch = { has: () => false, add() { }, remove() { } };
-const OPTS = { any: false, onlyNew: false, list: '', sort: 'newest' };
+const OPTS = { any: false, list: '', sort: 'newest' };
 
 describe('рэндэр кампанентаў для трох спісаў (SSR, абедзве мовы)', () => {
   for (const lang of ['be', 'en']) {
@@ -78,7 +78,7 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       // асоба без афіцыйнага нумара — значок спасылкі замест «б/н», а не выдуманы «№2»; з нумарам — «№1»
       const card2 = render(lang, <ResultItem item={ITEMS[3]} tokens={[]} chunkSize={200} />);
       expect(card2).toContain('<svg class="ico"');
-      expect(card2).not.toContain(`>${t.noNum}<`);
+      expect(card2).not.toContain('б/н');
       expect(card2).not.toContain('№2');
       expect(render(lang, <ResultItem item={ITEMS[2]} tokens={[]} chunkSize={200} />)).toContain('>№1<');
       // фрагмент не супаў з індэксам — чужы запіс не паказваецца, толькі падказка перазагрузіць
@@ -140,17 +140,27 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
     });
     it(`${lang}: шапка з трыма датамі і папярэджаннем, наступствы, статыстыка`, () => {
       const head = render(lang, <Header meta={META} online onHelp={() => { }} />);
-      expect(head).toContain(t.personsChecked);
       expect(head).toContain(t.personsDown('05.09.2026'));
       expect(head).not.toMatch(/undefined/);
       expect(head).toContain(t.updated);
-      expect(head).toContain(t.updatedTipHint);
-      // у бачным тэксце толькі апошняе абнаўленне (асобы ад 05.09), а падрабязнасці па кожным спісе — у title
-      expect(head).toMatch(new RegExp(`<p class="sub"[^>]*title="[^"]*${t.updatedMaterials}[^"]*${t.formationsChecked}[^"]*${t.personsChecked}`));
+      // у бачным тэксце толькі апошняе абнаўленне (асобы ад 05.09); падрабязнасці па кожным спісе — у папове
+      // па націску (у SSR зачынены), без падвойнага title на абзацы і кнопцы
+      expect(head).not.toContain('title="' + t.updatedTipHint.slice(0, 20));
+      expect(head).toMatch(/<p class="sub">/);
       expect(head).toContain('class="updated-btn"');
       expect(head).toContain('aria-expanded="false"');
+      expect(head).not.toContain('aria-describedby');
       expect(head).toContain('dateTime="2026-09-05T14:04:18.967Z"');
       expect(head).not.toContain(` · ${t.formationsChecked} <time`);
+      const { lists, latest } = listStamps(META, t, lang);
+      expect(lists.map((x) => x.key)).toEqual(['m', 'f', 'p']);
+      expect(lists.map((x) => x.label)).toEqual([t.updatedMaterials, t.formationsChecked, t.personsChecked]);
+      expect(latest.key).toBe('p');
+      expect(latest.iso).toBe('2026-09-05T14:04:18.967Z');
+      expect(lists.every((x) => x.value && !/undefined/.test(x.value))).toBe(true);
+      // без пазнак — пусты спіс, latest null; толькі матэрыялы — адзін радок
+      expect(listStamps({}, t, lang)).toEqual({ lists: [], latest: null });
+      expect(listStamps({ updated: '2026-09-01' }, t, lang).latest).toMatchObject({ key: 'm', iso: '2026-09-01' });
       const cons = render(lang, <Consequences open formations persons />);
       expect(cons).toContain('crime person');
       expect(cons).toContain(t.crimeNote.slice(0, 30));

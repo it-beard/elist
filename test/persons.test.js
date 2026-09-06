@@ -260,3 +260,66 @@ describe('пошук і статыстыка па трох спісах', () => 
     expect(d).toEqual([[Date.parse('2026-03-01'), [1, 0, 0, 1]]]);
   });
 });
+
+describe('partsProblem — зніклая частка', () => {
+  it('менш частак, чым было, — памылка (акрамя force); больш — норма', () => {
+    expect(partsProblem([1466, 1415, 1583], [1466, 1415, 1583, 2410])).toMatch(/на старонцы 3 частак замест 4/);
+    expect(partsProblem([1466, 1415, 1583], [1466, 1415, 1583, 2410], { force: true })).toBe(null);
+    expect(partsProblem([1466, 1415, 1583, 2410], [1466, 1415, 1583, 2410, 13])).toMatch(/4 частак замест 5.*UPDATE_FORCE=1/);
+    expect(partsProblem([1466, 1415, 1583, 2410, 13], [1466, 1415, 1583, 2410])).toBe(null);
+  });
+});
+
+describe('mergePersons — дублі id у крыніцы', () => {
+  const rec = (id, info) => ({ id, num: 1, name: 'Чалавек Тэставіч', translit: 'CHALAVEK', citizenship: 'Республика Беларусь', birth: '01.01.1990', basis: BASIS_369, court: 'суда', articles: ['369'], included: '01.01.2023', date: '2023-01-01', address: 'г. Минск', info });
+  const clone = (x) => JSON.parse(JSON.stringify(x));
+  it('застаецца апошні варыянт на сваім месцы; пры паўторах праўка не пазначаецца', () => {
+    const src = [rec('dup', 'A'), rec('dup', 'B')];
+    const r1 = mergePersons([], src, { today: '2026-09-06' });
+    expect(r1.out).toHaveLength(1);
+    expect(r1.out[0]).toMatchObject({ id: 'dup', info: 'B', order: 1, added: null });
+    expect(r1.out[0]).not.toHaveProperty('edited');
+    const r2 = mergePersons(clone(r1.out), src, { today: '2026-09-07' });
+    expect(r2).toMatchObject({ added: 0, removed: 0, edited: 0 });
+    const r3 = mergePersons(clone(r2.out), src, { today: '2026-09-08' });
+    expect(r3).toMatchObject({ added: 0, removed: 0, edited: 0 });
+    expect(r3.out[0]).toMatchObject({ info: 'B' });
+    expect(r3.out[0]).not.toHaveProperty('edited');
+  });
+});
+
+describe('isPersonEdit — стары запіс без даты ўключэння', () => {
+  const old = { id: 'a', name: 'Ковалевский Николай Николаевич', birth: '14.10.1983', date: null };
+  it('тое ж імя і тая ж непустая дата нараджэння — праўка; пустыя даты нараджэння — не; іншае імя ці дата — не', () => {
+    const fixed = { id: 'b', name: 'ковалевский  николай николаевич', birth: '14.10.1983', date: '2022-03-23' };
+    expect(isPersonEdit(old, fixed)).toBe(true);
+    expect(isPersonEdit({ ...old, birth: '' }, { ...fixed, birth: '' })).toBe(false);
+    expect(isPersonEdit(old, { ...fixed, name: 'Ковалевский Николай Никалаевич' })).toBe(false);
+    expect(isPersonEdit(old, { ...fixed, birth: '14.10.1984' })).toBe(false);
+    expect(pairPersonEdits([old], [fixed, { id: 'z', name: 'Іншы Чалавек', birth: '14.10.1983', date: '2022-03-23' }])).toEqual([[old, fixed]]);
+  });
+});
+
+describe('parsePersons — абрэзка ячэек (MAX_CELL) і імя без ячэйкі, падобнай на імя', () => {
+  it('падстава даўжэйшая за 5000 сімвалаў захоўваецца абрэзанай да 5000', () => {
+    const body = `${HEADER}1\tКовалевский Николай Николаевич\tKAVALEUSKI MIKALAI\tРеспублика Беларусь\t14.10.1983\t${BASIS_369} ${'х'.repeat(6000)}\t23.03.2022\tг. Минск\tОтбывает наказание\t\t`;
+    const [x] = parsePersons(body);
+    expect(x.basis).toHaveLength(5000);
+    expect(x.basis.startsWith(BASIS_369)).toBe(true);
+    expect(x).toMatchObject({ name: 'Ковалевский Николай Николаевич', court: 'суда Быховского района Могилевской области', articles: ['369'], included: '23.03.2022' });
+  });
+  it('без ячэйкі, падобнай на імя, грамадзянства не становіцца імем — якар прапускаецца, суседзі цэлыя', () => {
+    const noName = `7\t-\t-\tРеспублика Беларусь\t01.01.1990\t${BASIS_369}\t01.01.2023\tг. Минск\tОтбывает наказание\t\t`;
+    const s = {};
+    const out = parsePersons(`${HEADER}${ROW1}${noName}${ROW6}`, s);
+    expect(out.map((x) => [x.num, x.name])).toEqual([[1, 'Ковалевский Николай Николаевич'], [null, 'Михайлов Дмитрий']]);
+    expect(out.every((x) => x.name !== 'Республика Беларусь')).toBe(true);
+    expect(s.skipped).toBe(1);
+    expect(out[1]).toMatchObject({ translit: 'Mihailovs Dmitrijs', citizenship: 'Латвийская Республика', birth: '02.02.1990', address: 'Республика Беларусь, г. Гомель' });
+  });
+  it('імя з аднаго слова (псеўданім) — усё ж імя', () => {
+    const out = parsePersons(`${HEADER}8\tМадонна\tMADONNA\tРеспублика Беларусь\t16.08.1958\t${BASIS_369}\t01.01.2023\tг. Минск\tОтбывает наказание\t\t`);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({ num: 8, name: 'Мадонна', translit: 'MADONNA', citizenship: 'Республика Беларусь', birth: '16.08.1958', address: 'г. Минск' });
+  });
+});

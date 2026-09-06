@@ -16,7 +16,6 @@ const META = {
 };
 
 let currentQuery = '';
-let currentFlags = { list: '', sort: 'newest', any: false, onlyNew: false };
 
 vi.mock('../src/hooks/useIndex.js', () => ({
   useIndex: () => ({
@@ -37,8 +36,10 @@ vi.mock('../src/hooks/useQuery.js', () => ({
   useQuery: () => [currentQuery, (q) => { currentQuery = q; }],
 }));
 
+// у App праз useLocalStorage жыве толькі сартаванне; фільтр спіса — у useState, таму яго тут не падмяніць
+// (логіка фільтраў правяраецца ў test/results.test.js праз чыстую deriveResults)
 vi.mock('../src/hooks/useLocalStorage.js', () => ({
-  useLocalStorage: () => [currentFlags, (fn) => { currentFlags = typeof fn === 'function' ? fn(currentFlags) : fn; }],
+  useLocalStorage: (key, initial) => [key === 'sort' ? 'newest' : initial, () => {}],
 }));
 
 vi.mock('../src/hooks/useHashRoute.js', () => ({
@@ -88,42 +89,30 @@ describe('Consequences («Што гэта значыць для мяне»): п�
     </LangContext.Provider>
   );
 
-  beforeEach(() => {
-    currentQuery = '';
-    currentFlags = { list: '', sort: 'newest', any: false, onlyNew: false };
-  });
+  beforeEach(() => { currentQuery = ''; });
 
-  it('калі радок пошуку пусты і абрана ўкладка "Усе запісы" — блок наступстваў схаваны', () => {
-    currentQuery = '';
-    currentFlags.list = '';
+  it('калі радок пошуку пусты — блок наступстваў схаваны, зводка схаваная візуальна (лічбы на ўкладках), укладкі ёсць', () => {
     const html = renderApp();
     expect(html).not.toContain('class="legal"');
     expect(html).not.toContain(`<summary>${STRINGS.be.legalTitle}</summary>`);
+    expect(html).toContain(`<p class="vh" aria-live="polite">${STRINGS.be.total(3)}</p>`);
+    expect(html).toContain('class="facets"');
+    expect(html).toContain('option value="newest" selected'); // сартаванне з localStorage сапраўды дайшло да select
   });
 
-  it('калі радок пошуку пусты і пераключаюцца фільтры спісаў (матэрыялы, фарміраванні, асобы) — блок схаваны', () => {
-    for (const list of ['m', 'f', 'p']) {
-      currentQuery = '';
-      currentFlags.list = list;
-      const html = renderApp();
-      expect(html).not.toContain('class="legal"');
-      expect(html).not.toContain(`<summary>${STRINGS.be.legalTitle}</summary>`);
-    }
-  });
-
-  it('калі ёсць пошукавы запыт і знойдзены супадзенні — блок наступстваў паказваецца', () => {
+  it('калі ёсць пошукавы запыт і знойдзены супадзенні — блок наступстваў паказваецца, зводка «знойдзена»', () => {
     currentQuery = 'свабода';
-    currentFlags.list = '';
     const html = renderApp();
     expect(html).toContain('class="legal"');
     expect(html).toContain(`<summary>${STRINGS.be.legalTitle}</summary>`);
+    expect(html).toContain(STRINGS.be.found(1));
   });
 
-  it('калі пошукавы запыт не даў ніводнага супадзення — блок схаваны', () => {
+  it('калі пошукавы запыт не даў ніводнага супадзення — блок схаваны, зводка «нічога»', () => {
     currentQuery = 'неіснуючызапыт12345';
-    currentFlags.list = '';
     const html = renderApp();
     expect(html).not.toContain('class="legal"');
     expect(html).not.toContain(`<summary>${STRINGS.be.legalTitle}</summary>`);
+    expect(html).toContain(STRINGS.be.nothing);
   });
 });

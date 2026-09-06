@@ -6,10 +6,8 @@ import { useLang } from './hooks/useLang.jsx';
 import { useHashRoute } from './hooks/useHashRoute.js';
 import { useWatchlist } from './hooks/useWatchlist.js';
 import { useOnline } from './hooks/useOnline.js';
-import { search } from './lib/search.js';
 import { parseQuery } from './lib/normalize.js';
-import { variants } from './lib/translit.js';
-import { corpusWords, similarWords } from './lib/fuzzy.js';
+import { deriveResults, summarize } from './lib/results.js';
 import { isRecent } from './lib/format.js';
 import { queryLink } from './lib/entry.js';
 import { showNotification } from './lib/notifications.js';
@@ -28,17 +26,7 @@ import Consequences from './components/Consequences.jsx';
 import HelpDialog from './components/HelpDialog.jsx';
 import { LINKS } from './lib/i18n.js';
 
-/** Дакладны пошук; калі пуста — транслітарацыя + прыблізныя словы. */
-function runSearch(items, tokens, opts) {
-  const vTokens = tokens.map(variants);
-  const exact = search(items, vTokens, opts);
-  if (exact.length || !tokens.length) return { results: exact, mode: 'exact', hl: vTokens };
-  const words = corpusWords(items);
-  const fz = tokens.map((t, i) => [...vTokens[i], ...similarWords(words, t)]);
-  if (fz.every((v, i) => v.length === vTokens[i].length)) return { results: [], mode: 'exact', hl: vTokens };
-  const results = search(items, fz, opts);
-  return { results, mode: results.length ? 'fuzzy' : 'exact', hl: fz };
-}
+const SORTS = ['newest', 'oldest', 'source'];
 
 export default function App() {
   const { t, lang } = useLang();
@@ -48,8 +36,9 @@ export default function App() {
   const watch = useWatchlist(items);
   // Запыт — у стане і history.state укладкі, не ў адрасным радку (гл. lib/entry.js).
   const [query, setQuery] = useQuery();
-  const [sort, setSort] = useLocalStorage('sort', 'newest');
-  const [flags, setFlags] = useState({ any: false, onlyNew: false, list: '' }); // list: '' | 'm' | 'f' | 'p' — усе / матэрыялы / фарміраванні / асобы
+  const [storedSort, setSort] = useLocalStorage('sort', 'newest');
+  const sort = SORTS.includes(storedSort) ? storedSort : 'newest'; // сапсаванае значэнне ў localStorage — як па змаўчанні
+  const [flags, setFlags] = useState({ any: false, list: '' }); // list: '' | 'm' | 'f' | 'p' — усе / матэрыялы / фарміраванні / асобы
   const [help, setHelp] = useState(false);
   const [copied, setCopied] = useState(false);
   const opts = useMemo(() => ({ ...flags, sort }), [flags, sort]);
@@ -57,19 +46,11 @@ export default function App() {
   const deferredQuery = useDeferredValue(query);
 
   const tokens = useMemo(() => parseQuery(deferredQuery), [deferredQuery]);
-  // Пошук заўсёды па ўсіх спісах — лічбы на ўкладках-спісах лічацца з поўнай выдачы, а абмежаванне спісам
-  // накладваецца потым. Калі ў абраным спісе дакладных супадзенняў няма — прыблізны пошук у межах спіса.
-  const all = useMemo(
-    () => (items ? runSearch(items, tokens, { ...opts, list: '' }) : { results: [], mode: 'exact', hl: [] }),
-    [items, tokens, opts],
-  );
-  const list = opts.list || '';
-  const { results, mode, hl } = useMemo(() => {
-    if (!list) return all;
-    const filtered = all.results.filter((r) => r.list === list);
-    if (filtered.length || !tokens.length || !items) return { ...all, results: filtered };
-    return runSearch(items, tokens, opts);
-  }, [all, list, tokens, items, opts]);
+  // выдача, лічбы на ўкладках-спісах і зводка — адна чыстая функцыя (гл. lib/results.js)
+  const derived = useMemo(() => deriveResults(items, tokens, opts), [items, tokens, opts]);
+  const { results, hl, list, searching, facetCounts, shown } = derived;
+  const sum = summarize(derived);
+  const summaryText = sum.kind === 'nothing' ? t.nothing : t[sum.kind](sum.n);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -100,7 +81,7 @@ export default function App() {
 
   const openWatch = (entry, matches) => {
     watch.markSeen(entry.q, matches.map((m) => m.id));
-    setFlags({ any: false, onlyNew: false, list: '' });
+    setFlags({ any: false, list: '' });
     setQuery(entry.q);
     route.go('');
   };
@@ -127,17 +108,10 @@ export default function App() {
   } : null;
   const shareChip = query.trim() && status === 'ready' ? { copy: copyQueryLink, copied } : null;
 
-  const searching = tokens.length > 0;
   const newCount = items ? items.filter((it) => !it.replacedBy && isRecent(it.added)).length : 0;
   // дадатковыя спісы (фарміраванні МУС/КДБ, фізічныя асобы МУС): укладкі-спісы і асобны падлік — толькі калі яны ёсць у базе
   const lists = useMemo(() => ({ f: Boolean(counts?.f), p: Boolean(counts?.p) }), [counts]);
   const hasLists = lists.f || lists.p;
-  // лічбы на ўкладках: пры запыце — колькі знойдзена ў кожным спісе (з поўнай выдачы), без запыту — колькі запісаў
-  // у базе («Усяго запісаў» — адно правіла ўсюды: без выдаленых і старых версій выпраўленых)
-  const found = useMemo(() => all.results.reduce((c, r) => { c[r.list] = (c[r.list] || 0) + 1; return c; }, { m: 0, f: 0, p: 0 }), [all]);
-  const live = useMemo(() => all.results.reduce((c, r) => { if (!r.removed) c[r.list in c ? r.list : 'm']++; return c; }, { m: 0, f: 0, p: 0 }), [all]);
-  const facetCounts = searching ? { ...found, all: all.results.length } : { ...live, all: live.m + live.f + live.p };
-  const shown = useMemo(() => results.reduce((c, r) => { c[r.list] = true; return c; }, {}), [results]);
 
   return (
     <>
@@ -164,11 +138,9 @@ export default function App() {
             {status === 'error' && <p className="summary error">{t.loadError(error)}</p>}
             {status === 'ready' && (
               <>
-                <p className={searching || !hasLists ? 'summary' : 'vh'} aria-live="polite">
-                  {!searching ? t.total(live.m + live.f + live.p) : mode === 'fuzzy' ? t.fuzzy(results.length) : all.results.length ? t.found(all.results.length) : t.nothing}
-                </p>
+                <p className={searching || !hasLists ? 'summary' : 'vh'} aria-live="polite">{summaryText}</p>
                 {hasLists && <Facets counts={facetCounts} value={list} onChange={(l) => setFlags((f) => ({ ...f, list: l }))} lists={lists} />}
-                {searching && list && !results.length && all.results.length > 0 && <p className="hint">{t.facetEmpty}</p>}
+                {searching && list && !results.length && derived.all.results.length > 0 && <p className="hint">{t.facetEmpty}</p>}
                 {searching && results.length > 0 && <Consequences formations={Boolean(shown.f)} persons={Boolean(shown.p)} />}
                 <ResultList results={results} tokens={hl} chunkSize={chunkSize} />
               </>

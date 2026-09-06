@@ -84,11 +84,27 @@ describe('WatchPanel: закрытасць па змаўчанні і захав
     expect(htmlNoHits).toContain('class="watch-count">1</span>');
   });
 
-  it('кнопка адлюстроўвае скарочаную назву "Назіранне" і не змяшчае старога "Спіс назірання"', () => {
+  it('кнопка мае подпіс "Назіранне" (адзін, без дубля для вузкага экрана) і не змяшчае старога "Спіс назірання"', () => {
     const html = render(<WatchPanel watch={baseWatch} visible={true} />);
     expect(html).toContain('class="watch-label">Назіранне</span>');
-    expect(html).toContain('class="watch-label-short">Назіранне</span>');
+    expect(html).not.toContain('watch-label-short');
     expect(html).not.toContain('>Спіс назірання<');
+  });
+
+  it('новыя супадзенні раскрываюць панэль адразу (яшчэ да эфекту), і гэта захоўваецца як стан на далей', () => {
+    const fresh = { ...baseWatch, checks: [{ entry: { q: 'тэст' }, matches: [{ id: 'a' }], fresh: [{ id: 'a' }] }] };
+    const html = render(<WatchPanel watch={fresh} visible={true} />);
+    expect(html).toContain('aria-expanded="true"');
+    expect(html).toContain('watch-toggle alert');
+    // невідочная (не галоўная старонка) — не раскрываецца
+    expect(render(<WatchPanel watch={fresh} visible={false} />)).not.toContain('aria-expanded="true"');
+  });
+
+  it('сапсаванае значэнне watchOpen у localStorage — як пры першым наведванні (схавана)', () => {
+    globalThis.localStorage.setItem('watchOpen', '{"x":1}');
+    expect(render(<WatchPanel watch={baseWatch} visible={true} />)).toContain('aria-expanded="false"');
+    globalThis.localStorage.setItem('watchOpen', 'not json');
+    expect(render(<WatchPanel watch={baseWatch} visible={true} />)).toContain('aria-expanded="false"');
   });
 
   it('у адкрытай панэлі назірання няма падказкі са спасылкай на Telegram-канал', () => {

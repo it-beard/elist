@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLang } from '../hooks/useLang.jsx';
 import { LINKS } from '../lib/i18n.js';
+import { CloseIcon } from './icons.jsx';
 
 /** Попап-даведка: што гэта за сайт, як карыстацца, што значыць трапіць у спіс, прыватнасць. */
 export default function HelpDialog({ open, onClose }) {
@@ -18,7 +19,7 @@ export default function HelpDialog({ open, onClose }) {
         <div className="help-head">
           <h2>{t.helpTitle}</h2>
           <button type="button" className="clear" title={t.close} aria-label={t.close} onClick={onClose}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+            <CloseIcon />
           </button>
         </div>
         <section>

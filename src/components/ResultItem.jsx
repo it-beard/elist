@@ -5,6 +5,7 @@ import { personSeries } from '../lib/person.js';
 import { useLang } from '../hooks/useLang.jsx';
 import { href } from '../hooks/useHashRoute.js';
 import Highlight from './Highlight.jsx';
+import { LinkIcon } from './icons.jsx';
 
 /**
  * Картка запісу. Матэрыял (суды) — як раней: артыкул/тып, назва, рашэнне суда.
@@ -21,6 +22,7 @@ export default function ResultItem({ item, tokens, chunkSize }) {
   const art = !isF && !isP && rec?.court ? extractArticle(rec.court) : null;
   const pArt = isP ? (item.art || (rec?.articles ? personSeries(rec.articles) : 'other')) : null;
   const facts = isP && rec ? [rec.birth && `${t.born} ${rec.birth}`, rec.citizenship, rec.info].filter(Boolean).join(' · ') : '';
+  const permalink = isP ? t.permalinkP : isF ? t.permalinkF : t.permalink;
   return (
     <li className={`item${isF ? ' formation' : isP ? ' person' : ' material'}${item.removed ? ' removed' : ''}`}>
       <div className="meta">
@@ -37,12 +39,8 @@ export default function ResultItem({ item, tokens, chunkSize }) {
         {isRecent(item.added) && <span className="badge-new" title={t.addedTitle}>{t.isNew} · {fmtDate(item.added)}</span>}
         {item.removed && <span className="gone">{t.removed} {fmtDate(item.removed)}</span>}
         {/* фізічная асоба без афіцыйнага нумара (свежае дапаўненне) — значок спасылкі замест «б/н» */}
-        <a className="num idx" href={href(`r/${item.id}`)} title={isP ? t.permalinkP : isF ? t.permalinkF : t.permalink} aria-label={isP ? t.permalinkP : isF ? t.permalinkF : t.permalink}>
-          {isP && !item.n ? (
-            <svg className="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.5 1.5M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.5-1.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-          ) : (
-            `№${item.n ?? item.i + 1}`
-          )}
+        <a className="num idx" href={href(`r/${item.id}`)} title={permalink} aria-label={permalink}>
+          {isP && !item.n ? <LinkIcon /> : `№${item.n ?? item.i + 1}`}
         </a>
       </div>
       {rec?.error ? (

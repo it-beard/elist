@@ -71,3 +71,21 @@ describe('stats: серыі другога спісу (фарміраванні)
     expect(summary(d, T('2023-01-01')).total).toBe(4);
   });
 });
+
+// --- маштаб таймлайна (дапісана ў канец, каб не чапаць існуючае) ---
+import { zoomRange } from '../src/lib/stats.js';
+
+describe('zoomRange', () => {
+  it('у 2 разы вакол цэнтра — палова дыяпазону з тым жа цэнтрам', () => {
+    expect(zoomRange([0, 100], 2)).toEqual([25, 75]);
+  });
+  it('вакол зададзенага моманту — ён застаецца на месцы', () => {
+    expect(zoomRange([0, 100], 2, 0)).toEqual([0, 50]);
+    expect(zoomRange([0, 100], 2, 100)).toEqual([50, 100]);
+    expect(zoomRange([0, 100], 4, 20)).toEqual([15, 40]);
+  });
+  it('f < 1 — аддаленне; f = 1 — без зменаў', () => {
+    expect(zoomRange([0, 100], 0.5)).toEqual([-50, 150]);
+    expect(zoomRange([10, 20], 1)).toEqual([10, 20]);
+  });
+});

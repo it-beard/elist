@@ -6,7 +6,8 @@ const MODES = ['light', 'dark', 'system'];
 
 export default function ThemeToggle() {
   const { t } = useLang();
-  const [mode, setMode] = useLocalStorage('theme', 'light');
+  const [stored, setMode] = useLocalStorage('theme', 'light');
+  const mode = MODES.includes(stored) ? stored : 'light'; // чужое ці сапсаванае значэнне ў localStorage — як па змаўчанні
   useEffect(() => {
     const root = document.documentElement;
     if (mode === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);

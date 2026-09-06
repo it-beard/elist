@@ -23,3 +23,18 @@ export function search(items, tokens, { any = false, onlyNew = false, sort = 'ne
   else if (sort === 'source') out.sort((a, b) => a.i - b.i);
   return out;
 }
+
+/**
+ * Колькі запісаў у кожным спісе: { m, f, p, all } (невядомы спіс лічыцца матэрыяламі).
+ * live — толькі запісы, якія цяпер ёсць у спісе (без выдаленых); старыя версіі выпраўленых (replacedBy)
+ * у выдачу і так не трапляюць.
+ */
+export function countByList(items, { live = false } = {}) {
+  const c = { m: 0, f: 0, p: 0, all: 0 };
+  for (const it of items) {
+    if (live && it.removed) continue;
+    c[it.list === 'f' || it.list === 'p' ? it.list : 'm']++;
+    c.all++;
+  }
+  return c;
+}

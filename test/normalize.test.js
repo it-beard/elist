@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalize, normalizeCompact, parseQuery, matchRanges } from '../src/lib/normalize.js';
+import { normalize, normalizeCompact, parseQuery, matchRanges, cleanToken } from '../src/lib/normalize.js';
 import { courtName, extractDate, dateWords, extractArticle } from '../src/lib/court.js';
 import { search } from '../src/lib/search.js';
 
@@ -46,4 +46,23 @@ describe('search', () => {
   it('усе словы', () => expect(search(items, ['пра', 'свабоду']).map((x) => x.i)).toEqual([0]));
   it('любое са слоў', () => expect(search(items, ['свабоду', 'гродна'], { any: true })).toHaveLength(2));
   it('сартаванне', () => expect(search(items, [], { sort: 'newest' }).map((x) => x.i)).toEqual([1, 0]));
+});
+
+describe('normalize: рэдкія сімвалы', () => {
+  it('сімвал, чый ніжні рэгістр даўжэйшы (İ → i̇), застаецца як ёсць — індэксы падсветкі не зрушваюцца', () => {
+    expect('İ'.toLowerCase()).not.toHaveLength(1); // перадумова тэсту
+    expect(normalize('aİb')).toBe('aİb');
+    expect(normalize('aİb')).toHaveLength(3);
+    expect(normalize('Ёлка İ')).toBe('елка İ');
+  });
+});
+
+describe('cleanToken', () => {
+  it('калі пасля ачысткі нічога не застаецца — вяртае арыгінал, а не пусты радок', () => {
+    expect(cleanToken('@')).toBe('@');
+    expect(cleanToken('https://')).toBe('https://');
+    expect(cleanToken('www.')).toBe('www.');
+    expect(cleanToken('...')).toBe('...');
+    expect(parseQuery('@ ...')).toEqual(['@', '...']);
+  });
 });

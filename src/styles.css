@@ -139,7 +139,6 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 /* ---- спіс назірання ---- */
 .watch { margin: 0 0 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
 .watch-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; font-weight: 600; }
-.watch-label-short { display: none; }
 .watch-toggle .ico { width: 14px; height: 14px; flex: none; color: var(--muted); }
 .watch-toggle:hover .ico { color: var(--text); }
 .watch-toggle .dot { flex: none; width: 16px; height: 16px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; line-height: 1; font-size: 11px; font-weight: 700; color: var(--muted); }
@@ -255,8 +254,6 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
   .options .watch-toggle { width: auto; gap: 5px; padding: 0 9px; }
   .options .watch-toggle .ico { width: 14px; height: 14px; }
   .options .watch-toggle .chev { width: 14px; height: 14px; }
-  .watch-label { display: none; }
-  .watch-label-short { display: inline; }
   .watch-count { min-width: 16px; height: 16px; padding: 0 4px; font-size: .7rem; }
   /* «Спасылка» на вузкім экране — толькі іконка; подпіс вяртаецца на момант «Скапіявана» */
   .chip.share:not(.on) { width: 36px; padding: 0; justify-content: center; }

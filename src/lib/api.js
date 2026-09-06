@@ -40,8 +40,11 @@ export function parseIndex(idx) {
 }
 
 const chunkCache = new Map();
+// фрагменты, ужо перачытаныя з сеткі пасля несупадзення з індэксам: другі раз за адзін індэкс не перачытваем,
+// інакш кожная картка старонкі (да 50) слала б свой запыт таго ж фрагмента
+const refreshed = new Set();
 /** Індэкс перазагружаны — фрагменты ў памяці могуць не адпавядаць новым пазіцыям. */
-export const clearChunks = () => chunkCache.clear();
+export const clearChunks = () => { chunkCache.clear(); refreshed.clear(); };
 
 export async function fetchIndex(fresh) {
   const idx = parseIndex(await getJson('index.json', opts(fresh)));
@@ -49,10 +52,15 @@ export async function fetchIndex(fresh) {
   return idx;
 }
 
-/** fresh=true — абысці кэшы (фрагмент не супаў з індэксам: сайт абнавіўся падчас сесіі). */
+/**
+ * fresh=true — абысці кэшы (фрагмент не супаў з індэксам: сайт абнавіўся падчас сесіі). Свежы запыт на фрагмент
+ * робіцца адзін раз да наступнай перазагрузкі індэкса (clearChunks); паралельныя выклікі дзеляць той жа promise.
+ */
 export function fetchChunk(n, fresh = false) {
-  if (fresh || !chunkCache.has(n)) {
-    const p = getJson(`chunks/${n}.json`, opts(fresh)).catch((e) => { chunkCache.delete(n); throw e; });
+  const reload = fresh && !refreshed.has(n);
+  if (reload || !chunkCache.has(n)) {
+    if (reload) refreshed.add(n);
+    const p = getJson(`chunks/${n}.json`, opts(reload)).catch((e) => { chunkCache.delete(n); refreshed.delete(n); throw e; });
     chunkCache.set(n, p);
   }
   return chunkCache.get(n);

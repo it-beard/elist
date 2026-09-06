@@ -30,7 +30,7 @@ jobs:
     name: Абнавіць базу
     runs-on: ubuntu-latest
     if: github.event_name != 'push'
-    timeout-minutes: 45   # тры крыніцы, ~25 МБ файлаў з павольных сервераў і паўторы спроб
+    timeout-minutes: 55   # горшы выпадак: матэрыялы да ~20 хв, фарміраванні ~3, крок фізічных асоб да 25 (свой ліміт ніжэй) + запас
     permissions:
       contents: write   # каміт data/ у main
     steps:
@@ -48,10 +48,12 @@ jobs:
         run: npm run update
         env:
           UPDATE_FORCE: ${{ inputs.force }}
-      # Другі спіс — пералік экстрэмісцкіх фарміраванняў (МУС/КДБ, .xlsx): раз на суткі (толькі ранішні cron,
-      # ручны запуск і паўторы). Збой гэтай крыніцы не спыняе абнаўленне матэрыялаў і дэплой: і сеткавыя памылкі,
-      # і засцярогі скрыпт сам піша ў formations-meta.json як sourceError (сайт папярэдзіць, alert.mjs source скажа адміну).
+      # Другі спіс — пералік экстрэмісцкіх фарміраванняў (МУС/КДБ, .xlsx): раз на суткі (ранішні cron, ручны запуск
+      # і паўторы; вячэрні cron яго прапускае — але пасля канфлікту каміта ніжэй ён бяжыць зноў безумоўна, у любым
+      # запуску). Збой гэтай крыніцы не спыняе абнаўленне матэрыялаў і дэплой: і сеткавыя памылкі, і засцярогі скрыпт
+      # сам піша ў formations-meta.json як sourceError (сайт папярэдзіць, alert.mjs source скажа адміну).
       - name: Абнавіць пералік экстрэмісцкіх фарміраванняў (раз на суткі)
+        id: formations
         if: github.event.schedule != '17 16 * * *'
         continue-on-error: true
         run: npm run update:formations
@@ -60,8 +62,10 @@ jobs:
       # Трэці спіс — пералік фізічных асоб (МУС, некалькі .doc на той жа старонцы). Апошняя частка дапаўняецца амаль
       # штотыдня, таму правяраем пры кожным запуску. Файлы вялікія (~20 МБ разам), сервер МУС часам абрывае спампоўку —
       # скрыпт паўтарае спробы сам у межах 18 хвілін; любы збой (крыніца, фармат, засцярогі) не спыняе дэплой:
-      # sourceError у persons-meta.json, сайт папярэдзіць, alert.mjs source скажа адміну. Ліміт кроку — на выпадак завісання.
+      # sourceError у persons-meta.json, сайт папярэдзіць, alert.mjs source скажа адміну. Ліміт кроку — на выпадак завісання
+      # (тады меты не будзе — пра гэта alert.mjs source даведаецца з выніку кроку, PERSONS_STEP).
       - name: Абнавіць пералік фізічных асоб (МУС)
+        id: persons
         continue-on-error: true
         timeout-minutes: 25
         run: npm run update:persons
@@ -75,12 +79,16 @@ jobs:
           TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
           TELEGRAM_TEST: ${{ inputs.telegram_test }}
           SITE_URL: https://elist.itbeard.com/
+      # Вынікі крокаў пералікаў МУС: крок упаў ці забіты таймаўтам да запісу меты — sourceError няма, і без гэтага
+      # ніхто б не даведаўся.
       - name: Папярэдзіць адміна, калі змяніўся стан крыніцы
         if: always()
         run: node scripts/alert.mjs source
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+          FORMATIONS_STEP: ${{ steps.formations.outcome }}
+          PERSONS_STEP: ${{ steps.persons.outcome }}
       # Каміт заўжды пасля дайджэсту: data/notified.json з адзнакамі пра адпраўку мусіць трапіць у рэпо,
       # інакш наступны запуск прышле тое самае паўторна. Перад push — rebase і паўторы: паралельны push
       # у main (напрыклад, ваш каміт з кодам) не павінен губляць гэты каміт і валіць дэплой.

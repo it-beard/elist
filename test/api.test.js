@@ -34,3 +34,36 @@ describe('parseIndex', () => {
     expect(items[3].h).toContain('суда быховского района');
   });
 });
+
+describe('fetchChunk — свежы перачытванне фрагмента', () => {
+  it('пасля несупадзення з індэксам фрагмент перачытваецца з сеткі адзін раз; clearChunks дазваляе зноў', async () => {
+    const { fetchChunk, clearChunks } = await import('../src/lib/api.js');
+    const calls = [];
+    globalThis.fetch = async (url, init) => { calls.push([url, init?.cache]); return { ok: true, json: async () => [{ id: `r${calls.length}` }] }; };
+    clearChunks();
+    const a = await fetchChunk(3);
+    expect(calls).toHaveLength(1);
+    expect(calls[0][1]).toBeUndefined();
+    // тры карткі адной старонкі адначасова просяць свежы фрагмент — адзін запыт з cache: 'reload', той жа promise
+    const [b, c, d] = await Promise.all([fetchChunk(3, true), fetchChunk(3, true), fetchChunk(3, true)]);
+    expect(calls).toHaveLength(2);
+    expect(calls[1][1]).toBe('reload');
+    expect(b).toBe(c); expect(c).toBe(d);
+    expect(b).not.toBe(a);
+    // звычайны і свежы запыт цяпер аддаюць перачытаны фрагмент без сеткі
+    expect(await fetchChunk(3)).toBe(b);
+    expect(await fetchChunk(3, true)).toBe(b);
+    expect(calls).toHaveLength(2);
+    // індэкс перазагружаны — можна перачытаць зноў
+    clearChunks();
+    await fetchChunk(3, true);
+    expect(calls).toHaveLength(3);
+    // няўдалы свежы запыт не блакуе паўтор
+    globalThis.fetch = async () => ({ ok: false, status: 503 });
+    clearChunks();
+    await expect(fetchChunk(4, true)).rejects.toThrow(/503/);
+    globalThis.fetch = async () => ({ ok: true, json: async () => [] });
+    await expect(fetchChunk(4, true)).resolves.toEqual([]);
+    delete globalThis.fetch;
+  });
+});
