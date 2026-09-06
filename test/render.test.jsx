@@ -95,8 +95,9 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       expect(base).not.toContain(t.facet.p);
       expect(base).not.toContain(t.any);
       expect(base).toContain(t.sortNewest);
-      const multi = render(lang, <Options value={OPTS} onChange={() => {}} multiWord share={{ copy() {}, copied: false }} watch={{ on: false, toggle() {} }} />);
+      const multi = render(lang, <Options value={{ ...OPTS, any: true }} onChange={() => {}} multiWord share={{ copy() {}, copied: false }} watch={{ on: false, toggle() {} }} />);
       expect(multi).toContain(t.any);
+      expect(multi).toContain(`aria-pressed="true" title="${t.anyTitle}"`);
       expect(multi).toContain('chip share');
       expect(multi).toContain(`aria-label="${t.shareQuery}"`);
       expect(multi).toContain(t.watchAdd);

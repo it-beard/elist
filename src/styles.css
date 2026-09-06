@@ -69,7 +69,6 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 
 /* ---- пошук ---- */
 .search { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 0 10px; }
-.search::after { content: ""; position: absolute; left: 0; right: 0; bottom: -12px; height: 12px; background: linear-gradient(var(--bg), transparent); pointer-events: none; }
 .field { position: relative; display: flex; align-items: center; }
 .field .icon { position: absolute; left: 16px; width: 20px; height: 20px; color: var(--muted); pointer-events: none; }
 #q { width: 100%; font: inherit; font-size: 1.05rem; padding: 14px 48px; border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--card); color: var(--text); outline: none; box-shadow: var(--shadow); -webkit-appearance: none; appearance: none; }
@@ -80,7 +79,8 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .clear:hover, .clear:focus-visible { background: var(--line); color: var(--text); }
 
 /* радок чыпаў пераносіцца, а не пракручваецца: пасля пераносу выбару спіса ва ўкладкі (Facets) тут звычайна адзін радок */
-.options { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.options { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.option-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .chip, .sort select { flex: none; font: inherit; font-size: .88rem; height: 36px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line-strong); background: var(--card); color: var(--text); cursor: pointer; white-space: nowrap; }
 .chip:hover { border-color: var(--accent); }
 .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -93,8 +93,8 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .chip.on.form { background: var(--form); border-color: var(--form); }
 .chip.on.person { background: var(--person); border-color: var(--person); }
 
-/* ---- укладкі-спісы пад пошукам: «Усе · Матэрыялы · Фарміраванні · Асобы» з лічбамі ---- */
-.facets { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: -4px 0 10px; }
+/* ---- укладкі-спісы пад пошукам: «Усе запісы · Матэрыялы · Фарміраванні · Асобы» з лічбамі ---- */
+.facets { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 0 0 10px; }
 .facet { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .84rem; height: 30px; padding: 0 10px; border: 1px solid transparent; border-radius: 99px; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
 .facet:hover { border-color: var(--line-strong); color: var(--text); }
 .facet.on { background: var(--line); color: var(--text); font-weight: 600; }
@@ -112,11 +112,16 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 
 /* ---- спіс назірання ---- */
 .watch { margin: 6px 0 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
-.watch-head { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }
-.watch-head .dot { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: .95rem; background: var(--line); color: var(--muted); }
-.watch.ok .dot { background: var(--new-soft); color: var(--new); }
-.watch.warn .dot { background: var(--warn-soft); color: var(--warn); }
-.watch.alert .dot { background: var(--accent); color: #fff; }
+.watch-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; font-weight: 600; }
+.watch-label-short { display: none; }
+.watch-toggle .dot { flex: none; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); }
+.watch-toggle.ok .dot { background: var(--new-soft); color: var(--new); }
+.watch-toggle.warn .dot { background: var(--warn-soft); color: var(--warn); }
+.watch-toggle.alert { border-color: var(--accent); }
+.watch-toggle.alert .dot, .watch-toggle.alert .watch-count { background: var(--accent); color: #fff; }
+.watch-toggle .chev { width: 14px; height: 14px; }
+.watch-count { min-width: 18px; padding: 0 4px; border-radius: 99px; background: var(--line); font-size: .75rem; font-variant-numeric: tabular-nums; }
+.watch-head { padding: 10px 14px; }
 .watch.alert { border-color: var(--accent); }
 .watch-status { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .watch-status strong { font-size: .98rem; }
@@ -209,9 +214,24 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
   #q { font-size: 16px; padding: 13px 44px; }
   .field .icon { left: 14px; }
   .item { padding: 12px 14px; border-radius: 12px; }
-  .sort { margin-left: 0; }
+  /* Дзве роўныя кнопкі без пустых ячэек: калі няма рэжыму «любое слова», побач з сартаваннем — назіранне. */
+  .options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .options .chip, .options .sort select { height: 40px; font-size: .82rem; }
+  .option-any { grid-column: 1; grid-row: 1; width: 100%; padding: 0 8px; }
+  .options .sort { grid-column: 2; grid-row: 1; min-width: 0; width: 100%; margin-left: 0; }
+  .options .sort select { width: 100%; padding-left: 8px; padding-right: 24px; background-position: right 7px center; background-size: 14px; }
+  .options .watch-toggle, .option-actions { grid-column: 1 / -1; grid-row: 2; justify-self: start; }
+  .options:not(.has-any) .watch-toggle, .options:not(.has-any) .option-actions { grid-column: 1; grid-row: 1; width: 100%; }
+  .options:not(.has-any):not(.has-actions) .sort { grid-column: 1; }
+  .options:not(.has-any) .option-actions .star { flex: 1; min-width: 0; padding: 0 8px; }
+  .options .watch-toggle { justify-content: center; gap: 4px; padding: 0 8px; }
+  .watch-label { display: none; }
+  .watch-label-short { display: inline; }
+  .watch-toggle .dot { width: 14px; height: 14px; }
+  .watch-toggle .chev { width: 12px; height: 12px; }
+  .watch-count { min-width: 16px; padding: 0 3px; font-size: .7rem; }
   /* «Спасылка» на вузкім экране — толькі іконка; подпіс вяртаецца на момант «Скапіявана» */
-  .chip.share:not(.on) { width: 36px; padding: 0; justify-content: center; }
+  .chip.share:not(.on) { width: 40px; padding: 0; justify-content: center; }
   .chip.share:not(.on) .lbl { display: none; }
   .watch-q .cnt { flex-direction: column; align-items: flex-end; gap: 2px; }
   .watch-actions .chip { flex: 1 1 auto; text-align: center; }

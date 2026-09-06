@@ -151,22 +151,22 @@ export default function App() {
         {route.name === 'stats' && (status === 'ready' ? <StatsPage items={items} initialList={['f', 'p'].includes(route.arg) ? route.arg : 'm'} /> : <p className="summary">{status === 'error' ? t.loadError(error) : t.loading}</p>)}
         {!['new', 'r', 'stats'].includes(route.name) && (
           <>
-            <div className="search">
-              <SearchBar value={query} onChange={setQuery} />
-              <Options value={opts} onChange={setOpts} watch={watchChip} share={shareChip} multiWord={tokens.length > 1} />
-            </div>
+            <WatchPanel
+              watch={watch} meta={meta} refreshing={refreshing} refreshError={refreshError} checkedAt={checkedAt}
+              onReload={reload} onOpen={openWatch} onClearAll={clearAll} visible={status === 'ready' && !active}
+              renderControls={(watchPanel) => (
+                <div className="search">
+                  <SearchBar value={query} onChange={setQuery} />
+                  <Options value={opts} onChange={setOpts} watch={watchChip} share={shareChip} watchPanel={watchPanel} multiWord={tokens.length > 1} />
+                </div>
+              )}
+            />
             {status === 'loading' && <p className="summary">{t.loading}</p>}
             {status === 'error' && <p className="summary error">{t.loadError(error)}</p>}
             {status === 'ready' && (
               <>
-                {!active && (
-                  <WatchPanel
-                    watch={watch} meta={meta} refreshing={refreshing} refreshError={refreshError} checkedAt={checkedAt}
-                    onReload={reload} onOpen={openWatch} onClearAll={clearAll}
-                  />
-                )}
-                <p className="summary" aria-live="polite">
-                  {!searching ? (hasLists ? t.totalLabel : t.total(live.m + live.f + live.p)) : mode === 'fuzzy' ? t.fuzzy(results.length) : all.results.length ? t.found(all.results.length) : t.nothing}
+                <p className={searching || !hasLists ? 'summary' : 'vh'} aria-live="polite">
+                  {!searching ? t.total(live.m + live.f + live.p) : mode === 'fuzzy' ? t.fuzzy(results.length) : all.results.length ? t.found(all.results.length) : t.nothing}
                 </p>
                 {hasLists && <Facets counts={facetCounts} value={list} onChange={(l) => setFlags((f) => ({ ...f, list: l }))} lists={lists} />}
                 {searching && list && !results.length && all.results.length > 0 && <p className="hint">{t.facetEmpty}</p>}
