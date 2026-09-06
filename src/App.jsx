@@ -128,7 +128,6 @@ export default function App() {
   const shareChip = query.trim() && status === 'ready' ? { copy: copyQueryLink, copied } : null;
 
   const searching = tokens.length > 0;
-  const active = searching || opts.onlyNew || Boolean(list);
   const newCount = items ? items.filter((it) => !it.replacedBy && isRecent(it.added)).length : 0;
   // дадатковыя спісы (фарміраванні МУС/КДБ, фізічныя асобы МУС): укладкі-спісы і асобны падлік — толькі калі яны ёсць у базе
   const lists = useMemo(() => ({ f: Boolean(counts?.f), p: Boolean(counts?.p) }), [counts]);
@@ -170,7 +169,7 @@ export default function App() {
                 </p>
                 {hasLists && <Facets counts={facetCounts} value={list} onChange={(l) => setFlags((f) => ({ ...f, list: l }))} lists={lists} />}
                 {searching && list && !results.length && all.results.length > 0 && <p className="hint">{t.facetEmpty}</p>}
-                {active && results.length > 0 && <Consequences formations={Boolean(shown.f)} persons={Boolean(shown.p)} />}
+                {searching && results.length > 0 && <Consequences formations={Boolean(shown.f)} persons={Boolean(shown.p)} />}
                 <ResultList results={results} tokens={hl} chunkSize={chunkSize} />
               </>
             )}
