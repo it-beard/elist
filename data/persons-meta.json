@@ -1,7 +1,7 @@
 {
   "updated": "2026-09-05",
-  "checked": "2026-09-05",
-  "checkedAt": "2026-09-05T14:04:18.967Z",
+  "checked": "2026-09-06",
+  "checkedAt": "2026-09-06T10:46:52.412Z",
   "sourceError": null,
   "sourcePage": "https://www.mvd.gov.by/ru/news/8642",
   "sourceFiles": [
@@ -11,6 +11,19 @@
     "https://www.mvd.gov.by/uploads/news/8642/c8a40a5dfd7d0b88621e876dc84e1192dc40065f.doc"
   ],
   "parts": 4,
+  "partCounts": [
+    1466,
+    1415,
+    1583,
+    2410
+  ],
+  "parse": {
+    "excluded": 15,
+    "skipped": 0,
+    "unanchored": 0,
+    "leftover": 0,
+    "noIncluded": 0
+  },
   "total": 6874,
   "lastAdded": null,
   "lastAddedCount": 0

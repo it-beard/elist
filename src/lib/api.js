@@ -20,8 +20,9 @@ const LIST = { 1: 'f', 2: 'p' };
 
 /**
  * Індэкс → масіў зручных для пошуку аб’ектаў. list: 'm' — матэрыял, 'f' — экстрэмісцкае фарміраванне,
- * 'p' — фізічная асоба (у старым кэшы поля няма — усё матэрыялы); n — нумар у сваім спісе: афіцыйны № з крыніцы,
- * калі ён ёсць (фізічныя асобы), інакш пазіцыя ў публікацыі. Чыстая функцыя — каб тэставаць без сеткі.
+ * 'p' — фізічная асоба (у старым кэшы поля няма — усё матэрыялы); n — нумар у сваім спісе: для матэрыялаў
+ * і фарміраванняў — пазіцыя ў публікацыі, для фізічных асоб — афіцыйны № з крыніцы або null (свежае дапаўненне,
+ * якому МУС нумар яшчэ не даў: пазіцыя тут не падыходзіць, бо супадала б з чужымі нумарамі). Чыстая функцыя.
  */
 export function parseIndex(idx) {
   const counters = { m: 0, f: 0, p: 0 };
@@ -31,21 +32,27 @@ export function parseIndex(idx) {
     return {
       i, id, date, added, removed, editOf: editOf || '', replacedBy: replacedBy || '',
       art: l === 'f' ? DEC[art] || 'court' : l === 'p' ? PSER[art] || 'other' : ART[art] || 'none',
-      list: l, n: num || pos,
+      list: l, n: l === 'p' ? num || null : pos,
       h: `${name}\n${idx.types[t]}\n${idx.courts[c]}\n${idx.dates[date] || ''}`,
     };
   });
   return { chunkSize: idx.chunk, items, counts: counters };
 }
 
+const chunkCache = new Map();
+/** Індэкс перазагружаны — фрагменты ў памяці могуць не адпавядаць новым пазіцыям. */
+export const clearChunks = () => chunkCache.clear();
+
 export async function fetchIndex(fresh) {
-  return parseIndex(await getJson('index.json', opts(fresh)));
+  const idx = parseIndex(await getJson('index.json', opts(fresh)));
+  if (fresh) clearChunks();
+  return idx;
 }
 
-const chunkCache = new Map();
-export function fetchChunk(n) {
-  if (!chunkCache.has(n)) {
-    const p = getJson(`chunks/${n}.json`).catch((e) => { chunkCache.delete(n); throw e; });
+/** fresh=true — абысці кэшы (фрагмент не супаў з індэксам: сайт абнавіўся падчас сесіі). */
+export function fetchChunk(n, fresh = false) {
+  if (fresh || !chunkCache.has(n)) {
+    const p = getJson(`chunks/${n}.json`, opts(fresh)).catch((e) => { chunkCache.delete(n); throw e; });
     chunkCache.set(n, p);
   }
   return chunkCache.get(n);

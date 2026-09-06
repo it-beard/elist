@@ -66,7 +66,7 @@ export function geo({ site = process.env.SITE_URL || 'https://elist.itbeard.com/
         const jsonLd = JSON.stringify(siteJsonLd({ site: siteUrl, facts: f, lang: 'be' }));
         const head = `<link rel="canonical" href="${esc(siteUrl)}">
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
-<link rel="search" type="application/opensearchdescription+xml" title="Спіс экстрэмісцкіх матэрыялаў" href="${base}opensearch.xml">
+<link rel="search" type="application/opensearchdescription+xml" title="Экстр. спісы" href="${base}opensearch.xml">
 <meta property="og:url" content="${esc(siteUrl)}">
 <meta property="og:site_name" content="Пошук па экстрэмісцкіх спісах Беларусі">
 <meta property="og:locale" content="be_BY">

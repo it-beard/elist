@@ -79,17 +79,32 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .clear svg { width: 18px; height: 18px; }
 .clear:hover, .clear:focus-visible { background: var(--line); color: var(--text); }
 
-.options { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-.options::-webkit-scrollbar { display: none; }
+/* радок чыпаў пераносіцца, а не пракручваецца: пасля пераносу выбару спіса ва ўкладкі (Facets) тут звычайна адзін радок */
+.options { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .chip, .sort select { flex: none; font: inherit; font-size: .88rem; height: 36px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line-strong); background: var(--card); color: var(--text); cursor: pointer; white-space: nowrap; }
 .chip:hover { border-color: var(--accent); }
 .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
 .chip.star { font-weight: 600; }
 .chip.danger { color: var(--accent); }
 .chip:disabled { opacity: .6; cursor: default; }
-/* чыпы спісаў «Фарміраванні» / «Асобы» ва ўключаным стане — колерам свайго спісу */
+.chip.share { display: inline-flex; align-items: center; gap: 6px; }
+.chip .ico { width: 16px; height: 16px; flex: none; }
+/* чыпы спісаў у статыстыцы ва ўключаным стане — колерам свайго спісу */
 .chip.on.form { background: var(--form); border-color: var(--form); }
 .chip.on.person { background: var(--person); border-color: var(--person); }
+
+/* ---- укладкі-спісы пад пошукам: «Усе · Матэрыялы · Фарміраванні · Асобы» з лічбамі ---- */
+.facets { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: -4px 0 10px; }
+.facet { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .84rem; height: 30px; padding: 0 10px; border: 1px solid transparent; border-radius: 99px; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.facet:hover { border-color: var(--line-strong); color: var(--text); }
+.facet.on { background: var(--line); color: var(--text); font-weight: 600; }
+.facet.on.m { background: var(--accent-soft); color: var(--accent); }
+.facet.on.f { background: var(--form-soft); color: var(--form); }
+.facet.on.p { background: var(--person-soft); color: var(--person); }
+.facet.zero { opacity: .55; }
+.facet .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.facet.m .dot { background: var(--accent); } .facet.f .dot { background: var(--form); } .facet.p .dot { background: var(--person); }
+.facet .cnt { font-variant-numeric: tabular-nums; opacity: .8; font-weight: 400; }
 .sort { flex: none; margin-left: auto; }
 .sort select { -webkit-appearance: none; appearance: none; padding-right: 30px; color: var(--muted);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -195,6 +210,9 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
   .field .icon { left: 14px; }
   .item { padding: 12px 14px; border-radius: 12px; }
   .sort { margin-left: 0; }
+  /* «Спасылка» на вузкім экране — толькі іконка; подпіс вяртаецца на момант «Скапіявана» */
+  .chip.share:not(.on) { width: 36px; padding: 0; justify-content: center; }
+  .chip.share:not(.on) .lbl { display: none; }
   .watch-q .cnt { flex-direction: column; align-items: flex-end; gap: 2px; }
   .watch-actions .chip { flex: 1 1 auto; text-align: center; }
 }

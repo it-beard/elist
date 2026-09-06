@@ -14,7 +14,7 @@ import Consequences from './Consequences.jsx';
 export default function RecordPage({ id, items, chunkSize, watch }) {
   const { t } = useLang();
   const item = items.find((it) => it.id === id);
-  const rec = useRecord(item ? item.i : 0, chunkSize);
+  const rec = useRecord(item ? item.i : 0, chunkSize, item?.id);
   const [copied, setCopied] = useState(false);
   const url = location.href;
   const copy = async () => {
@@ -25,7 +25,7 @@ export default function RecordPage({ id, items, chunkSize, watch }) {
   // назіраць за назвай запісу — бяром спасылку, калі яна ёсць, інакш першыя словы назвы (для асобы — імя)
   const watchSrc = rec ? `${rec.links || ''}\n${rec.name || ''}` : '';
   const watchQuery = rec?.name ? (watchSrc.match(/(?:https?:\/\/|t\.me\/|@)[^\s,;"]+/) || [rec.name.replace(/\s+/g, ' ').slice(0, 60)])[0] : null;
-  const details = rec && !rec.error ? (
+  const details = rec && !rec.error && !rec.stale ? (
     isP ? [
       [t.recBirth, rec.birth],
       [t.recCitizenship, rec.citizenship],
@@ -33,7 +33,7 @@ export default function RecordPage({ id, items, chunkSize, watch }) {
       [t.recIncludedP, rec.included],
       [t.recAddressP, rec.address],
       [t.recStatus, rec.info],
-      [t.recNum, rec.num ? `№${rec.num}` : ''],
+      [t.recNum, item?.n ? `№${item.n}` : ''],
     ] : isF ? [
       [t.recIncluded, rec.included ? fmtDate(rec.included) : ''],
       [t.recAddress, rec.address],
@@ -69,7 +69,8 @@ export default function RecordPage({ id, items, chunkSize, watch }) {
             )}
           </div>
           <p className="hint">
-            {isP ? (rec?.num ? t.positionP(rec.num) : t.positionPNew) : isF ? t.positionF(item.n) : t.position(item.n ?? item.i + 1)}
+            {/* нумар асобы — з індэкса (item.n), каб падказка не залежала ад загрузкі фрагмента */}
+            {isP ? (item.n ? t.positionP(item.n) : t.positionPNew) : isF ? t.positionF(item.n) : t.position(item.n ?? item.i + 1)}
           </p>
           <Consequences open formations={isF} persons={isP} />
         </>

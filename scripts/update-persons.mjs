@@ -5,11 +5,12 @@
  * што і пералік фарміраванняў (SOURCE_PAGE, пререндэр ?_escaped_fragment_=). Старыя часткі не мяняюцца,
  * апошняя дапаўняецца амаль штотыдня — таму правяраем усе часткі пры кожным запуску.
  *
- * Спампоўвае ўсе часткі (з паўторамі: сервер МУС часам абрывае вялікія файлы) → разбірае
- * (scripts/parse-persons.mjs) → даўносіць запісы ў data/persons.json. Усё ці нічога: калі хоць адна частка
- * не спампавалася, база не кранаецца, а ў data/persons-meta.json пішацца sourceError (сайт папярэдзіць).
- * Структура і засцярогі — як у scripts/update-formations.mjs; праўкі ў крыніцы пазнаюцца (pairPersonEdits)
- * і не лічацца новымі запісамі. Першы імпарт: added = null для ўсіх — нічога не «новае», дайджэст маўчыць.
+ * Спампоўвае ўсе часткі (з паўторамі: сервер МУС часам абрывае вялікія файлы; на ўсё — агульны ліміт часу
+ * BUDGET, каб крок ніколі не паваліў увесь джоб) → разбірае (scripts/parse-persons.mjs) → зліццё з
+ * data/persons.json (mergePersons). Усё ці нічога: любы збой — недаступная крыніца, змена фармату, падазроныя
+ * лічбы — пакідае базу як была, а ў data/persons-meta.json пішацца sourceError: сайт папярэдзіць, адмін
+ * атрымае алерт (scripts/alert.mjs source). Сеткавы збой — exit 0 (не наш клопат), збой засцярог — exit 1.
+ * Першы імпарт: added = null для ўсіх — нічога не «новае», дайджэст маўчыць.
  *
  * Лакальна: node scripts/update-persons.mjs частка1.doc частка2.doc … (у парадку частак).
  */
@@ -17,7 +18,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import WordExtractor from 'word-extractor';
-import { pairPersonEdits, parsePersons } from './parse-persons.mjs';
+import { mergePersons, parsePersons } from './parse-persons.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DATA_DIR = path.join(ROOT, 'data');
@@ -26,18 +27,29 @@ const META_FILE = path.join(DATA_DIR, 'persons-meta.json');
 const CACHE_DIR = path.join(ROOT, '.cache');
 const SOURCE_PAGE = process.env.PERSONS_SOURCE || 'https://www.mvd.gov.by/ru/news/8642';
 const UA = 'Mozilla/5.0 (compatible; extremist-materials-search; +https://github.com)';
-const PAGE_TIMEOUT = 60_000, FILE_TIMEOUT = 240_000, RETRIES = 3;
+const PAGE_TIMEOUT = 60_000, FILE_TIMEOUT = 180_000, RETRIES = 3;
+const BUDGET = Number(process.env.PERSONS_BUDGET_MS) || 18 * 60_000; // на ўсе спампоўкі разам — менш за таймаўт джоба
 const MIN_TOTAL = 1000;     // менш — узятыя не тыя файлы ці змяніўся фармат
-const MIN_PART = 50;        // кожная частка — сотні запісаў; амаль пустая частка = сапсаваны файл
+const MIN_PART = 50;        // для ўсіх частак, акрамя апошняй: новая «Часть N» першыя тыдні законна маленькая
+const MIN_BYTES = 15_000;   // .doc з табліцай меншым не бывае
+const SHRINK = 0.02;        // частка «паменшылася» больш чым на 2 % (і больш за 5 запісаў) — падазрона
 const MAX_ADDED = Number(process.env.MAX_ADDED) || 300; // пералік расце на дзясяткі за тыдзень
 const FORCE = ['1', 'true'].includes(process.env.UPDATE_FORCE);
 
+const started = Date.now();
 const now = new Date().toISOString();
 const today = now.slice(0, 10);
 const localFiles = process.argv.slice(2); // неабавязкова: лакальныя .doc для тэсту (у парадку частак)
+const remaining = () => BUDGET - (Date.now() - started);
 
 async function readJson(file, fallback) {
   try { return JSON.parse(await fs.readFile(file, 'utf8')); } catch { return fallback; }
+}
+
+/** Пазначыць збой у меце (сайт папярэдзіць, адмін атрымае алерт), базу не чапаць. */
+async function failMeta(message) {
+  const meta = await readJson(META_FILE, {});
+  await fs.writeFile(META_FILE, JSON.stringify({ ...meta, checked: today, checkedAt: now, sourceError: message }, null, 2));
 }
 
 /**
@@ -54,27 +66,47 @@ export function findPersonDocs(html, pageUrl) {
   return uniq.sort((a, b) => part(a) - part(b) || a.i - b.i).map(({ url, label }) => ({ url, label }));
 }
 
+/**
+ * Засцярогі па частках: усе, акрамя апошняй, не карацейшыя за MIN_PART; разам не менш за MIN_TOTAL;
+ * раней бачаная частка (той жа парадкавы нумар) не паменшылася больш чым на SHRINK. Вяртае паведамленне ці null.
+ */
+export function partsProblem(counts, prevCounts = [], { minPart = MIN_PART, minTotal = MIN_TOTAL, shrink = SHRINK, force = false } = {}) {
+  const total = counts.reduce((a, b) => a + b, 0);
+  const small = counts.slice(0, -1).findIndex((n) => n < minPart);
+  if (small >= 0) return `Занадта мала запісаў у частцы ${small + 1} (${counts[small]}) — магчыма, змяніўся фармат файла`;
+  if (total < minTotal) return `Занадта мала запісаў (${total}) — магчыма, змяніўся фармат файла ці ўзятыя не тыя файлы`;
+  if (!force) {
+    for (let i = 0; i < counts.length; i++) {
+      const prev = prevCounts[i];
+      if (prev && counts[i] < prev - Math.max(5, prev * shrink)) return `Падазрона: частка ${i + 1} паменшылася з ${prev} да ${counts[i]} запісаў. Абнаўленне спынена; каб прыняць, задайце UPDATE_FORCE=1.`;
+    }
+  }
+  return null;
+}
+
 async function fetchPage() {
   const url = `${SOURCE_PAGE}${SOURCE_PAGE.includes('?') ? '&' : '?'}_escaped_fragment_=`;
-  const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(PAGE_TIMEOUT) });
+  const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(Math.min(PAGE_TIMEOUT, Math.max(1000, remaining()))) });
   if (!res.ok) throw new Error(`Не ўдалося атрымаць старонку: HTTP ${res.status}`);
   return res.text();
 }
 
-/** Спампаваць з паўторамі: абарваны файл не разбіраецца (word-extractor кідае памылку) — бяром зноў. */
+/** Спампаваць з паўторамі ў межах агульнага ліміту часу: абарваны файл не разбіраецца — бяром зноў. */
 async function download(url) {
   let lastErr;
   for (let attempt = 1; attempt <= RETRIES; attempt++) {
+    const left = remaining();
+    if (left < 20_000) throw new Error(`вычарпаны ліміт часу на спампоўку (${Math.round(BUDGET / 60_000)} хв)`);
     try {
-      const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(FILE_TIMEOUT) });
+      const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(Math.min(FILE_TIMEOUT, left)) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const buf = Buffer.from(await res.arrayBuffer());
       const expected = Number(res.headers.get('content-length'));
       if (expected && buf.length !== expected) throw new Error(`абарваны файл (${buf.length} з ${expected} байт)`);
-      if (buf.length < 100_000) throw new Error('файл падазрона малы');
-      const items = await parseDoc(buf);
+      if (buf.length < MIN_BYTES) throw new Error('файл падазрона малы');
+      const { items, stats } = await parseDoc(buf);
       console.log(`Спампавана: ${url} (${(buf.length / 1e6).toFixed(1)} MB, Last-Modified: ${res.headers.get('last-modified') || '?'}), запісаў: ${items.length}`);
-      return { buf, items };
+      return { buf, items, stats };
     } catch (e) {
       lastErr = e;
       console.warn(`Спроба ${attempt}/${RETRIES} не ўдалася (${url}): ${e.message}`);
@@ -88,16 +120,18 @@ async function parseDoc(buf) {
   const doc = await new WordExtractor().extract(buf);
   const stats = {};
   const items = parsePersons(doc.getBody(), stats);
-  if (stats.skipped || stats.unanchored) console.warn(`Разбор: прапушчана якараў без імя ${stats.skipped}, падстаў без даты побач ${stats.unanchored}`);
+  if (stats.skipped || stats.unanchored || stats.leftover || stats.noIncluded) {
+    console.warn(`Разбор: якараў без імя ${stats.skipped}, падстаў без даты побач ${stats.unanchored}, адкінутых ячэек ${stats.leftover}, запісаў без даты ўключэння ${stats.noIncluded}`);
+  }
   if (stats.excluded) console.log(`Выключаных з пераліку (нумар без даных): ${stats.excluded}`);
-  return items;
+  return { items, stats };
 }
 
 async function main() {
-  let parts; // [{ url, items, buf }]
+  let parts; // [{ url, label, items, stats, buf }]
   if (localFiles.length) {
     parts = [];
-    for (const f of localFiles) parts.push({ url: `file://${path.resolve(f)}`, items: await parseDoc(await fs.readFile(f)) });
+    for (const f of localFiles) parts.push({ url: `file://${path.resolve(f)}`, ...(await parseDoc(await fs.readFile(f))) });
   } else {
     try {
       const docs = findPersonDocs(await fetchPage(), SOURCE_PAGE);
@@ -105,17 +139,18 @@ async function main() {
       parts = [];
       for (const d of docs) parts.push({ url: d.url, label: d.label, ...(await download(d.url)) });
     } catch (e) {
-      const meta = await readJson(META_FILE, {});
-      await fs.writeFile(META_FILE, JSON.stringify({ ...meta, checked: today, checkedAt: now, sourceError: e.message }, null, 2));
+      // Крыніца недаступная — база застаецца, сайт пакажа папярэджанне, адмін атрымае алерт пры змене стану.
+      await failMeta(e.message);
       console.warn(`Крыніца пераліку фізічных асоб недаступная: ${e.message}. sourceError запісаны, база не зменена.`);
       return;
     }
   }
+  const meta = await readJson(META_FILE, {});
+  const counts = parts.map((p) => p.items.length);
   const parsed = parts.flatMap((p) => p.items);
-  console.log(`Разабрана запісаў у крыніцы: ${parsed.length} (${parts.map((p) => p.items.length).join(' + ')})`);
-  const small = parts.find((p) => p.items.length < MIN_PART);
-  if (small) throw new Error(`Занадта мала запісаў у частцы ${small.url} (${small.items.length}) — магчыма, змяніўся фармат файла`);
-  if (parsed.length < MIN_TOTAL) throw new Error(`Занадта мала запісаў (${parsed.length}) — магчыма, змяніўся фармат файла ці ўзятыя не тыя файлы`);
+  console.log(`Разабрана запісаў у крыніцы: ${parsed.length} (${counts.join(' + ')})`);
+  const problem = partsProblem(counts, meta.partCounts || [], { force: FORCE });
+  if (problem) throw new Error(problem);
   const dupIds = parsed.length - new Set(parsed.map((x) => x.id)).size;
   if (dupIds) console.warn(`Увага: ${dupIds} запісаў з аднолькавым id (імя + дата нараджэння + дата ўключэння) — застаецца апошні`);
   await fs.mkdir(CACHE_DIR, { recursive: true });
@@ -123,54 +158,11 @@ async function main() {
 
   await fs.mkdir(DATA_DIR, { recursive: true });
   const db = await readJson(DB_FILE, []);
-  const byId = new Map(db.map((x) => [x.id, x]));
-  const initial = db.length === 0; // першы імпарт: нічога не «новае»
-  const addedRecs = [];
-  let edited = 0;
-  const seen = new Set();
-  const FIELDS = ['num', 'name', 'translit', 'citizenship', 'birth', 'basis', 'court', 'articles', 'included', 'date', 'address', 'info'];
-  const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
-  parsed.forEach((it, i) => {
-    seen.add(it.id);
-    const ex = byId.get(it.id);
-    if (ex) {
-      // той жа чалавек: дапісаная дата ўключэння, нумар, статус ці адрас — праўка, а не новы запіс
-      const changed = FIELDS.some((k) => !same(ex[k], it[k]));
-      if (changed) { Object.assign(ex, it); ex.edited = today; edited++; }
-      ex.order = i;
-      if (ex.removed) { delete ex.removed; delete ex.replacedBy; } // запіс вярнуўся ў пералік
-    } else {
-      const rec = { ...it, order: i, added: initial ? null : today };
-      byId.set(it.id, rec);
-      addedRecs.push(rec);
-    }
-  });
-  const removedRecs = [];
-  for (const it of byId.values()) if (!seen.has(it.id) && !it.removed) removedRecs.push(it);
-
-  // Праўкі: «зніклы» + «новы» з той жа датай уключэння і амаль тым жа імем ці датай нараджэння — адзін чалавек.
-  const edits = initial ? [] : pairPersonEdits(removedRecs, addedRecs);
-  const paired = new Set();
-  for (const [old, rec] of edits) {
-    rec.added = old.added; rec.edited = today; rec.editOf = old.id;
-    old.removed = today; old.replacedBy = rec.id;
-    paired.add(old.id); paired.add(rec.id);
-    console.log(`Праўка запісу ${old.id} → ${rec.id}: ${rec.name}`);
-  }
-  const added = addedRecs.filter((r) => !paired.has(r.id)).length;
-  let removed = 0;
-  for (const it of removedRecs) if (!paired.has(it.id)) { it.removed = today; removed++; }
-
-  if (!initial && removed > Math.max(20, db.length * 0.05)) {
-    throw new Error(`Падазрона: ${removed} запісаў знікла з пераліку, ${added} дададзена. Абнаўленне спынена — праверце файлы крыніцы.`);
-  }
-  if (!initial && !FORCE && added > MAX_ADDED) {
-    throw new Error(`Падазрона: ${added} новых запісаў за адзін раз (ліміт ${MAX_ADDED}). Абнаўленне спынена; каб прыняць, задайце UPDATE_FORCE=1.`);
-  }
-  const out = [...byId.values()].sort((a, b) => a.order - b.order);
+  const { out, added, removed, edited, edits, initial } = mergePersons(db, parsed, { today, force: FORCE, maxAdded: MAX_ADDED });
+  for (const [old, rec] of edits) console.log(`Праўка запісу ${old.id} → ${rec.id}: ${rec.name}`);
   await fs.writeFile(DB_FILE, JSON.stringify(out));
 
-  const meta = await readJson(META_FILE, {});
+  const parse = parts.reduce((a, p) => { for (const k of Object.keys(p.stats || {})) a[k] = (a[k] || 0) + p.stats[k]; return a; }, {});
   await fs.writeFile(META_FILE, JSON.stringify({
     updated: added || removed || edited || edits.length || !meta.updated ? today : meta.updated,
     checked: today,
@@ -179,6 +171,8 @@ async function main() {
     sourcePage: SOURCE_PAGE,
     sourceFiles: parts.map((p) => p.url),
     parts: parts.length,
+    partCounts: counts,
+    parse,
     total: out.filter((x) => !x.removed).length,
     lastAdded: added && !initial ? today : meta.lastAdded || null,
     lastAddedCount: initial ? 0 : added || meta.lastAddedCount || 0,
@@ -186,7 +180,12 @@ async function main() {
   console.log(`Фізічныя асобы: дададзена ${added}, выпраўлена ${edited + edits.length}, знікла ${removed}, усяго ў базе ${out.length}${initial ? ' (першы імпарт — без пазнакі «новае»)' : ''}`);
 }
 
-// пры імпарце з тэстаў (findPersonDocs) нічога не запускаем
+// пры імпарце з тэстаў (findPersonDocs, partsProblem) нічога не запускаем
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch((e) => { console.error(e); process.exit(1); });
+  main().catch(async (e) => {
+    // Засцярога спрацавала ці зламаўся разбор: пазначаем у меце, каб сайт і адмін даведаліся, і падаем.
+    console.error(e);
+    try { await failMeta(e.message); } catch (e2) { console.error(e2); }
+    process.exit(1);
+  });
 }

@@ -244,7 +244,7 @@ export function faqPage({ site, facts, stats, lang, base = '/' }) {
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
-<meta name="description" content="${esc(en ? `FAQ about the extremist lists of Belarus (materials and formations): ${f.totalStr} entries as of ${f.updatedStr}, penalties under Art. 19.11 and Art. 361-1, how to check a channel or handle, what data the site stores.` : `Пытанні і адказы пра экстрэмісцкія спісы Беларусі (матэрыялы і фарміраванні): ${f.totalStr} запісаў на ${f.updatedStr}, адказнасць паводле арт. 19.11 КаАП і арт. 361-1 КК, як праверыць канал ці нік, якія даныя захоўвае сайт.`)}">
+<meta name="description" content="${esc(en ? `FAQ about the extremist lists of Belarus (materials, formations and individuals): ${f.totalStr} entries as of ${f.updatedStr}, penalties under Art. 19.11 and Art. 361-1, how to check a channel or handle, what data the site stores.` : `Пытанні і адказы пра экстрэмісцкія спісы Беларусі (матэрыялы, фарміраванні і фізічныя асобы): ${f.totalStr} запісаў на ${f.updatedStr}, адказнасць паводле арт. 19.11 КаАП і арт. 361-1 КК, як праверыць канал ці нік, якія даныя захоўвае сайт.`)}">
 <link rel="canonical" href="${esc(page)}">
 <link rel="alternate" hreflang="be" href="${esc(abs(site, 'faq.html'))}">
 <link rel="alternate" hreflang="en" href="${esc(abs(site, 'faq-en.html'))}">
@@ -291,7 +291,7 @@ ${sections}
 </main>
 
 <footer>
-<p>${en ? 'Unofficial search over the Republican list of extremist materials. The database updates automatically twice a day; entry text, court name and date are kept exactly as in the official source.' : 'Неафіцыйны пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў. База абнаўляецца аўтаматычна двойчы на дзень; тэкст запісу, назва суда і дата захоўваюцца як у афіцыйнай крыніцы.'}</p>
+<p>${en ? 'Unofficial search over three official lists: the Republican list of extremist materials and the Interior Ministry lists of extremist formations and individuals. The database updates automatically; entry text, grounds and dates are kept exactly as in the official sources.' : 'Неафіцыйны пошук па трох афіцыйных спісах: Рэспубліканскім спісе экстрэмісцкіх матэрыялаў і пераліках МУС — экстрэмісцкіх фарміраванняў і фізічных асоб. База абнаўляецца аўтаматычна; тэкст запісу, падстава і даты захоўваюцца як у афіцыйных крыніцах.'}</p>
 <p><a href="${base}">${en ? 'Search' : 'Пошук'}</a> · <a href="${base}${en ? 'faq.html' : 'faq-en.html'}">${en ? 'Па-беларуску' : 'English'}</a> · <a href="https://github.com/it-beard/elist" rel="noopener">GitHub</a> · <a href="${base}llms.txt">llms.txt</a></p>
 </footer>
 </div>
@@ -400,7 +400,7 @@ export function notFoundPage({ site, base = '/' }) {
 <header class="top"><h1>Такой старонкі няма</h1>
 <p class="sub">Спасылка магла састарэць або быць набранай з памылкай.</p></header>
 <main>
-<p class="lead">Пошук па спісе экстрэмісцкіх матэрыялаў працуе на галоўнай старонцы. Запісы маюць пастаянныя спасылкі выгляду <code>#/r/&lt;id&gt;</code> — калі запіс знік са спісу, спасылка на яго ўсё роўна застаецца.</p>
+<p class="lead">Пошук па экстрэмісцкіх спісах працуе на галоўнай старонцы. Запісы маюць пастаянныя спасылкі выгляду <code>#/r/&lt;id&gt;</code> — калі запіс знік са спісу, спасылка на яго ўсё роўна застаецца.</p>
 <p><a class="cta solid" href="${base}">На галоўную</a><a class="cta" href="${base}faq.html">Пытанні і адказы</a><a class="cta" href="${base}feed.xml">RSS</a></p>
 </main>
 <footer><p><a href="${base}">Пошук</a> · <a href="${base}faq.html">Пытанні і адказы</a> · <a href="${base}faq-en.html">English</a> · <a href="https://github.com/it-beard/elist" rel="noopener">GitHub</a></p></footer>

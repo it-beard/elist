@@ -50,15 +50,16 @@ if (mode === 'failed') {
   const curF = await readJson(FMETA, {});
   let prevF = {};
   try { prevF = JSON.parse(execFileSync('git', ['show', 'HEAD:data/formations-meta.json'], { cwd: ROOT, encoding: 'utf8' })); } catch { /* файла яшчэ не было */ }
+  // sourceError у пераліках МУС — і недаступная крыніца, і засцярога, што спыніла абнаўленне (падазроныя лічбы, змена фармату)
   if (Boolean(curF.sourceError) !== Boolean(prevF.sourceError)) {
-    msgs.push(curF.sourceError ? `⚠️ Пералік фарміраванняў (МУС) не адказвае: ${esc(curF.sourceError)}` : '✅ Пералік фарміраванняў (МУС) зноў адказвае.');
+    msgs.push(curF.sourceError ? `⚠️ Пералік фарміраванняў (МУС) не абнаўляецца: ${esc(curF.sourceError)}` : '✅ Пералік фарміраванняў (МУС) зноў абнаўляецца.');
   }
   // трэці спіс: пералік фізічных асоб (МУС, некалькі .doc)
   const curP = await readJson(PMETA, {});
   let prevP = {};
   try { prevP = JSON.parse(execFileSync('git', ['show', 'HEAD:data/persons-meta.json'], { cwd: ROOT, encoding: 'utf8' })); } catch { /* файла яшчэ не было */ }
   if (Boolean(curP.sourceError) !== Boolean(prevP.sourceError)) {
-    msgs.push(curP.sourceError ? `⚠️ Пералік фізічных асоб (МУС) не адказвае: ${esc(curP.sourceError)}` : '✅ Пералік фізічных асоб (МУС) зноў адказвае.');
+    msgs.push(curP.sourceError ? `⚠️ Пералік фізічных асоб (МУС) не абнаўляецца: ${esc(curP.sourceError)}` : '✅ Пералік фізічных асоб (МУС) зноў абнаўляецца.');
   }
   if (!msgs.length) { console.log('Стан крыніцы не змяніўся.'); process.exit(0); }
   await send(`<b>elist: стан крыніцы</b>\n${msgs.join('\n')}`);

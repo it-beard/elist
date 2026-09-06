@@ -1,27 +1,15 @@
 import { useLang } from '../hooks/useLang.jsx';
 
 /**
- * Чыпы-опцыі пошуку. lists — якія дадатковыя спісы ёсць у базе ({ f: фарміраванні, p: фізічныя асобы }):
- * чыпы «Толькі матэрыялы» / «Толькі фарміраванні» / «Толькі асобы» абмяжоўваюць пошук адным спісам
- * (паўторны націск здымае абмежаванне). «Новыя за N дзён» тут няма — гэта ўкладка «Новае».
+ * Чыпы-опцыі пошуку ў ліпкім радку: «Сачыць» і «Спасылка» (пры запыце), «Любое са слоў» (толькі калі ў запыце
+ * два і больш словы — для аднаго яно бессэнсоўнае) і сартаванне. Радок пераносіцца, а не пракручваецца.
+ * Абмежаванне спісам — не тут, а ва ўкладках пад пошукам (Facets). «Новыя за N дзён» — гэта ўкладка «Новае».
  */
-const LIST_CLASS = { f: ' form', p: ' person' };
-
-export default function Options({ value, onChange, watch, share, lists = {} }) {
+export default function Options({ value, onChange, watch, share, multiWord = false }) {
   const { t } = useLang();
   const set = (patch) => onChange({ ...value, ...patch });
   const Chip = ({ k, children }) => (
     <button type="button" className={`chip${value[k] ? ' on' : ''}`} aria-pressed={value[k]} onClick={() => set({ [k]: !value[k] })}>
-      {children}
-    </button>
-  );
-  const list = value.list || '';
-  const hasLists = Boolean(lists.f || lists.p);
-  const ListChip = ({ k, children }) => (
-    <button
-      type="button" className={`chip${list === k ? ` on${LIST_CLASS[k] || ''}` : ''}`} aria-pressed={list === k}
-      title={t.listFilterTitle} onClick={() => set({ list: list === k ? '' : k })}
-    >
       {children}
     </button>
   );
@@ -33,14 +21,13 @@ export default function Options({ value, onChange, watch, share, lists = {} }) {
         </button>
       )}
       {share && (
-        <button type="button" className={`chip${share.copied ? ' on' : ''}`} title={t.shareQueryTitle} onClick={share.copy}>
-          {share.copied ? t.copied : t.shareQuery}
+        // на вузкім экране — толькі іконка (подпіс застаецца ў title/aria-label), пасля капіявання — «Скапіявана»
+        <button type="button" className={`chip share${share.copied ? ' on' : ''}`} title={t.shareQueryTitle} aria-label={t.shareQuery} onClick={share.copy}>
+          <svg className="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.5 1.5M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.5-1.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+          <span className="lbl">{share.copied ? t.copied : t.shareQuery}</span>
         </button>
       )}
-      {hasLists && <ListChip k="m">{t.listMaterials}</ListChip>}
-      {lists.f && <ListChip k="f">{t.listFormations}</ListChip>}
-      {lists.p && <ListChip k="p">{t.listPersons}</ListChip>}
-      <Chip k="any">{t.any}</Chip>
+      {multiWord && <Chip k="any">{t.any}</Chip>}
       <label className="sort" title={t.sortTitle}>
         <span className="vh">{t.sort}</span>
         <select value={value.sort} title={t.sortTitle} onChange={(e) => set({ sort: e.target.value })}>

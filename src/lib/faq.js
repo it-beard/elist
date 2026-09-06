@@ -32,8 +32,8 @@ export function siteFacts(meta = {}) {
 /** Фразы-дадаткі пра другі і трэці спісы, калі яны ёсць у базе. */
 const FORM_BE = (f) => (f.formations ? ` Акрамя таго, у базе ${f.formationsStr} запісаў з пераліку «экстрэмісцкіх фарміраванняў» МУС/КДБ (правяраецца раз на суткі).` : '');
 const FORM_EN = (f) => (f.formations ? ` The database also holds ${f.formationsStr} entries from the Interior Ministry / KGB list of “extremist formations” (checked once a day).` : '');
-const PERS_BE = (f) => (f.persons ? ` Трэці спіс — пералік фізічных асоб, «прычастных да экстрэмісцкай дзейнасці» (МУС): ${f.personsStr} чалавек з прысудам па «экстрэмісцкіх» артыкулах КК (правяраецца двойчы на дзень).` : '');
-const PERS_EN = (f) => (f.persons ? ` The third list is the Interior Ministry list of individuals “involved in extremist activity”: ${f.personsStr} people convicted under “extremism” articles of the Criminal Code (checked twice a day).` : '');
+const PERS_BE = (f) => (f.persons ? ` Трэці спіс — пералік фізічных асоб, «прычастных да экстрэмісцкай дзейнасці» (МУС): ${f.personsStr} чалавек з прысудам (радзей — іншым рашэннем суда) па «экстрэмісцкіх» артыкулах КК (правяраецца двойчы на дзень).` : '');
+const PERS_EN = (f) => (f.persons ? ` The third list is the Interior Ministry list of individuals “involved in extremist activity”: ${f.personsStr} people with a conviction (occasionally another court decision) under “extremism” articles of the Criminal Code (checked twice a day).` : '');
 
 /** Статыстыка па самой базе — толькі там, дзе яна ёсць (зборка). */
 export function dataStats(db = []) {
@@ -53,12 +53,12 @@ export function dataStats(db = []) {
 const LEGAL_BE = {
   admin: 'Распаўсюд (рэпост, перасылка, публікацыя), выраб, захоўванне і перавозка матэрыялаў са спісу — адміністрацыйнае парушэнне паводле арт. 19.11 КаАП: штраф да 20 базавых велічынь або арышт для фізічных асоб, да 100 БВ для індывідуальных прадпрымальнікаў і да 500 БВ для арганізацый.',
   crime: 'За ўдзел у «экстрэмісцкім фарміраванні», садзейнічанне, данаты ці перадачу інфармацыі — крымінальная адказнасць (арт. 361-1 і 361-4 КК).',
-  persons: 'У пералік фізічных асоб трапляюць людзі з прысудам, які ўступіў у сілу, па «экстрэмісцкіх» артыкулах КК (найчасцей 342, 130, 368, 369, 361-х); уключэнне цягне дадатковыя абмежаванні паводле закона «О противодействии экстремизму» — у прыватнасці, на педагагічную і выдавецкую дзейнасць, дзяржаўную службу і валоданне зброяй. Выключаюць з пераліку рашэннем МУС, як правіла, пасля пагашэння судзімасці.',
+  persons: 'У пералік фізічных асоб трапляюць, як правіла, людзі з прысудам, які ўступіў у сілу, па «экстрэмісцкіх» артыкулах КК (найчасцей 342, 130, 368, 369, 361-х); радзей — асобы, справу якіх суд спыніў па нерэабілітуючых падставах ці якім прызначыў прымусовае лячэнне. Паводле закона «О противодействии экстремизму» уключэнне цягне абмежаванні — у прыватнасці, на педагагічную і выдавецкую дзейнасць, дзяржаўную і вайсковую службу, валоданне зброяй — да пагашэння ці зняцця судзімасці і яшчэ пяць гадоў пасля; выключаюць з пераліку праз пяць гадоў пасля пагашэння (зняцця) судзімасці, пры адмене прысуду або смерці.',
 };
 const LEGAL_EN = {
   admin: 'Distribution (repost, forwarding, publishing), production, storage and transport of listed materials is an administrative offence under Art. 19.11 of the Administrative Code: a fine of up to 20 base units or arrest for individuals, up to 100 base units for sole traders and up to 500 for organisations.',
   crime: 'Participation in an “extremist formation”, assistance, donations or passing information to one is a criminal offence (Art. 361-1 and 361-4 of the Criminal Code).',
-  persons: 'The persons list holds people with a final conviction under “extremism” articles of the Criminal Code (most often 342, 130, 368, 369, 361-x); listing brings extra restrictions under the Law on Countering Extremism — in particular on teaching, publishing, state service and owning weapons. Removal is decided by the Interior Ministry, usually after the conviction is expunged.',
+  persons: 'The persons list usually holds people with a final conviction under “extremism” articles of the Criminal Code (most often 342, 130, 368, 369, 361-x); occasionally people whose case a court closed on non-rehabilitating grounds or who were sent for compulsory treatment. Under the Law on Countering Extremism, listing brings restrictions — in particular on teaching, publishing, state and military service and owning weapons — until the conviction is expunged or lifted and for five more years; a person is removed five years after expungement, if the verdict is quashed, or on death.',
 };
 
 /**
@@ -93,7 +93,7 @@ export const FAQ = {
     },
     {
       q: 'Чым спіс экстрэмісцкіх матэрыялаў адрозніваецца ад спісу экстрэмісцкіх фарміраванняў і пераліку фізічных асоб?',
-      a: (f) => `Гэта тры розныя спісы, і сайт шукае адразу па ўсіх. Спіс «экстрэмісцкіх матэрыялаў» фармуюць суды — за яго парушэнне адміністрацыйная адказнасць. Пералік «экстрэмісцкіх фарміраванняў» вядуць МУС і КДБ${f.formations ? ` (${f.formationsStr} запісаў, правяраецца раз на суткі)` : ''}; у выдачы такія запісы пазначаныя фіялетавай плашкай «Фарміраванне». ${LEGAL_BE.crime} Пералік фізічных асоб, «прычастных да экстрэмісцкай дзейнасці», вядзе МУС${f.persons ? ` (${f.personsStr} чалавек, правяраецца двойчы на дзень)` : ''}: гэта людзі, ужо асуджаныя па «экстрэмісцкіх» артыкулах, пазначаныя бірузовай плашкай «Асоба». Чыпы «Толькі матэрыялы» / «Толькі фарміраванні» / «Толькі асобы» абмяжоўваюць пошук адным спісам. Многія рэсурсы і людзі ёсць адразу ў некалькіх спісах.`,
+      a: (f) => `Гэта тры розныя спісы, і сайт шукае адразу па ўсіх. Спіс «экстрэмісцкіх матэрыялаў» фармуюць суды — за яго парушэнне адміністрацыйная адказнасць. Пералік «экстрэмісцкіх фарміраванняў» вядуць МУС і КДБ${f.formations ? ` (${f.formationsStr} запісаў, правяраецца раз на суткі)` : ''}; у выдачы такія запісы пазначаныя фіялетавай плашкай «Фарміраванне». ${LEGAL_BE.crime} Пералік фізічных асоб, «прычастных да экстрэмісцкай дзейнасці», вядзе МУС${f.persons ? ` (${f.personsStr} чалавек, правяраецца двойчы на дзень)` : ''}: гэта людзі з прысудам ці іншым рашэннем суда па «экстрэмісцкіх» артыкулах, пазначаныя бірузовай плашкай «Асоба». Укладкі пад полем пошуку «Усе · Матэрыялы · Фарміраванні · Асобы» паказваюць, колькі знойдзена ў кожным спісе, і абмяжоўваюць выдачу адным спісам. Многія рэсурсы і людзі ёсць адразу ў некалькіх спісах.`,
     },
     {
       q: 'Ці бяспечна карыстацца гэтым сайтам?',
@@ -101,7 +101,7 @@ export const FAQ = {
     },
     {
       q: 'Як даведацца, што ў спіс дадалі нешта новае?',
-      a: () => 'Укладка «Новае» паказвае ўсё, што дадалі ў абодва спісы за апошнія 30 дзён. Каб не сачыць уручную, ёсць тры спосабы. Спіс назірання: увядзіце свой нік ці канал і націсніце «Сачыць» — пры кожным адкрыцці сайт правярае ўсе такія запыты і паказвае зверху, ці з’явілася нешта новае (з неабавязковымі браўзернымі апавяшчэннямі). RSS-стужка feed.xml — для любога чытача стужак, з фільтрам па сваіх словах. Telegram-канал @elist_by — дайджэст новых запісаў пасля кожнага абнаўлення.',
+      a: () => 'Укладка «Новае» паказвае ўсё, што дадалі ва ўсе тры спісы за апошнія 30 дзён. Каб не сачыць уручную, ёсць тры спосабы. Спіс назірання: увядзіце свой нік ці канал і націсніце «Сачыць» — пры кожным адкрыцці сайт правярае ўсе такія запыты і паказвае зверху, ці з’явілася нешта новае (з неабавязковымі браўзернымі апавяшчэннямі). RSS-стужка feed.xml — для любога чытача стужак, з фільтрам па сваіх словах. Telegram-канал @elist_by — дайджэст новых запісаў пасля кожнага абнаўлення.',
     },
     {
       q: 'Ці афіцыйны гэта сайт?',
@@ -147,7 +147,7 @@ export const FAQ = {
     },
     {
       q: 'How does the list of extremist materials differ from the list of extremist formations and the list of individuals?',
-      a: (f) => `They are three different lists, and the site searches all of them at once. The list of “extremist materials” is formed by courts and carries administrative liability. The list of “extremist formations” is maintained by the Interior Ministry and the KGB${f.formations ? ` (${f.formationsStr} entries, checked once a day)` : ''}; such results carry a purple “Formation” label. ${LEGAL_EN.crime} The list of individuals “involved in extremist activity” is kept by the Interior Ministry${f.persons ? ` (${f.personsStr} people, checked twice a day)` : ''}: people already convicted under “extremism” articles, marked with a teal “Person” label. The “Materials only” / “Formations only” / “Persons only” chips limit the search to one list. Many resources and people appear on several lists at once.`,
+      a: (f) => `They are three different lists, and the site searches all of them at once. The list of “extremist materials” is formed by courts and carries administrative liability. The list of “extremist formations” is maintained by the Interior Ministry and the KGB${f.formations ? ` (${f.formationsStr} entries, checked once a day)` : ''}; such results carry a purple “Formation” label. ${LEGAL_EN.crime} The list of individuals “involved in extremist activity” is kept by the Interior Ministry${f.persons ? ` (${f.personsStr} people, checked twice a day)` : ''}: people with a conviction or another court decision under “extremism” articles, marked with a teal “Person” label. The tabs under the search box — “All · Materials · Formations · Persons” — show how many matches each list has and limit the results to one list. Many resources and people appear on several lists at once.`,
     },
     {
       q: 'Is this site safe to use?',
@@ -155,7 +155,7 @@ export const FAQ = {
     },
     {
       q: 'How do I find out when something new is added to the list?',
-      a: () => 'The “What’s new” tab shows everything added to both lists in the last 30 days. To avoid checking by hand there are three ways. The watchlist: type your handle or channel and press “Watch” — every time you open the site it re-checks all such queries and shows at the top whether anything new appeared, with optional browser notifications. The RSS feed feed.xml works in any feed reader and can be filtered by your own keywords. The Telegram channel @elist_by posts a digest after every update.',
+      a: () => 'The “What’s new” tab shows everything added to all three lists in the last 30 days. To avoid checking by hand there are three ways. The watchlist: type your handle or channel and press “Watch” — every time you open the site it re-checks all such queries and shows at the top whether anything new appeared, with optional browser notifications. The RSS feed feed.xml works in any feed reader and can be filtered by your own keywords. The Telegram channel @elist_by posts a digest after every update.',
     },
     {
       q: 'Is this an official site?',

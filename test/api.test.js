@@ -22,8 +22,9 @@ describe('parseIndex', () => {
     expect(chunkSize).toBe(200);
     expect(items.map((x) => x.list)).toEqual(['m', 'm', 'f', 'p', 'p']);
     expect(items.map((x) => x.art)).toEqual(['kgs', 'none', 'mvd', 'protest', 'speech']);
-    // матэрыялы і фарміраванні — пазіцыя; фізічныя асобы — афіцыйны №, а без яго (свежае дапаўненне) — пазіцыя
-    expect(items.map((x) => x.n)).toEqual([1, 2, 1, 1, 2]);
+    // матэрыялы і фарміраванні — пазіцыя; фізічныя асобы — афіцыйны №, а без яго (свежае дапаўненне) — null:
+    // пазіцыя супадала б з чужымі афіцыйнымі нумарамі
+    expect(items.map((x) => x.n)).toEqual([1, 2, 1, 1, null]);
     expect(counts).toEqual({ m: 2, f: 1, p: 2 });
   });
   it('радок пошуку змяшчае назву, тып, суд і дату словамі', () => {

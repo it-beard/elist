@@ -18,6 +18,7 @@ import Header from './components/Header.jsx';
 import Nav from './components/Nav.jsx';
 import SearchBar from './components/SearchBar.jsx';
 import Options from './components/Options.jsx';
+import Facets from './components/Facets.jsx';
 import ResultList from './components/ResultList.jsx';
 import WatchPanel from './components/WatchPanel.jsx';
 import WhatsNew from './components/WhatsNew.jsx';
@@ -56,10 +57,19 @@ export default function App() {
   const deferredQuery = useDeferredValue(query);
 
   const tokens = useMemo(() => parseQuery(deferredQuery), [deferredQuery]);
-  const { results, mode, hl } = useMemo(
-    () => (items ? runSearch(items, tokens, opts) : { results: [], mode: 'exact', hl: [] }),
+  // Пошук заўсёды па ўсіх спісах — лічбы на ўкладках-спісах лічацца з поўнай выдачы, а абмежаванне спісам
+  // накладваецца потым. Калі ў абраным спісе дакладных супадзенняў няма — прыблізны пошук у межах спіса.
+  const all = useMemo(
+    () => (items ? runSearch(items, tokens, { ...opts, list: '' }) : { results: [], mode: 'exact', hl: [] }),
     [items, tokens, opts],
   );
+  const list = opts.list || '';
+  const { results, mode, hl } = useMemo(() => {
+    if (!list) return all;
+    const filtered = all.results.filter((r) => r.list === list);
+    if (filtered.length || !tokens.length || !items) return { ...all, results: filtered };
+    return runSearch(items, tokens, opts);
+  }, [all, list, tokens, items, opts]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -117,14 +127,18 @@ export default function App() {
   } : null;
   const shareChip = query.trim() && status === 'ready' ? { copy: copyQueryLink, copied } : null;
 
-  const active = tokens.length > 0 || opts.onlyNew || Boolean(opts.list);
+  const searching = tokens.length > 0;
+  const active = searching || opts.onlyNew || Boolean(list);
   const newCount = items ? items.filter((it) => !it.replacedBy && isRecent(it.added)).length : 0;
-  // дадатковыя спісы (фарміраванні МУС/КДБ, фізічныя асобы МУС): чыпы і асобны падлік — толькі калі яны ёсць у базе
+  // дадатковыя спісы (фарміраванні МУС/КДБ, фізічныя асобы МУС): укладкі-спісы і асобны падлік — толькі калі яны ёсць у базе
   const lists = useMemo(() => ({ f: Boolean(counts?.f), p: Boolean(counts?.p) }), [counts]);
   const hasLists = lists.f || lists.p;
-  const inResults = useMemo(() => results.reduce((c, r) => { c[r.list] = (c[r.list] || 0) + 1; return c; }, {}), [results]);
-  // «Усяго запісаў» — адно правіла ўсюды (шапка, статыстыка, FAQ): запісы, якія цяпер ёсць у спісе — без выдаленых і старых версій
-  const live = useMemo(() => results.reduce((c, r) => { if (!r.removed) c[r.list in c ? r.list : 'm']++; return c; }, { m: 0, f: 0, p: 0 }), [results]);
+  // лічбы на ўкладках: пры запыце — колькі знойдзена ў кожным спісе (з поўнай выдачы), без запыту — колькі запісаў
+  // у базе («Усяго запісаў» — адно правіла ўсюды: без выдаленых і старых версій выпраўленых)
+  const found = useMemo(() => all.results.reduce((c, r) => { c[r.list] = (c[r.list] || 0) + 1; return c; }, { m: 0, f: 0, p: 0 }), [all]);
+  const live = useMemo(() => all.results.reduce((c, r) => { if (!r.removed) c[r.list in c ? r.list : 'm']++; return c; }, { m: 0, f: 0, p: 0 }), [all]);
+  const facetCounts = searching ? { ...found, all: all.results.length } : { ...live, all: live.m + live.f + live.p };
+  const shown = useMemo(() => results.reduce((c, r) => { c[r.list] = true; return c; }, {}), [results]);
 
   return (
     <>
@@ -139,7 +153,7 @@ export default function App() {
           <>
             <div className="search">
               <SearchBar value={query} onChange={setQuery} />
-              <Options value={opts} onChange={setOpts} watch={watchChip} share={shareChip} lists={lists} />
+              <Options value={opts} onChange={setOpts} watch={watchChip} share={shareChip} multiWord={tokens.length > 1} />
             </div>
             {status === 'loading' && <p className="summary">{t.loading}</p>}
             {status === 'error' && <p className="summary error">{t.loadError(error)}</p>}
@@ -152,9 +166,11 @@ export default function App() {
                   />
                 )}
                 <p className="summary" aria-live="polite">
-                  {!active ? (hasLists ? t.totalAll(live, lists) : t.total(live.m + live.f + live.p)) : mode === 'fuzzy' ? t.fuzzy(results.length) : results.length ? t.found(results.length) : t.nothing}
+                  {!searching ? (hasLists ? t.totalLabel : t.total(live.m + live.f + live.p)) : mode === 'fuzzy' ? t.fuzzy(results.length) : all.results.length ? t.found(all.results.length) : t.nothing}
                 </p>
-                {active && results.length > 0 && <Consequences formations={Boolean(inResults.f)} persons={Boolean(inResults.p)} />}
+                {hasLists && <Facets counts={facetCounts} value={list} onChange={(l) => setFlags((f) => ({ ...f, list: l }))} lists={lists} />}
+                {searching && list && !results.length && all.results.length > 0 && <p className="hint">{t.facetEmpty}</p>}
+                {active && results.length > 0 && <Consequences formations={Boolean(shown.f)} persons={Boolean(shown.p)} />}
                 <ResultList results={results} tokens={hl} chunkSize={chunkSize} />
               </>
             )}

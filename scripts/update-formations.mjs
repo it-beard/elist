@@ -131,5 +131,14 @@ async function main() {
 
 // пры імпарце з тэстаў (findXlsxUrl) нічога не запускаем
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch((e) => { console.error(e); process.exit(1); });
+  main().catch(async (e) => {
+    // Засцярога спрацавала ці зламаўся разбор: пазначаем sourceError у меце (сайт папярэдзіць, адмін атрымае алерт
+    // пры змене стану), базу не чапаем і падаем. Крок у CI ідзе з continue-on-error, таму без гэтага збой быў бы нямы.
+    console.error(e);
+    try {
+      const meta = await readJson(META_FILE, {});
+      await fs.writeFile(META_FILE, JSON.stringify({ ...meta, checked: today, checkedAt: now, sourceError: e.message }, null, 2));
+    } catch (e2) { console.error(e2); }
+    process.exit(1);
+  });
 }

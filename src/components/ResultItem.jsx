@@ -14,7 +14,7 @@ import Highlight from './Highlight.jsx';
  */
 export default function ResultItem({ item, tokens, chunkSize }) {
   const { t } = useLang();
-  const rec = useRecord(item.i, chunkSize);
+  const rec = useRecord(item.i, chunkSize, item.id);
   const isF = item.list === 'f', isP = item.list === 'p';
   // лэйбл: артыкул з рашэння суда; калі яго ў тэксце няма — тып матэрыялу
   const art = !isF && !isP && rec?.court ? extractArticle(rec.court) : null;
@@ -34,10 +34,13 @@ export default function ResultItem({ item, tokens, chunkSize }) {
         {item.date && <span className="num" title={isP ? t.includedTitle : undefined}>{fmtDate(item.date)}</span>}
         {isRecent(item.added) && <span className="badge-new" title={t.addedTitle}>{t.isNew} · {fmtDate(item.added)}</span>}
         {item.removed && <span className="gone">{t.removed} {fmtDate(item.removed)}</span>}
-        <a className="num idx" href={href(`r/${item.id}`)} title={isP ? t.permalinkP : isF ? t.permalinkF : t.permalink}>№{item.n ?? item.i + 1}</a>
+        {/* фізічная асоба без афіцыйнага нумара (свежае дапаўненне) — «б/н», а не выдуманы нумар */}
+        <a className="num idx" href={href(`r/${item.id}`)} title={isP ? t.permalinkP : isF ? t.permalinkF : t.permalink}>{isP && !item.n ? t.noNum : `№${item.n ?? item.i + 1}`}</a>
       </div>
       {rec?.error ? (
         <p className="name error">{t.recError(rec.error)}</p>
+      ) : rec?.stale ? (
+        <p className="name error">{t.recStale}</p>
       ) : rec ? (
         isP ? (
           <>
