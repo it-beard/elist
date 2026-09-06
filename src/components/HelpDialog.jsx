@@ -18,12 +18,12 @@ export default function HelpDialog({ open, onClose }) {
         <div className="help-head">
           <h2>{t.helpTitle}</h2>
           <button type="button" className="clear" title={t.close} aria-label={t.close} onClick={onClose}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
           </button>
         </div>
         <section>
           <h3>{t.helpAboutTitle}</h3>
-          <p>{t.helpAbout}</p>
+          <p>{t.helpAbout1}<a href={LINKS.author} target="_blank" rel="noopener">{t.helpAboutAuthor}</a>{t.helpAbout2}</p>
         </section>
         <section>
           <h3>{t.helpHowTitle}</h3>

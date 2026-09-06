@@ -26,11 +26,11 @@ const META = {
   persons: { updated: '2026-09-05', checked: '2026-09-05', checkedAt: '2026-09-05T14:04:18.967Z', sourceError: 'HTTP 503', total: 6874 },
 };
 
-let ResultItem, RecordPage, Options, Facets, Header, Consequences, StatsPage, WhatsNew;
+let ResultItem, RecordPage, Options, Facets, Header, Consequences, StatsPage, WhatsNew, HelpDialog;
 beforeAll(async () => {
   // SSR-рэндэр без браўзера: кампанентам патрэбныя location/history толькі для спасылак
   globalThis.location = { href: 'https://elist.test/#/r/p1', hash: '#/r/p1', origin: 'https://elist.test', pathname: '/' };
-  globalThis.history = { state: null, replaceState() {} };
+  globalThis.history = { state: null, replaceState() { } };
   ({ default: ResultItem } = await import('../src/components/ResultItem.jsx'));
   ({ default: RecordPage } = await import('../src/components/RecordPage.jsx'));
   ({ default: Options } = await import('../src/components/Options.jsx'));
@@ -39,10 +39,11 @@ beforeAll(async () => {
   ({ default: Consequences } = await import('../src/components/Consequences.jsx'));
   ({ default: StatsPage } = await import('../src/components/StatsPage.jsx'));
   ({ default: WhatsNew } = await import('../src/components/WhatsNew.jsx'));
+  ({ default: HelpDialog } = await import('../src/components/HelpDialog.jsx'));
 });
 
-const render = (lang, el) => renderToStaticMarkup(<LangContext.Provider value={{ lang, t: STRINGS[lang], setLang: () => {} }}>{el}</LangContext.Provider>);
-const watch = { has: () => false, add() {}, remove() {} };
+const render = (lang, el) => renderToStaticMarkup(<LangContext.Provider value={{ lang, t: STRINGS[lang], setLang: () => { } }}>{el}</LangContext.Provider>);
+const watch = { has: () => false, add() { }, remove() { } };
 const OPTS = { any: false, onlyNew: false, list: '', sort: 'newest' };
 
 describe('рэндэр кампанентаў для трох спісаў (SSR, абедзве мовы)', () => {
@@ -108,22 +109,22 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       expect(render(lang, <RecordPage id="zzz" items={ITEMS} chunkSize={200} watch={watch} />)).toContain(t.recNotFound);
     });
     it(`${lang}: радок чыпаў — без чыпаў спісаў, «Любое са слоў» толькі для некалькіх слоў, «Спасылка» з іконкай`, () => {
-      const base = render(lang, <Options value={OPTS} onChange={() => {}} />);
+      const base = render(lang, <Options value={OPTS} onChange={() => { }} />);
       expect(base).not.toContain(t.facet.p);
       expect(base).not.toContain(t.any);
       expect(base).toContain(t.sortNewest);
       expect(base).toContain(`title="${t.sortTitle}"`);
-      const multi = render(lang, <Options value={{ ...OPTS, any: true }} onChange={() => {}} multiWord share={{ copy() {}, copied: false }} watch={{ on: false, toggle() {} }} />);
+      const multi = render(lang, <Options value={{ ...OPTS, any: true }} onChange={() => { }} multiWord share={{ copy() { }, copied: false }} watch={{ on: false, toggle() { } }} />);
       expect(multi).toContain(t.any);
       expect(multi).toContain(`aria-pressed="true" title="${t.anyTitle}"`);
       expect(multi).toContain('chip share');
       expect(multi).toContain(`aria-label="${t.shareQuery}"`);
       expect(multi).toContain(t.watchAdd);
-      expect(render(lang, <Options value={OPTS} onChange={() => {}} share={{ copy() {}, copied: true }} />)).toContain(t.copied);
+      expect(render(lang, <Options value={OPTS} onChange={() => { }} share={{ copy() { }, copied: true }} />)).toContain(t.copied);
     });
     it(`${lang}: укладкі-спісы з лічбамі: актыўная — колерам спіса, нулявая — прыглушаная, без дадатковых спісаў — схаваная ў App`, () => {
       const counts = { all: 43, m: 3, f: 0, p: 40 };
-      const html = render(lang, <Facets counts={counts} value="p" onChange={() => {}} lists={{ f: true, p: true }} />);
+      const html = render(lang, <Facets counts={counts} value="p" onChange={() => { }} lists={{ f: true, p: true }} />);
       for (const k of ['all', 'm', 'f', 'p']) expect(html).toContain(t.facet[k]);
       expect(html).toContain('facet p on');
       expect(html).toContain('facet f zero');
@@ -132,13 +133,13 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       expect(html).toContain(`aria-label="${t.facetsLabel}"`);
       expect(html.match(/<button/g)).toHaveLength(4);
       // толькі фарміраванні ў базе — тры ўкладкі; вялікія лічбы з прабелам тысяч
-      const two = render(lang, <Facets counts={{ all: 6420, m: 6043, f: 377, p: 0 }} value="" onChange={() => {}} lists={{ f: true }} />);
+      const two = render(lang, <Facets counts={{ all: 6420, m: 6043, f: 377, p: 0 }} value="" onChange={() => { }} lists={{ f: true }} />);
       expect(two.match(/<button/g)).toHaveLength(3);
       expect(two).toContain('6 043');
       expect(two).not.toContain(t.facet.p);
     });
     it(`${lang}: шапка з трыма датамі і папярэджаннем, наступствы, статыстыка`, () => {
-      const head = render(lang, <Header meta={META} online onHelp={() => {}} />);
+      const head = render(lang, <Header meta={META} online onHelp={() => { }} />);
       expect(head).toContain(t.personsChecked);
       expect(head).toContain(t.personsDown('05.09.2026'));
       expect(head).not.toMatch(/undefined/);
@@ -178,6 +179,13 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       expect(wn).toContain(t.newUpdate('04.09.2026', 2));
       expect(wn).toContain(t.newUpdate('03.09.2026', 1));
       expect(wn).not.toContain(t.newRemovedGroup(1));
+
+      // даведка / дапамога
+      const help = render(lang, <HelpDialog open onClose={() => { }} />);
+      expect(help).toContain('href="https://itbeard.com"');
+      expect(help).toContain(t.helpAboutAuthor);
+      expect(help).not.toContain('валанцёр');
+      expect(help).not.toContain('volunteer');
     });
   }
 });
