@@ -126,22 +126,31 @@ export function linkLists(db) {
   return pairs;
 }
 
-/** Поўны запіс для фрагмента: матэрыял — як раней; фарміраванне, фізічная асоба і вышук РФ — усе палі для карткі і старонкі запісу. */
+/**
+ * Поўны запіс для фрагмента: матэрыял — як раней; фарміраванне, фізічная асоба і вышук РФ — усе палі для карткі
+ * і старонкі запісу. Даведка з пераліку асоб (info: «судзімасць не пагашана», «адбывае пакаранне») у фрагмент не
+ * ідзе: МУС не абнаўляе яе ва ўжо апублікаваных частках, таму яна часта састарэлая — у базе застаецца, на сайце
+ * не паказваецца. Замест яе — part: нумар .doc-часткі пераліку (адрасы частак — у меце, гл. publicMeta).
+ */
 export const chunkRecord = (x) => (x.list === 'w'
   ? { id: x.id, list: 'w', name: x.name, aliases: x.aliases, year: x.year, nationality: x.nationality, region: x.region, agency: x.agency, date: x.date, before: x.before, first: x.first, category: x.category, rf: x.rf, also: x.also }
   : x.list === 'p'
-  ? { id: x.id, list: 'p', num: x.num, name: x.name, translit: x.translit, citizenship: x.citizenship, birth: x.birth, basis: x.basis, articles: x.articles, included: x.included, date: x.date, address: x.address, info: x.info, also: x.also }
+  ? { id: x.id, list: 'p', num: x.num, name: x.name, translit: x.translit, citizenship: x.citizenship, birth: x.birth, basis: x.basis, articles: x.articles, included: x.included, date: x.date, address: x.address, part: x.part, also: x.also }
   : x.list === 'f'
     ? { id: x.id, list: 'f', kind: x.kind, name: x.name, alias: x.alias, links: x.links, address: x.address, basis: x.basis, decidedBy: x.decidedBy, date: x.date, included: x.included, info: x.info, logo: x.logo }
     : { id: x.id, type: x.type, name: x.name, court: x.court, order: x.order });
 
 /**
  * Публічны meta.json: адрасы крыніц не трапляюць; звесткі пра іншыя спісы — у meta.formations / meta.persons / meta.wanted
- * (null, калі няма). sourceDate вышуку (дата файла Медыязоны) — публічная: яна паказваецца ў шапцы.
+ * (null, калі няма). sourceDate вышуку (дата файла Медыязоны) — публічная: яна паказваецца ў шапцы. Выключэнне —
+ * .doc-часткі пераліку асоб (meta.persons.files, па парадку частак): старонка запісу дае спасылку на файл, у якім
+ * чалавек ёсць. Лакальны запуск (file://) у публічную мету не трапляе.
  */
 export function publicMeta(meta, fmeta = {}, pmeta = {}, wmeta = {}) {
   const strip = ({ sourcePage, sourceFile, sourceFiles, ...rest }) => rest; // eslint-disable-line no-unused-vars
   const pub = strip(meta), f = strip(fmeta), p = strip(pmeta), w = strip(wmeta);
+  const files = (pmeta.sourceFiles || []).filter((u) => typeof u === 'string' && /^https:\/\//.test(u));
+  if (files.length) p.files = files;
   pub.formations = Object.keys(f).length ? f : null;
   pub.persons = Object.keys(p).length ? p : null;
   pub.wanted = Object.keys(w).length ? w : null;

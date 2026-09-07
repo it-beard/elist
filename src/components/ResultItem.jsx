@@ -14,7 +14,9 @@ import { LinkIcon } from './icons.jsx';
  * Экстрэмісцкае фарміраванне (МУС/КДБ) — фіялетавая палоска і плашка «Фарміраванне · МУС», назва,
  * кароткая назва, спасылкі і падстава. Фізічная асоба (пералік МУС) — бірузовая палоска і плашка
  * адпаведна артыкулаў («экстрэміст», «выказванні», «гр.дз.»), імя, транслітарацыя, дата нараджэння
- * з грамадзянствам і статусам, падстава (прысуд). Вышук РФ (паводле Медыязоны) — янтарная палоска і плашка
+ * з грамадзянствам, падстава (прысуд). Даведка з пераліку («судзімасць не пагашана», «адбывае пакаранне»)
+ * не паказваецца нідзе: МУС не абнаўляе яе ва ўжо апублікаваных частках, і яна часта састарэлая.
+ * Вышук РФ (паводле Медыязоны) — янтарная палоска і плашка
  * «Вышук РФ · МУС» (ведамства-ініцыятар), імя ў звычайным рэгістры, іншыя напісанні, год нараджэння з нацыянальнасцю,
  * рэгіёнам і ведамствам; дата — абвяшчэння ў вышук, прыблізная — «да …»; выключаны з базы — без даты, калі яе няма.
  * Асоба і запіс вышуку, звязаныя крос-спасылкай (тое ж імя і год нараджэння), паказваюць спасылку адно на аднаго.
@@ -33,7 +35,7 @@ export default function ResultItem({ item, tokens, chunkSize, linked = true }) {
   const art = !isF && !isP && !isW && rec?.court ? extractArticle(rec.court) : null;
   const pArt = isP ? (item.art || (rec?.articles ? personSeries(rec.articles) : 'other')) : null;
   const wArt = isW ? (item.art || (rec ? wantedSeries(rec.agency) : 'wother')) : null;
-  const facts = isP && rec ? [rec.birth && `${t.born} ${rec.birth}`, rec.citizenship, rec.info].filter(Boolean).join(' · ')
+  const facts = isP && rec ? [rec.birth && `${t.born} ${rec.birth}`, rec.citizenship].filter(Boolean).join(' · ')
     : isW && rec ? [rec.year && t.bornYear(rec.year), rec.nationality && personName(rec.nationality), rec.region, rec.agency && `${t.requestedBy} ${rec.agency}`].filter(Boolean).join(' · ') : '';
   const permalink = isW ? t.permalinkW : isP ? t.permalinkP : isF ? t.permalinkF : t.permalink;
   const to = href(`r/${item.id}`);

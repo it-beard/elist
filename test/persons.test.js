@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parsePersons, personId, oneLine, isPersonEdit, pairPersonEdits, mergePersons } from '../scripts/parse-persons.mjs';
-import { findPersonDocs, partsProblem } from '../scripts/update-persons.mjs';
+import { assignParts, findPersonDocs, partsProblem } from '../scripts/update-persons.mjs';
 import { personCourt, extractArticles, personSeries, articlesLabel, firstDateIso, allDates, PERSON_SERIES } from '../src/lib/person.js';
 import { search } from '../src/lib/search.js';
 import { dailyCounts } from '../src/lib/stats.js';
@@ -267,6 +267,19 @@ describe('partsProblem — зніклая частка', () => {
     expect(partsProblem([1466, 1415, 1583], [1466, 1415, 1583, 2410], { force: true })).toBe(null);
     expect(partsProblem([1466, 1415, 1583, 2410], [1466, 1415, 1583, 2410, 13])).toMatch(/4 частак замест 5.*UPDATE_FORCE=1/);
     expect(partsProblem([1466, 1415, 1583, 2410, 13], [1466, 1415, 1583, 2410])).toBe(null);
+  });
+});
+
+describe('assignParts — нумар .doc-часткі для спасылкі на файл', () => {
+  const parts = [{ items: [{ id: 'a' }, { id: 'b' }] }, { items: [{ id: 'c' }] }];
+  it('нумар часткі — толькі тым, хто ёсць у крыніцы; зніклы пакідае стары; перанумарацыя не робіць праўкі', () => {
+    const out = [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'gone', part: 1, removed: '2026-09-06' }];
+    assignParts(out, parts);
+    expect(out.map((x) => x.part)).toEqual([1, 1, 2, 1]);
+    // частку перарэзалі — нумар проста абнаўляецца, «edited» ніхто не выстаўляе (гэта не праўка тэксту)
+    assignParts(out, [{ items: [{ id: 'a' }] }, { items: [{ id: 'b' }, { id: 'c' }] }]);
+    expect(out.map((x) => x.part)).toEqual([1, 2, 2, 1]);
+    expect(out.some((x) => x.edited)).toBe(false);
   });
 });
 

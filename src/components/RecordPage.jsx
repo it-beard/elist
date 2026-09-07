@@ -14,10 +14,12 @@ import Consequences from './Consequences.jsx';
 /**
  * Старонка аднаго запісу (#/r/<id>): радок з кнопкай «Да пошуку» злева і дзеяннямі справа («Скапіяваць спасылку»,
  * «Сачыць» — поўнае тлумачэнне ў title), загаловак, картка, палі крыніцы. Нумар у спісе (пазіцыя ў публікацыі, для фізічнай асобы — афіцыйны нумар МУС ці
- * пазнака, што яшчэ не прысвоены) — сярод палёў. Для запісу вышуку РФ у канцы карткі палёў, за пункцірнай лініяй
+ * пазнака, што яшчэ не прысвоены) — сярод палёў, а апошняе поле — спасылка на .doc-частку пераліку, у якой чалавек
+ * ёсць цяпер (знік з крыніцы — спасылкі няма). Даведка з пераліку («судзімасць не пагашана») не паказваецца: МУС
+ * не абнаўляе яе ва ўжо апублікаваных частках. Для запісу вышуку РФ у канцы карткі палёў, за пункцірнай лініяй
  * (як адрыўны корак білета), — заўвага пра крыніцу са спасылкай на гэты запіс у віджэце Медыязоны (знешняя, з папярэджаннем).
  */
-export default function RecordPage({ id, items, chunkSize, watch }) {
+export default function RecordPage({ id, items, chunkSize, watch, meta }) {
   const { t } = useLang();
   const item = items.find((it) => it.id === id);
   const rec = useRecord(item ? item.i : 0, chunkSize, item?.id);
@@ -34,6 +36,12 @@ export default function RecordPage({ id, items, chunkSize, watch }) {
   const wDate = (s) => (!s ? '' : s.startsWith('<') ? `${t.before} ${fmtDate(s.slice(1))}` : fmtDate(s));
   // нумар — з індэкса (item.n), каб не залежаў ад загрузкі фрагмента; у вышуку РФ нумароў няма
   const num = item?.n ? `№${item.n}` : '';
+  // .doc-частка пераліку МУС, у якой цяпер ёсць гэты чалавек (rec.part — з апошняга разбору, адрасы — з меты).
+  // Для запісу, які знік з крыніцы, спасылкі няма: у файле яго ўжо не будзе.
+  const partUrl = isP && !item?.removed && rec?.part ? (meta?.persons?.files || [])[rec.part - 1] : null;
+  const partLink = partUrl && (
+    <ExtLink href={partUrl} title={t.recSourcePTitle}>{t.partFile(rec.part, (partUrl.match(/\.(docx?)(?:[?#]|$)/i) || [, 'doc'])[1].toLowerCase())} ↗</ExtLink>
+  );
   const details = rec && !rec.error && !rec.stale ? (
     isW ? [
       [t.recYear, rec.year ? String(rec.year) : ''],
@@ -51,8 +59,8 @@ export default function RecordPage({ id, items, chunkSize, watch }) {
       [t.recArticles, articlesLabel(rec.articles)],
       [t.recIncludedP, rec.included],
       [t.recAddressP, rec.address],
-      [t.recStatus, rec.info],
       [t.recNum, num || t.recNumPending],
+      [t.recSourceP, partLink],
     ] : isF ? [
       [t.recIncluded, rec.included ? fmtDate(rec.included) : ''],
       [t.recAddress, rec.address],

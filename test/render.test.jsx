@@ -7,8 +7,8 @@ import { STRINGS } from '../src/lib/i18n.js';
 const RECORDS = {
   0: { id: 'm1', type: 'Информационная продукция', name: 'Telegram-канал "Свабода"', court: 'Решение суда Ленинского района г. Минска от 20 августа 2026 года. Подлежит немедленному исполнению в соответствии со статьей 302 Кодекса гражданского судопроизводства', order: 0 },
   1: { id: 'f1', list: 'f', kind: 'formation', name: 'Экстремистское формирование «dze.chat»', alias: '«dze.chat»', links: 'https://dze.chat', address: 'Интернет-сайт', basis: 'Решение МВД от 18.10.2021 № 1ЭК', decidedBy: 'mvd', date: '2021-10-18', included: '2021-10-18', info: 'Группа граждан', logo: 'Логотип' },
-  2: { id: 'p1', list: 'p', num: 1, name: 'Ковалевский Николай Николаевич', translit: 'KAVALEUSKI MIKALAI', citizenship: 'Республика Беларусь', birth: '14.10.1983', basis: 'Вступивший в законную силу приговор суда Быховского района Могилевской области в связи с совершением преступления, предусмотренного статьей 369 Уголовного кодекса Республики Беларусь', articles: ['369'], included: '23.03.2022, 04.04.2025', date: '2022-03-23', address: 'Республика Беларусь, г. Минск', info: 'Отбывает наказание' },
-  3: { id: 'p2', list: 'p', num: null, name: 'Байбак Юрий Юрьевич', translit: 'BAIBAK YURY', citizenship: '', birth: '05.08.1969', basis: 'Вступивший в законную силу приговор суда Барановичского района', articles: [], included: '04.09.2026', date: '2026-09-04', address: '', info: 'Судимость не погашена' },
+  2: { id: 'p1', list: 'p', num: 1, name: 'Ковалевский Николай Николаевич', translit: 'KAVALEUSKI MIKALAI', citizenship: 'Республика Беларусь', birth: '14.10.1983', basis: 'Вступивший в законную силу приговор суда Быховского района Могилевской области в связи с совершением преступления, предусмотренного статьей 369 Уголовного кодекса Республики Беларусь', articles: ['369'], included: '23.03.2022, 04.04.2025', date: '2022-03-23', address: 'Республика Беларусь, г. Минск', part: 2 },
+  3: { id: 'p2', list: 'p', num: null, name: 'Байбак Юрий Юрьевич', translit: 'BAIBAK YURY', citizenship: '', birth: '05.08.1969', basis: 'Вступивший в законную силу приговор суда Барановичского района', articles: [], included: '04.09.2026', date: '2026-09-04', address: '' },
   4: { stale: true }, // фрагмент не супаў з індэксам (сайт абнавіўся падчас сесіі)
 };
 vi.mock('../src/hooks/useRecord.js', () => ({ useRecord: (i) => RECORDS[i] ?? null }));
@@ -23,7 +23,10 @@ const ITEMS = [
 const META = {
   updated: '2026-09-03', checked: '2026-09-03', checkedAt: '2026-09-03T08:54:44.489Z', sourceError: null, fallback: false, total: 6031,
   formations: { updated: '2026-09-03', checked: '2026-09-03', checkedAt: '2026-09-03T10:14:53.217Z', sourceError: null, total: 377 },
-  persons: { updated: '2026-09-05', checked: '2026-09-05', checkedAt: '2026-09-05T14:04:18.967Z', sourceError: 'HTTP 503', total: 6874 },
+  persons: {
+    updated: '2026-09-05', checked: '2026-09-05', checkedAt: '2026-09-05T14:04:18.967Z', sourceError: 'HTTP 503', total: 6874,
+    files: ['https://mvd.test/part1.doc', 'https://mvd.test/part2.doc'],
+  },
 };
 
 let ResultItem, RecordPage, Options, Facets, Header, listStamps, Consequences, StatsPage, WhatsNew, HelpDialog;
@@ -68,7 +71,7 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
         expect(html).toContain('b. 14.10.1983');
         expect(html).toContain('Material · 302 CCP');
       }
-      expect(html).toContain('Отбывает наказание');
+      expect(html).not.toContain('Отбывает наказание'); // даведка з пераліку не паказваецца — яна састарэлая
       expect(html).toContain('<mark>Свабода</mark>'); // падсветка ў матэрыяле не зламалася
       // плашкі асоб паводле артыкулаў («экстрэміст», «выказванні», «гр.дз.») і пазнака ў тайтле
       expect(t.personLabel('ext')).toContain(lang === 'be' ? 'экстрэміст' : 'extremist');
@@ -100,7 +103,7 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       expect(stale).not.toContain('Байбак');
     });
     it(`${lang}: старонка запісу асобы з нумарам і без нумара`, () => {
-      const a = render(lang, <RecordPage id="p1" items={ITEMS} chunkSize={200} watch={watch} />);
+      const a = render(lang, <RecordPage id="p1" items={ITEMS} chunkSize={200} watch={watch} meta={META} />);
       expect(a).not.toMatch(/undefined|\[object Object\]/);
       expect(a).toContain(t.recTitleP);
       expect(a).toContain(t.recNum);
@@ -117,6 +120,18 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       expect(a).toContain('ст. 369 УК');
       expect(a).toContain('Республика Беларусь, г. Минск');
       expect(a).toContain(t.personNote.slice(0, 40));
+      // даведка з пераліку («судзімасць не пагашана») не паказваецца — МУС не абнаўляе яе ў старых частках
+      expect(a).not.toContain('Отбывает наказание');
+      expect(a).not.toContain('Судимость');
+      // затое ёсць спасылка на .doc-частку, у якой чалавек ёсць цяпер (знешняя, з папярэджаннем ExtLink)
+      expect(a).toContain(`<dt>${t.recSourceP}</dt>`);
+      expect(a).toContain('href="https://mvd.test/part2.doc"');
+      expect(a).toContain(`${t.partFile(2, 'doc')} ↗`);
+      expect(a).toContain('rel="noopener noreferrer nofollow"');
+      // без меты (адрасы частак яшчэ не апублікаваныя) і для запісу, які знік з крыніцы, — поля няма
+      expect(render(lang, <RecordPage id="p1" items={ITEMS} chunkSize={200} watch={watch} />)).not.toContain(t.recSourceP);
+      const removed = ITEMS.map((it) => (it.id === 'p1' ? { ...it, removed: '2026-09-06' } : it));
+      expect(render(lang, <RecordPage id="p1" items={removed} chunkSize={200} watch={watch} meta={META} />)).not.toContain(t.recSourceP);
       const b = render(lang, <RecordPage id="p2" items={ITEMS} chunkSize={200} watch={watch} />);
       expect(b).toContain(`<dt>${t.recNum}</dt><dd>${t.recNumPending}</dd>`); // без афіцыйнага нумара — пазнака замест нумара
       // фрагмент не супаў з індэксам: ні дэталяў, ні чужога імя

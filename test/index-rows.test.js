@@ -3,7 +3,7 @@ import { CHUNK, chunkRecord, dict, esc, feed, indexRow, publicMeta } from '../sc
 import { normalizeCompact } from '../src/lib/normalize.js';
 import { parseIndex } from '../src/lib/api.js';
 
-const person = { id: 'p1', list: 'p', num: 7, name: 'Ковалевский Николай Николаевич', translit: 'KAVALEUSKI MIKALAI', citizenship: 'Республика Беларусь', birth: '14.10.1983', basis: 'Вступивший в законную силу приговор суда Быховского района Могилевской области в связи с совершением преступления, предусмотренного статьей 342', court: 'суда Быховского района Могилевской области', articles: ['342', '368'], included: '23.03.2022', date: '2022-03-23', address: 'Могилевская область, д. Лудчицы', info: 'Отбывает наказание', added: '2026-09-05', order: 3 };
+const person = { id: 'p1', list: 'p', num: 7, part: 3, name: 'Ковалевский Николай Николаевич', translit: 'KAVALEUSKI MIKALAI', citizenship: 'Республика Беларусь', birth: '14.10.1983', basis: 'Вступивший в законную силу приговор суда Быховского района Могилевской области в связи с совершением преступления, предусмотренного статьей 342', court: 'суда Быховского района Могилевской области', articles: ['342', '368'], included: '23.03.2022', date: '2022-03-23', address: 'Могилевская область, д. Лудчицы', info: 'Отбывает наказание', added: '2026-09-05', order: 3 };
 const formation = { id: 'f1', list: 'f', kind: 'formation', name: 'Экстремистское формирование «dze.chat»', alias: '«dze.chat»', links: 'https://dze.chat', address: '', basis: 'Решение МВД от 18.10.2021 № 1ЭК', decidedBy: 'mvd', date: '2021-10-18', included: '2021-10-18', info: 'Группа граждан', logo: 'Логотип', added: null, order: 0 };
 const material = { id: 'm1', list: 'm', type: 'Информационная продукция', name: 'Telegram-канал "Свабода" & <co>', court: 'Решение суда Ленинского района г. Минска от 1 мая 2026 года.\nПодлежит немедленному исполнению в соответствии со статьей 302 Кодекса гражданского судопроизводства', date: '2026-05-01', added: '2026-09-05', order: 12 };
 const edited = { ...material, id: 'm1b', editOf: 'm1', added: '2026-09-05' };
@@ -57,8 +57,10 @@ describe('chunkRecord', () => {
   it('фізічная асоба — палі карткі (без added/order); фарміраванне; матэрыял з order', () => {
     expect(chunkRecord(person)).toEqual({
       id: 'p1', list: 'p', num: 7, name: person.name, translit: person.translit, citizenship: person.citizenship, birth: person.birth,
-      basis: person.basis, articles: person.articles, included: person.included, date: person.date, address: person.address, info: person.info,
+      basis: person.basis, articles: person.articles, included: person.included, date: person.date, address: person.address, part: 3,
     });
+    // даведка з пераліку («судзімасць не пагашана») састарэлая ў старых частках — у фрагмент не ідзе
+    expect(chunkRecord(person).info).toBeUndefined();
     expect(chunkRecord(formation)).toEqual({
       id: 'f1', list: 'f', kind: 'formation', name: formation.name, alias: formation.alias, links: formation.links, address: '', basis: formation.basis,
       decidedBy: 'mvd', date: '2021-10-18', included: '2021-10-18', info: formation.info, logo: formation.logo,
@@ -72,10 +74,16 @@ describe('publicMeta', () => {
     const pub = publicMeta(
       { updated: '2026-09-06', total: 1, sourcePage: 'x', sourceFile: 'y' },
       { total: 2, sourcePage: 'a', sourceFile: 'b' },
-      { total: 3, parts: 4, sourcePage: 'c', sourceFiles: ['d'] },
+      { total: 3, parts: 4, sourcePage: 'c', sourceFiles: ['https://mvd.test/1.doc', 'https://mvd.test/2.doc'] },
     );
-    expect(pub).toEqual({ updated: '2026-09-06', total: 1, formations: { total: 2 }, persons: { total: 3, parts: 4 }, wanted: null });
-    expect(JSON.stringify(pub)).not.toMatch(/sourcePage|sourceFile|sourceFiles/);
+    // адрасы .doc-частак пераліку асоб — выключэнне: з іх старонка запісу робіць спасылку на файл
+    expect(pub).toEqual({
+      updated: '2026-09-06', total: 1, formations: { total: 2 }, wanted: null,
+      persons: { total: 3, parts: 4, files: ['https://mvd.test/1.doc', 'https://mvd.test/2.doc'] },
+    });
+    expect(JSON.stringify(pub)).not.toMatch(/sourcePage|sourceFiles/);
+    // лакальны запуск (file://) адрасоў не публікуе
+    expect(publicMeta({ total: 1 }, {}, { total: 3, sourceFiles: ['file:///tmp/part1.doc'] }).persons).toEqual({ total: 3 });
     expect(publicMeta({ total: 1 }, {}, {})).toEqual({ total: 1, formations: null, persons: null, wanted: null });
     expect(publicMeta({ total: 1 }, { sourcePage: 'a' }, { sourceFiles: [] })).toEqual({ total: 1, formations: null, persons: null, wanted: null });
     expect(publicMeta({ total: 1 })).toEqual({ total: 1, formations: null, persons: null, wanted: null });

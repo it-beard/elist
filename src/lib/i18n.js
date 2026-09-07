@@ -129,7 +129,9 @@ export const STRINGS = {
     personsDown: (d) => `Пералік фізічных асоб МУС не абнаўляецца з ${d}: крыніца не адказвае або спрацавала засцярога; гэтая частка базы магла састарэць.`,
     recTitleP: 'Запіс пераліку фізічных асоб (МУС)',
     recNumPending: 'яшчэ не прысвоены — запіс з апошняга дапаўнення пераліку',
-    recBirth: 'Дата нараджэння', recCitizenship: 'Грамадзянства', recArticles: 'Артыкулы КК у падставе', recIncludedP: 'Даты ўключэння ў пералік', recAddressP: 'Месцазнаходжанне (як у пераліку)', recStatus: 'Даведка з пераліку', recNum: 'Нумар у пераліку',
+    recBirth: 'Дата нараджэння', recCitizenship: 'Грамадзянства', recArticles: 'Артыкулы КК у падставе', recIncludedP: 'Даты ўключэння ў пералік', recAddressP: 'Месцазнаходжанне (як у пераліку)', recNum: 'Нумар у пераліку',
+    recSourceP: 'Файл пераліку', partFile: (n, ext) => `Частка ${n} (.${ext})`,
+    recSourcePTitle: 'Файл МУС, у якім цяпер ёсць гэты запіс. Спасылка знешняя: файл спампуецца з сайта mvd.gov.by, і той сервер убачыць ваш IP.',
     // чацвёрты спіс — беларусы ў базе вышуку МУС РФ (штодзённая выбарка Медыязоны-Беларусь)
     wantedLabel: (s) => `Вышук РФ${{ wmvd: ' · МУС', wkgk: ' · КДК', wkgb: ' · КДБ' }[s] || ''}`,
     wantedTitle: (s) => ({
@@ -363,7 +365,9 @@ export const STRINGS = {
     personsDown: (d) => `The Interior Ministry list of individuals has not been updated since ${d}: the source is down or a safety check stopped the update; that part of the database may be stale.`,
     recTitleP: 'Interior Ministry persons list entry',
     recNumPending: 'not assigned yet — entry from the latest addition to the list',
-    recBirth: 'Date of birth', recCitizenship: 'Citizenship', recArticles: 'Criminal Code articles in the grounds', recIncludedP: 'Dates of inclusion in the list', recAddressP: 'Location (as in the list)', recStatus: 'Reference note from the list', recNum: 'Number in the list',
+    recBirth: 'Date of birth', recCitizenship: 'Citizenship', recArticles: 'Criminal Code articles in the grounds', recIncludedP: 'Dates of inclusion in the list', recAddressP: 'Location (as in the list)', recNum: 'Number in the list',
+    recSourceP: 'List file', partFile: (n, ext) => `Part ${n} (.${ext})`,
+    recSourcePTitle: 'The Interior Ministry file that currently contains this entry. The link is external: the file downloads from mvd.gov.by, and that server will see your IP address.',
     wantedLabel: (s) => `RF wanted${{ wmvd: ' · MIA', wkgk: ' · SCC', wkgb: ' · KGB' }[s] || ''}`,
     wantedTitle: (s) => ({
       wmvd: 'Russian Interior Ministry wanted database — search requested by the Interior Ministry of Belarus',

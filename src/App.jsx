@@ -115,7 +115,7 @@ export default function App() {
       <Nav route={['new', 'r', 'stats'].includes(route.name) ? route.name : ''} newCount={newCount} />
       <main className="wrap">
         {status === 'ready' && route.name === 'new' && <WhatsNew items={items} chunkSize={chunkSize} lists={lists} />}
-        {status === 'ready' && route.name === 'r' && <RecordPage id={route.arg} items={items} chunkSize={chunkSize} watch={watch} />}
+        {status === 'ready' && route.name === 'r' && <RecordPage id={route.arg} items={items} chunkSize={chunkSize} watch={watch} meta={meta} />}
         {route.name === 'stats' && (status === 'ready' ? <StatsPage items={items} initialList={['f', 'p', 'w'].includes(route.arg) ? route.arg : 'm'} /> : <p className="summary">{status === 'error' ? t.loadError(error) : t.loading}</p>)}
         {!['new', 'r', 'stats'].includes(route.name) && (
           <>

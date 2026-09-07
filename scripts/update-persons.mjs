@@ -7,9 +7,11 @@
  *
  * Спампоўвае ўсе часткі (з паўторамі: сервер МУС часам абрывае вялікія файлы; на ўсё — агульны ліміт часу
  * BUDGET, каб крок ніколі не паваліў увесь джоб) → разбірае (scripts/parse-persons.mjs) → зліццё з
- * data/persons.json (mergePersons). Усё ці нічога: любы збой — недаступная крыніца, змена фармату, падазроныя
- * лічбы — пакідае базу як была, а ў data/persons-meta.json пішацца sourceError: сайт папярэдзіць, адмін
- * атрымае алерт (scripts/alert.mjs source). Сеткавы збой — exit 0 (не наш клопат), збой засцярог ці фармату — exit 1.
+ * data/persons.json (mergePersons) з нумарам часткі ў кожным запісе (assignParts) — з яго старонка запісу дае
+ * спасылку на файл, у якім чалавек ёсць; самі адрасы частак ідуць у мету (sourceFiles).
+ * Усё ці нічога: любы збой — недаступная крыніца, змена фармату, падазроныя лічбы — пакідае базу як была,
+ * а ў data/persons-meta.json пішацца sourceError: сайт папярэдзіць, адмін атрымае алерт (scripts/alert.mjs
+ * source). Сеткавы збой — exit 0 (не наш клопат), збой засцярог ці фармату — exit 1.
  * Першы імпарт: added = null для ўсіх — нічога не «новае», дайджэст маўчыць.
  *
  * Лакальна: node scripts/update-persons.mjs частка1.doc частка2.doc … (у парадку частак).
@@ -38,6 +40,18 @@ const now = new Date().toISOString();
 const today = now.slice(0, 10);
 const localFiles = process.argv.slice(2); // неабавязкова: лакальныя .doc для тэсту (у парадку частак)
 const remaining = () => BUDGET - (Date.now() - started);
+
+/**
+ * Нумар .doc-часткі ў запісы, якія цяпер ёсць у крыніцы (сайт дае з яго спасылку на файл). Пішацца пасля зліцця,
+ * а не полем запісу: перанумараваная частка — не праўка тэксту, і сотні «выпраўленых» запісаў з-за яе не з'явяцца.
+ * Запіс, які знік з крыніцы, пакідае апошні вядомы нумар — на сайце спасылкі для яго ўсё роўна няма.
+ */
+export function assignParts(out, parts) {
+  const partOf = new Map();
+  parts.forEach((p, i) => { for (const it of p.items) partOf.set(it.id, i + 1); });
+  for (const rec of out) { const n = partOf.get(rec.id); if (n) rec.part = n; }
+  return out;
+}
 
 /** Пазначыць збой у меце (сайт папярэдзіць, адмін атрымае алерт), базу не чапаць. */
 const failMeta = (message) => writeSourceError(META_FILE, message, now);
@@ -149,7 +163,7 @@ async function main() {
   const db = await readJson(DB_FILE, []);
   const { out, added, removed, edited, edits, initial } = mergePersons(db, parsed, { today, force: FORCE, maxAdded: MAX_ADDED });
   for (const [old, rec] of edits) console.log(`Праўка запісу ${old.id} → ${rec.id}: ${rec.name}`);
-  await fs.writeFile(DB_FILE, JSON.stringify(out));
+  await fs.writeFile(DB_FILE, JSON.stringify(assignParts(out, parts)));
 
   const parse = parts.reduce((a, p) => { for (const k of Object.keys(p.stats || {})) a[k] = (a[k] || 0) + p.stats[k]; return a; }, {});
   await fs.writeFile(META_FILE, JSON.stringify({
