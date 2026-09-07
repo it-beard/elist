@@ -30,7 +30,8 @@ const meta = JSON.parse(await fs.readFile(path.join(DATA_DIR, 'meta.json'), 'utf
 const materials = JSON.parse(await fs.readFile(path.join(DATA_DIR, 'materials.json'), 'utf8'));
 const formations = await readJson(path.join(DATA_DIR, 'formations.json'), []);
 const persons = await readJson(path.join(DATA_DIR, 'persons.json'), []);
-const db = [...materials.map((x) => ({ ...x, list: 'm' })), ...formations.map((x) => ({ ...x, list: 'f' })), ...persons.map((x) => ({ ...x, list: 'p' }))];
+const wanted = await readJson(path.join(DATA_DIR, 'wanted.json'), []);
+const db = [...materials.map((x) => ({ ...x, list: 'm' })), ...formations.map((x) => ({ ...x, list: 'f' })), ...persons.map((x) => ({ ...x, list: 'p' })), ...wanted.map((x) => ({ ...x, list: 'w' }))];
 const byId = new Map(db.map((x) => [x.id, x]));
 const sent = (await readJson(STATE_FILE, {})).sent || {};
 const today = new Date().toISOString().slice(0, 10);
@@ -42,6 +43,7 @@ const fresh = test
     ...materials.filter((x) => !x.removed).sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 3).map((x) => ({ ...x, list: 'm' })),
     ...formations.filter((x) => !x.removed).slice(-1).map((x) => ({ ...x, list: 'f' })),
     ...persons.filter((x) => !x.removed).slice(-1).map((x) => ({ ...x, list: 'p' })),
+    ...wanted.filter((x) => !x.removed && x.date).slice(-1).map((x) => ({ ...x, list: 'w' })),
   ]
   : selectFresh(db, sent, since);
 if (!fresh.length) { console.log('Новых запісаў няма — паведамленне не патрэбнае.'); process.exit(0); }

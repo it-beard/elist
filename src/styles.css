@@ -4,6 +4,7 @@
   --warn: #9a6700; --warn-soft: #fff4d6;
   --form: #5b3fbf; --form-soft: #ece7fb; /* другі спіс — экстрэмісцкія фарміраванні (МУС/КДБ) */
   --person: #0f766e; --person-soft: #d5f0ec; /* трэці спіс — фізічныя асобы (пералік МУС) */
+  --wanted: #b45309; --wanted-soft: #fdebd3; /* чацвёрты спіс — беларусы ў базе вышуку РФ (Медыязона) */
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #8a94a6; --trend: #16181d;
   --radius: 14px; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04);
 }
@@ -16,6 +17,7 @@
     --warn: #e3b341; --warn-soft: #332a12;
     --form: #b39dfc; --form-soft: #2b2447;
     --person: #4fd1c5; --person-soft: #143530;
+    --wanted: #f5a524; --wanted-soft: #3b2a10;
     --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #6f7787; --trend: #e9ebef;
     --shadow: 0 1px 2px rgba(0,0,0,.4);
   }
@@ -26,6 +28,7 @@
   --warn: #e3b341; --warn-soft: #332a12;
   --form: #b39dfc; --form-soft: #2b2447;
   --person: #4fd1c5; --person-soft: #143530;
+  --wanted: #f5a524; --wanted-soft: #3b2a10;
   --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #6f7787; --trend: #e9ebef;
   --shadow: 0 1px 2px rgba(0,0,0,.4);
 }
@@ -62,12 +65,18 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 @keyframes tipFade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 .updated-tip-desc { font-size: .8rem; color: var(--muted); line-height: 1.35; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
 .updated-tip-list { display: flex; flex-direction: column; gap: 6px; }
-.updated-tip-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.updated-tip-item { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+/* спіс з дапіскай (вышук РФ: дата файла Медыязоны) — асобны блок на нейтральным шэрым фоне, каб было відаць, да чаго дапіска;
+   адмоўныя палі кампенсуюць унутраныя, і подпіс з датай застаюцца на адной вертыкалі з іншымі радкамі */
+.updated-tip-item.with-sub { padding: 5px 8px 6px; margin: 1px -8px 0; border-radius: 8px; background: var(--line); }
+.updated-tip-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
+.updated-tip-sub { padding-left: 13px; font-size: .78rem; line-height: 1.3; font-style: italic; color: var(--muted); white-space: normal; text-align: left; }
 .tip-label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); white-space: nowrap; }
 .tip-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
 .tip-dot.m { background: var(--accent); }
 .tip-dot.f { background: var(--form); }
 .tip-dot.p { background: var(--person); }
+.tip-dot.w { background: var(--wanted); }
 .tip-val { font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--text); }
 .badge-new { display: inline-block; margin-left: 8px; padding: 1px 9px; border-radius: 99px; background: var(--new); color: #fff; font-weight: 600; font-size: .78rem; white-space: nowrap; }
 .notice { margin: 10px 0 0; padding: 8px 12px; border-radius: 10px; background: var(--line); font-size: .85rem; }
@@ -108,21 +117,26 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 /* чыпы спісаў у статыстыцы ва ўключаным стане — колерам свайго спісу */
 .chip.on.form { background: var(--form); border-color: var(--form); }
 .chip.on.person { background: var(--person); border-color: var(--person); }
+.chip.on.wanted { background: var(--wanted); border-color: var(--wanted); }
 
-/* ---- укладкі-спісы пад пошукам: «Усе запісы · Матэрыялы · Фарміраванні · Асобы» з лічбамі ---- */
-.facets { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 0 0 10px; padding: 6px 8px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
-.facet { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .84rem; height: 30px; padding: 0 10px; border: 1px solid transparent; border-radius: 99px; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
+/* ---- укладкі-спісы пад пошукам: «Усе · Матэрыялы · Фарміраванні · Асобы · Вышук РФ» з лічбамі ----
+   Пяць укладак з лічбамі мусяць змяшчацца ў адзін радок на кампутары (шырыня старонкі 760px): кароткі подпіс «Усе»,
+   шчыльныя водступы і лічбы драбнейшым шрыфтам; на вузкім экране радок пераносіцца. */
+.facets { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 0 10px; padding: 5px 6px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.facet { display: inline-flex; align-items: center; gap: 5px; font: inherit; font-size: .82rem; height: 30px; padding: 0 9px; border: 1px solid transparent; border-radius: 99px; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
 .facet:hover { border-color: var(--line-strong); color: var(--text); }
 .facet.on { background: var(--line); color: var(--text); font-weight: 600; }
 .facet.on.m { background: var(--accent-soft); color: var(--accent); }
 .facet.on.f { background: var(--form-soft); color: var(--form); }
 .facet.on.p { background: var(--person-soft); color: var(--person); }
+.facet.on.w { background: var(--wanted-soft); color: var(--wanted); }
 .facet.zero { opacity: .55; }
 .facet .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
-.facet.m .dot { background: var(--accent); } .facet.f .dot { background: var(--form); } .facet.p .dot { background: var(--person); }
-.facet .cnt { font-variant-numeric: tabular-nums; opacity: .8; font-weight: 400; }
-.new-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 10px 0 10px; padding: 6px 8px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
-.new-toolbar .facets { margin: 0; padding: 0; gap: 4px 6px; background: transparent; border: none; box-shadow: none; border-radius: 0; }
+.facet.m .dot { background: var(--accent); } .facet.f .dot { background: var(--form); } .facet.p .dot { background: var(--person); } .facet.w .dot { background: var(--wanted); }
+.facet .cnt { font-variant-numeric: tabular-nums; opacity: .8; font-weight: 400; font-size: .78rem; }
+/* «Новае»: укладкі-спісы і перамыкач «Выдаленыя» ў адной палосцы; на кампутары — адзін радок, перамыкач справа */
+.new-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 10px 0 10px; padding: 5px 6px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.new-toolbar .facets { margin: 0; padding: 0; gap: 4px; background: transparent; border: none; box-shadow: none; border-radius: 0; }
 .filter-divider { width: 1px; height: 18px; background: var(--line); flex: none; }
 .new-actions { display: flex; align-items: center; margin-left: auto; }
 .facet.removed-facet { border-color: transparent; }
@@ -194,6 +208,16 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 /* трэці спіс: бірузовая палоска і плашка асобы */
 .item.person { border-left: 3px solid var(--person); }
 .type.person { background: var(--person-soft); color: var(--person); }
+/* чацвёрты спіс: янтарная палоска і плашка «Вышук РФ» */
+.item.wanted { border-left: 3px solid var(--wanted); }
+.type.wanted { background: var(--wanted-soft); color: var(--wanted); }
+/* крос-спасылка паміж пералікам асоб МУС і базай вышуку РФ — колерам спіса, куды вядзе */
+.also { margin: 6px 0 0; font-size: .85rem; }
+.also a { font-weight: 600; text-decoration: none; }
+.also a:hover { text-decoration: underline; }
+.also a + a { margin-left: 10px; }
+.item.person .also a { color: var(--wanted); }
+.item.wanted .also a { color: var(--person); }
 .alias { margin: 4px 0 0; color: var(--muted); font-size: .9rem; white-space: pre-wrap; overflow-wrap: anywhere; }
 /* фізічная асоба: дата нараджэння, грамадзянства, статус — адным радком пад транслітарацыяй */
 .facts { margin: 4px 0 0; color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; }
@@ -204,6 +228,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .rec-details dd { margin: 2px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .crime { margin: 0 0 10px; padding: 8px 12px; border-radius: 10px; background: var(--form-soft); color: var(--form); font-size: .88rem; }
 .crime.person { background: var(--person-soft); color: var(--person); }
+.crime.wanted { background: var(--wanted-soft); color: var(--wanted); }
 .name { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; line-height: 1.45; }
 .court { white-space: pre-wrap; overflow-wrap: anywhere; margin: 10px 0 0; font-size: .85rem; color: var(--muted); border-left: 3px solid var(--line-strong); padding-left: 10px; }
 .skeleton { background: linear-gradient(90deg, var(--line), var(--bg), var(--line)); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 6px; min-height: 2.5em; }
@@ -323,7 +348,7 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
 .tl .grid { stroke: var(--line); stroke-width: 1; }
 .tl .base { stroke: var(--line-strong); stroke-width: 1; }
 .tl .band { fill: var(--line); opacity: .8; }
-.tl .s-gpk, .tl .s-mvd, .tl .s-protest { fill: var(--s1); } .tl .s-kgs, .tl .s-kgb, .tl .s-speech { fill: var(--s2); } .tl .s-none, .tl .s-court, .tl .s-ext { fill: var(--s3); } .tl .s-other { fill: var(--s4); }
+.tl .s-gpk, .tl .s-mvd, .tl .s-protest, .tl .s-wmvd { fill: var(--s1); } .tl .s-kgs, .tl .s-kgb, .tl .s-speech, .tl .s-wkgk { fill: var(--s2); } .tl .s-none, .tl .s-court, .tl .s-ext, .tl .s-wkgb { fill: var(--s3); } .tl .s-other, .tl .s-wother { fill: var(--s4); }
 .tl .partial { fill: url(#tl-hatch); }
 .tl .hatch { stroke: var(--card); stroke-width: 2.5; }
 .tl .trend { fill: none; stroke: var(--trend); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; opacity: .75; }
@@ -337,7 +362,7 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
 .legend .cnt { color: var(--muted); }
 .legend .trend-key { display: inline-flex; align-items: center; gap: 7px; font-size: .8rem; height: 30px; padding: 0 10px; color: var(--muted); }
 .key { flex: none; width: 12px; height: 12px; border-radius: 3px; }
-.key.s-gpk, .key.s-mvd, .key.s-protest { background: var(--s1); } .key.s-kgs, .key.s-kgb, .key.s-speech { background: var(--s2); } .key.s-none, .key.s-court, .key.s-ext { background: var(--s3); } .key.s-other { background: var(--s4); }
+.key.s-gpk, .key.s-mvd, .key.s-protest, .key.s-wmvd { background: var(--s1); } .key.s-kgs, .key.s-kgb, .key.s-speech, .key.s-wkgk { background: var(--s2); } .key.s-none, .key.s-court, .key.s-ext, .key.s-wkgb { background: var(--s3); } .key.s-other, .key.s-wother { background: var(--s4); }
 .stats-switch { margin: 12px 0 0; }
 .key.line { width: 16px; height: 0; border-top: 2px solid var(--trend); border-radius: 0; opacity: .75; }
 .readout { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 10px 12px; margin: 0 0 12px; }

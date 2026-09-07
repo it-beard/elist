@@ -29,7 +29,7 @@ describe('splitNew / groupByDate / newCounts', () => {
     expect(inList(split.removed, '')).toBe(split.removed);
   });
   it('лічбы на ўкладках для дададзеных і зніклых', () => {
-    expect(newCounts(split)).toEqual({ added: { m: 2, f: 1, p: 1, all: 4 }, removed: { m: 1, f: 0, p: 1, all: 2 } });
+    expect(newCounts(split)).toEqual({ added: { m: 2, f: 1, p: 1, w: 0, all: 4 }, removed: { m: 1, f: 0, p: 1, w: 0, all: 2 } });
   });
   it('без гісторыі з’яўлення — fallback: апошнія па даце рашэння, не болей за FALLBACK', () => {
     const noHistory = Array.from({ length: 100 }, (_, i) => ({ i, id: `x${i}`, list: 'm', date: `2026-01-${String((i % 28) + 1).padStart(2, '0')}`, added: '', h: '' }));

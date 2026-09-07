@@ -1,0 +1,20 @@
+{
+  "updated": "2026-09-07",
+  "checked": "2026-09-07",
+  "checkedAt": "2026-09-07T10:00:56.118Z",
+  "sourceError": null,
+  "sourcePage": "https://mediazonaby.com/article/2026/08/26/wanted_all",
+  "sourceFile": "file:///Users/aliskseikartynnik/Documents/Programming_Projects/elist/.cache/wanted.json",
+  "sourceDate": "2026-08-31",
+  "parse": {
+    "skipped": 0,
+    "approx": 3039,
+    "out": 2518,
+    "fresh": 34
+  },
+  "total": 6680,
+  "removedTotal": 2517,
+  "approx": 608,
+  "lastAdded": null,
+  "lastAddedCount": 0
+}

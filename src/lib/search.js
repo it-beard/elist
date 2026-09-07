@@ -2,12 +2,15 @@ import { isRecent } from './format.js';
 
 const has = (h, t) => (Array.isArray(t) ? t.some((v) => v && h.includes(v)) : h.includes(t));
 
+/** Спісы базы: матэрыялы, фарміраванні, фізічныя асобы, вышук РФ. */
+export const LISTS = ['m', 'f', 'p', 'w'];
+
 /**
  * Фільтруе і сартуе запісы індэкса. Кожны item мае: i, id, date, added, removed, h (радок для пошуку),
- * list ('m' — матэрыял, 'f' — экстрэмісцкае фарміраванне, 'p' — фізічная асоба; адсутнасць = 'm').
+ * list ('m' — матэрыял, 'f' — экстрэмісцкае фарміраванне, 'p' — фізічная асоба, 'w' — вышук РФ; адсутнасць = 'm').
  * Токен — радок або масіў варыянтаў (дастаткова любога з іх).
  * replacedBy — старая версія выпраўленага запісу: у выніках не паказваем (пастаянная спасылка вядзе на новую).
- * list — абмежаваць адным спісам ('m', 'f', 'p'); без яго выдача змяшаная.
+ * list — абмежаваць адным спісам ('m', 'f', 'p', 'w'); без яго выдача змяшаная.
  * sort — 'newest' (па даце рашэння спачатку новыя), 'oldest' (спачатку старыя), 'source' (як у афіцыйнай крыніцы).
  */
 export function search(items, tokens, { any = false, onlyNew = false, sort = 'newest', list = '' } = {}) {
@@ -25,15 +28,15 @@ export function search(items, tokens, { any = false, onlyNew = false, sort = 'ne
 }
 
 /**
- * Колькі запісаў у кожным спісе: { m, f, p, all } (невядомы спіс лічыцца матэрыяламі).
+ * Колькі запісаў у кожным спісе: { m, f, p, w, all } (невядомы спіс лічыцца матэрыяламі).
  * live — толькі запісы, якія цяпер ёсць у спісе (без выдаленых); старыя версіі выпраўленых (replacedBy)
  * у выдачу і так не трапляюць.
  */
 export function countByList(items, { live = false } = {}) {
-  const c = { m: 0, f: 0, p: 0, all: 0 };
+  const c = { m: 0, f: 0, p: 0, w: 0, all: 0 };
   for (const it of items) {
     if (live && it.removed) continue;
-    c[it.list === 'f' || it.list === 'p' ? it.list : 'm']++;
+    c[LISTS.includes(it.list) ? it.list : 'm']++;
     c.all++;
   }
   return c;

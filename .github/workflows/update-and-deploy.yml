@@ -30,7 +30,7 @@ jobs:
     name: Абнавіць базу
     runs-on: ubuntu-latest
     if: github.event_name != 'push'
-    timeout-minutes: 55   # горшы выпадак: матэрыялы да ~20 хв, фарміраванні ~3, крок фізічных асоб да 25 (свой ліміт ніжэй) + запас
+    timeout-minutes: 55   # горшы выпадак: матэрыялы да ~20 хв, фарміраванні ~3, крок фізічных асоб да 25 (свой ліміт ніжэй), вышук РФ да 5 + запас
     permissions:
       contents: write   # каміт data/ у main
     steps:
@@ -71,6 +71,15 @@ jobs:
         run: npm run update:persons
         env:
           UPDATE_FORCE: ${{ inputs.force }}
+      # Чацвёрты спіс — беларусы ў базе вышуку МУС РФ паводле штодзённай выбаркі Медыязоны (адзін JSON, ~1 МБ). Правяраем пры
+      # кожным запуску; збой не спыняе дэплой: sourceError у wanted-meta.json, сайт папярэдзіць, alert.mjs source скажа адміну.
+      - name: Абнавіць базу вышуку РФ (Медыязона)
+        id: wanted
+        continue-on-error: true
+        timeout-minutes: 5
+        run: npm run update:wanted
+        env:
+          UPDATE_FORCE: ${{ inputs.force }}
       - name: Дайджэст у Telegram (калі наладжаны сакрэты)
         run: node scripts/notify.mjs
         env:
@@ -89,6 +98,7 @@ jobs:
           TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
           FORMATIONS_STEP: ${{ steps.formations.outcome }}
           PERSONS_STEP: ${{ steps.persons.outcome }}
+          WANTED_STEP: ${{ steps.wanted.outcome }}
       # Каміт заўжды пасля дайджэсту: data/notified.json з адзнакамі пра адпраўку мусіць трапіць у рэпо,
       # інакш наступны запуск прышле тое самае паўторна. Перад push — rebase і паўторы: паралельны push
       # у main (напрыклад, ваш каміт з кодам) не павінен губляць гэты каміт і валіць дэплой.
@@ -118,6 +128,7 @@ jobs:
               npm run update
               npm run update:formations || true
               npm run update:persons || true
+              npm run update:wanted || true
               commit_data || { echo "Пасля паўтору зменаў няма"; exit 0; }
             fi
             sleep 10

@@ -3,9 +3,10 @@
  * адбор свежых запісаў (selectFresh), фарматаванне (entry, digestHeader) і разбіццё на паведамленні
  * ≤ 4096 сімвалаў (splitDigest, buildDigest).
  *
- * Тры спісы ў адным дайджэсце: матэрыялы (эмодзі паводле тыпу рэсурсу, ⚖️ суд), экстрэмісцкія фарміраванні
+ * Чатыры спісы ў адным дайджэсце: матэрыялы (эмодзі паводле тыпу рэсурсу, ⚖️ суд), экстрэмісцкія фарміраванні
  * (🟣, хто прыняў рашэнне і від запісу), фізічныя асобы (👤, артыкулы КК і суд; дата нараджэння і адрас у канал
- * не ідуць — яны на старонцы запісу). Пры першым імпарце added = null — у дайджэст нічога не трапляе.
+ * не ідуць — яны на старонцы запісу), беларусы ў базе вышуку РФ (🔎, ведамства-ініцыятар і рэгіён; год нараджэння
+ * у канал не ідзе). Пры першым імпарце added = null — у дайджэст нічога не трапляе.
  *
  * Фарматаванне — HTML-рэжым Bot API (дазволеныя толькі b/i/u/s/code/a/blockquote):
  * https://core.telegram.org/bots/api#html-style. Ліміт — 4096 сімвалаў на паведамленне,
@@ -13,10 +14,11 @@
  */
 import { courtName } from '../src/lib/court.js';
 import { articlesLabel } from '../src/lib/person.js';
+import { personName } from '../src/lib/wanted.js';
 
 export const LIMIT = 3900;      // запас да 4096
 export const NAME_MAX = 220;    // даўжыня назвы ў дайджэсце
-export const RANK = { m: 0, f: 1, p: 2 }; // парадак спісаў у дайджэсце
+export const RANK = { m: 0, f: 1, p: 2, w: 3 }; // парадак спісаў у дайджэсце
 
 export const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const MONTHS = ['студзеня', 'лютага', 'сакавіка', 'красавіка', 'мая', 'чэрвеня', 'ліпеня', 'жніўня', 'верасня', 'кастрычніка', 'лістапада', 'снежня'];
@@ -44,15 +46,16 @@ const KINDS = [
 export function icon(x) {
   if (x.list === 'f') return '🟣';
   if (x.list === 'p') return '👤';
+  if (x.list === 'w') return '🔎';
   const s = `${x.name}\n${x.type || ''}`.toLowerCase();
   let best = null;
   for (const [re, emoji] of KINDS) { const i = s.search(re); if (i !== -1 && (best === null || i < best.i)) best = { i, emoji }; }
   return best ? best.emoji : '📄';
 }
 
-/** Назва: адзін радок, без службовых хвастоў, абрэзаная. */
+/** Назва: адзін радок, без службовых хвастоў, абрэзаная; імя з базы вышуку — у звычайным рэгістры, а не ВЯЛІКІМІ. */
 export function title(x) {
-  let s = x.name.replace(/\s+/g, ' ').replace(/[;,.\s]+$/, '').trim();
+  let s = (x.list === 'w' ? personName(x.name) : x.name).replace(/\s+/g, ' ').replace(/[;,.\s]+$/, '').trim();
   if (s.length > NAME_MAX) s = s.slice(0, NAME_MAX - 1).replace(/\s+\S*$/, '') + '…';
   return s;
 }
@@ -61,13 +64,18 @@ const DECIDER = { mvd: 'рашэнне МУС', kgb: 'рашэнне КДБ', co
 const KIND = { formation: 'экстрэмісцкае фарміраванне', organization: 'экстрэмісцкая арганізацыя' };
 const FORM_HEADER = '🟣 <b>Пералік экстрэмісцкіх фарміраванняў (МУС/КДБ)</b> — за ўдзел, садзейнічанне ці данаты крымінальная адказнасць';
 const PERSON_HEADER = '👤 <b>Пералік фізічных асоб, прычастных да экстрэмісцкай дзейнасці (МУС)</b> — прысуд ці іншае рашэнне суда па «экстрэмісцкіх» артыкулах КК';
-const HEADERS = { f: FORM_HEADER, p: PERSON_HEADER };
+const WANTED_HEADER = '🔎 <b>База вышуку МУС РФ: беларусы (паводле Медыязоны)</b> — вышук па запыце беларускіх ведамстваў, магчымыя затрыманне і выдача ў Расіі і краінах, якія з ёй супрацоўнічаюць';
+const HEADERS = { f: FORM_HEADER, p: PERSON_HEADER, w: WANTED_HEADER };
 
 /** Блок аднаго запісу: эмодзі, нумар n, назва, радок мэты і спасылка на запіс на сайце site. */
 export function entry(x, n, site) {
   // матэрыял: ⚖️ суд; фарміраванне: 🟣 хто прыняў рашэнне + від запісу; фізічная асоба: 👤 артыкулы КК + суд
-  // (дата — уключэння ў пералік) — каб у стужцы адрозніваліся з першага погляду
-  const metaLine = x.list === 'p'
+  // (дата — уключэння ў пералік); вышук РФ: 🔎 ведамства-ініцыятар + рэгіён (дата — абвяшчэння ў вышук) —
+  // каб у стужцы адрозніваліся з першага погляду
+  const wParts = [x.agency && `па запыце ${esc(x.agency)}`, x.region && esc(x.region)].filter(Boolean);
+  const metaLine = x.list === 'w'
+    ? [x.date && dateShort(x.date), `🔎 ${wParts.length ? wParts.join(' · ') : 'база вышуку МУС РФ'}`].filter(Boolean).join(' · ')
+    : x.list === 'p'
     ? [x.date && dateShort(x.date), `👤 ${[esc(articlesLabel(x.articles)), x.court && esc(x.court.replace(/^суда\s+/i, 'суд '))].filter(Boolean).join(' · ')}`].filter(Boolean).join(' · ')
     : x.list === 'f'
       ? [x.date && dateShort(x.date), `🟣 ${[DECIDER[x.decidedBy], KIND[x.kind] || KIND.formation].filter(Boolean).join(' · ')}`].filter(Boolean).join(' · ')
@@ -79,20 +87,22 @@ export function entry(x, n, site) {
   );
 }
 
-const countBy = (fresh) => { const nBy = { m: 0, f: 0, p: 0 }; for (const x of fresh) nBy[x.list]++; return nBy; };
+const countBy = (fresh) => { const nBy = { m: 0, f: 0, p: 0, w: 0 }; for (const x of fresh) nBy[x.list]++; return nBy; };
 
 /** Шапка дайджэсту: пробная; змяшаная (некалькі спісаў); аднаго спіса. total — колькі матэрыялаў у спісе (meta.total). */
 export function digestHeader(fresh, { test = false, today, total }) {
   const n = fresh.length;
-  const { m: nM, f: nF, p: nP } = countBy(fresh);
-  const kinds = [nM, nF, nP].filter(Boolean).length;
+  const { m: nM, f: nF, p: nP, w: nW } = countBy(fresh);
+  const kinds = [nM, nF, nP, nW].filter(Boolean).length;
   // дата дайджэсту — калі запісы трапілі ў базу, а не калі мы дасылаем (важна для дабору за мінулыя дні)
   const day = test ? today : fresh[fresh.length - 1].added;
   const newN = `+${n} ${plural(n, 'новы запіс', 'новыя запісы', 'новых запісаў')}`;
   return test
     ? `🧪 <b>Пробнае паведамленне</b> — так будуць выглядаць дайджэсты\n<i>${dateBe(day)} · ${num(total)} ${plural(total, 'запіс', 'запісы', 'запісаў')} у спісе</i>`
     : kinds > 1
-      ? `🔴 <b>Экстрэмісцкія спісы: ${newN}</b>\n<i>${dateBe(day)} · ${[nM && `матэрыялаў +${nM}`, nF && `фарміраванняў +${nF}`, nP && `асоб +${nP}`].filter(Boolean).join(', ')}${nM ? ` · усяго матэрыялаў у спісе ${num(total)}` : ''}</i>`
+      ? `🔴 <b>Экстрэмісцкія спісы: ${newN}</b>\n<i>${dateBe(day)} · ${[nM && `матэрыялаў +${nM}`, nF && `фарміраванняў +${nF}`, nP && `асоб +${nP}`, nW && `у вышуку РФ +${nW}`].filter(Boolean).join(', ')}${nM ? ` · усяго матэрыялаў у спісе ${num(total)}` : ''}</i>`
+      : nW
+        ? `🔎 <b>База вышуку МУС РФ па беларусах (паводле Медыязоны): ${newN}</b>\n<i>${dateBe(day)}</i>`
       : nP
         ? `👤 <b>Пералік фізічных асоб, прычастных да экстрэмісцкай дзейнасці (МУС): ${newN}</b>\n<i>${dateBe(day)}</i>`
         : nF

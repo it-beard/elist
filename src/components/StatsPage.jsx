@@ -26,24 +26,27 @@ const iso = (t) => new Date(t).toISOString().slice(0, 10);
 const pct = (n, d) => (d ? Math.round((n / d) * 100) : 0);
 const delta = (cur, prev) => (prev ? Math.round(((cur - prev) / prev) * 100) : null);
 
-const LIST_CLASS = { f: ' form', p: ' person' };
+const LIST_CLASS = { f: ' form', p: ' person', w: ' wanted' };
 
 /**
  * Старонка «Статыстыка»: пліткі, таймлайн з маштабам, легенда, картка перыяду, табліца.
  * Спісы — асобна, праз пераключальнік: матэрыялы (серыі — артыкул рашэння суда), фарміраванні
- * (серыі — хто прыняў рашэнне) і фізічныя асобы (серыі — група артыкулаў КК; дата — дата ўключэння ў пералік).
- * У адзін графік іх не змешваем: сотні матэрыялаў у месяц схавалі б адзінкі фарміраванняў.
+ * (серыі — хто прыняў рашэнне), фізічныя асобы (серыі — група артыкулаў КК; дата — дата ўключэння ў пералік)
+ * і вышук РФ (серыі — ведамства-ініцыятар; дата — дата абвяшчэння ў вышук; запісы з прыблізнай датай «да …»
+ * на графік не трапляюць, іх колькасць — асобным радком). У адзін графік іх не змешваем: сотні матэрыялаў у месяц
+ * схавалі б адзінкі фарміраванняў.
  */
 export default function StatsPage({ items, initialList = 'm' }) {
   const { t } = useLang();
   const now = useMemo(() => floorTo(Date.now(), 'day'), []);
-  const has = useMemo(() => ({ f: items.some((it) => it.list === 'f'), p: items.some((it) => it.list === 'p') }), [items]);
-  // #/stats — матэрыялы, #/stats/f — фарміраванні, #/stats/p — фізічныя асобы (спасылкай можна падзяліцца)
+  const has = useMemo(() => ({ f: items.some((it) => it.list === 'f'), p: items.some((it) => it.list === 'p'), w: items.some((it) => it.list === 'w') }), [items]);
+  // #/stats — матэрыялы, #/stats/f — фарміраванні, #/stats/p — фізічныя асобы, #/stats/w — вышук РФ (спасылкай можна падзяліцца)
   const [list, setList] = useState(has[initialList] ? initialList : 'm');
   const SERIES = SERIES_BY_LIST[list];
   // адно правіла ўсюды: лічым запісы, якія цяпер ёсць у спісе — без выдаленых і старых версій выпраўленых
   const inList = (it, l) => (it.list || 'm') === l && !it.removed && !it.replacedBy;
   const listItems = useMemo(() => items.filter((it) => inList(it, list)), [items, list]);
+  const undated = useMemo(() => (list === 'w' ? listItems.filter((it) => !it.date).length : 0), [listItems, list]);
   const daily = useMemo(() => dailyCounts(listItems, SERIES), [listItems, SERIES]);
   const minT = daily[0]?.[0] ?? now - 365 * DAY;
   const maxT = nextOf(now, 'day');
@@ -134,14 +137,16 @@ export default function StatsPage({ items, initialList = 'm' }) {
   return (
     <>
       <h2 className="page-title">{t.statsTitle}</h2>
-      {(has.f || has.p) && (
+      {(has.f || has.p || has.w) && (
         <div className="options stats-switch" role="group">
           <button type="button" className={`chip${list === 'm' ? ' on' : ''}`} aria-pressed={list === 'm'} onClick={() => switchList('m')}>{t.statsMaterials}</button>
           {has.f && <button type="button" className={`chip${list === 'f' ? ` on${LIST_CLASS.f}` : ''}`} aria-pressed={list === 'f'} onClick={() => switchList('f')}>{t.statsFormations}</button>}
           {has.p && <button type="button" className={`chip${list === 'p' ? ` on${LIST_CLASS.p}` : ''}`} aria-pressed={list === 'p'} onClick={() => switchList('p')}>{t.statsPersons}</button>}
+          {has.w && <button type="button" className={`chip${list === 'w' ? ` on${LIST_CLASS.w}` : ''}`} aria-pressed={list === 'w'} onClick={() => switchList('w')}>{t.statsWanted}</button>}
         </div>
       )}
-      <p className="hint">{list === 'p' ? t.statsIntroP : list === 'f' ? t.statsIntroF : t.statsIntro}</p>
+      <p className="hint">{list === 'w' ? t.statsIntroW : list === 'p' ? t.statsIntroP : list === 'f' ? t.statsIntroF : t.statsIntro}</p>
+      {undated > 0 && <p className="hint">{t.statsApproxW(fmtNum(undated))}</p>}
 
       <div className="tiles">
         <div className="tile"><span className="lbl">{t.tileTotal}</span><span className="val">{fmtNum(listItems.length)}</span>{sum.first && <span className="dlt">{t.since(fmtDate(iso(sum.first)))}</span>}</div>

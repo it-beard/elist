@@ -4,11 +4,13 @@
  * усе даты — UTC-мілісекунды (даты рашэнняў у базе без часу).
  */
 import { PERSON_SERIES } from './person.js';
+import { WANTED_SERIES } from './wanted.js';
 
 // Серыі стоса — фіксаваны парадак = фіксаваныя колеры. Матэрыялы: артыкул рашэння суда;
 // фарміраванні (другі спіс): хто прыняў рашэнне — МУС, КДБ ці суд (для «экстрэмісцкіх арганізацый»);
-// фізічныя асобы (трэці спіс): група артыкулаў КК, па якіх вынесены прысуд (гл. person.js).
-export const SERIES_BY_LIST = { m: ['gpk', 'kgs', 'none'], f: ['mvd', 'kgb', 'court'], p: PERSON_SERIES };
+// фізічныя асобы (трэці спіс): група артыкулаў КК, па якіх вынесены прысуд (гл. person.js);
+// вышук РФ (чацвёрты спіс): ведамства Беларусі, па чыім запыце абвешчаны вышук (гл. wanted.js); дата — дата вышуку.
+export const SERIES_BY_LIST = { m: ['gpk', 'kgs', 'none'], f: ['mvd', 'kgb', 'court'], p: PERSON_SERIES, w: WANTED_SERIES };
 export const SERIES = SERIES_BY_LIST.m;
 export const GRAINS = ['day', 'week', 'month', 'quarter', 'year'];
 export const DAY = 864e5;

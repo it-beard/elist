@@ -39,7 +39,7 @@ describe('i18n: парытэт моў і жывыя ключы', () => {
   it('спасылкі — толькі https', () => {
     for (const [k, v] of Object.entries(LINKS)) expect(v, k).toMatch(/^https:\/\//);
   });
-  it('тэксты не супярэчаць UI: назва ўкладкі «Усе запісы», без «валанцёраў», без «30 дзён» літаральна', () => {
+  it('тэксты не супярэчаць UI: назва ўкладкі «Усе», без «валанцёраў», без «30 дзён» літаральна', () => {
     for (const lang of LANGS) {
       const t = STRINGS[lang];
       const all = t.facet.all;

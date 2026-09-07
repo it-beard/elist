@@ -10,7 +10,7 @@ export const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
 const DIED = new Set(['failure', 'cancelled']); // крок не завяршыўся сам: упаў ці забіты таймаўтам
 
 /** Паведамленні (масіў радкоў HTML) для пераходаў стану; пусты масіў — стан не змяніўся. */
-export function sourceMessages({ cur = {}, prev = {}, curF = {}, prevF = {}, curP = {}, prevP = {}, steps = {} } = {}) {
+export function sourceMessages({ cur = {}, prev = {}, curF = {}, prevF = {}, curP = {}, prevP = {}, curW = {}, prevW = {}, steps = {} } = {}) {
   const msgs = [];
   if (Boolean(cur.sourceError) !== Boolean(prev.sourceError)) {
     msgs.push(cur.sourceError ? `⚠️ Крыніца не адказвае: ${esc(cur.sourceError)}` : '✅ Крыніца зноў адказвае.');
@@ -31,6 +31,13 @@ export function sourceMessages({ cur = {}, prev = {}, curF = {}, prevF = {}, cur
   }
   if (DIED.has(steps.persons) && !curP.sourceError) {
     msgs.push('⚠️ Крок абнаўлення пераліку фізічных асоб (МУС) не завяршыўся (таймаўт ці збой да запісу меты).');
+  }
+  // чацвёрты спіс: база вышуку РФ па беларусах (JSON Медыязоны)
+  if (Boolean(curW.sourceError) !== Boolean(prevW.sourceError)) {
+    msgs.push(curW.sourceError ? `⚠️ База вышуку РФ (Медыязона) не абнаўляецца: ${esc(curW.sourceError)}` : '✅ База вышуку РФ (Медыязона) зноў абнаўляецца.');
+  }
+  if (DIED.has(steps.wanted) && !curW.sourceError) {
+    msgs.push('⚠️ Крок абнаўлення базы вышуку РФ (Медыязона) не завяршыўся (таймаўт ці збой да запісу меты).');
   }
   return msgs;
 }

@@ -15,7 +15,7 @@ export default function WhatsNew({ items, chunkSize, lists = {} }) {
   const { t } = useLang();
   const [list, setList] = useState('');
   const [showRemoved, setShowRemoved] = useState(false);
-  const hasLists = Boolean(lists.f || lists.p);
+  const hasLists = Boolean(lists.f || lists.p || lists.w);
 
   const split = useMemo(() => splitNew(items || []), [items]);
   const counts = useMemo(() => newCounts(split), [split]);

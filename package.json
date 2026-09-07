@@ -1,7 +1,7 @@
 {
   "name": "extremist-lists-search",
   "version": "2.0.0",
-  "description": "Пошук па экстрэмісцкіх спісах Беларусі: матэрыялы, фарміраванні, фізічныя асобы",
+  "description": "Пошук па экстрэмісцкіх спісах Беларусі: матэрыялы, фарміраванні, фізічныя асобы, вышук РФ",
   "type": "module",
   "private": true,
   "scripts": {
@@ -11,6 +11,7 @@
     "update": "node scripts/update.mjs",
     "update:formations": "node scripts/update-formations.mjs",
     "update:persons": "node scripts/update-persons.mjs",
+    "update:wanted": "node scripts/update-wanted.mjs",
     "build:index": "node scripts/build-index.mjs",
     "test": "vitest run"
   },

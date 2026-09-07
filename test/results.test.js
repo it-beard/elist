@@ -17,10 +17,10 @@ const q = (s) => parseQuery(s);
 
 describe('countByList', () => {
   it('лічыць па спісах, невядомы спіс — матэрыялы; live — без выдаленых', () => {
-    expect(countByList(ITEMS)).toEqual({ m: 3, f: 1, p: 2, all: 6 });
-    expect(countByList(ITEMS, { live: true })).toEqual({ m: 2, f: 1, p: 2, all: 5 });
-    expect(countByList([{ h: '' }, { list: 'zzz', h: '' }])).toEqual({ m: 2, f: 0, p: 0, all: 2 });
-    expect(countByList([])).toEqual({ m: 0, f: 0, p: 0, all: 0 });
+    expect(countByList(ITEMS)).toEqual({ m: 3, f: 1, p: 2, w: 0, all: 6 });
+    expect(countByList(ITEMS, { live: true })).toEqual({ m: 2, f: 1, p: 2, w: 0, all: 5 });
+    expect(countByList([{ h: '' }, { list: 'zzz', h: '' }])).toEqual({ m: 2, f: 0, p: 0, w: 0, all: 2 });
+    expect(countByList([])).toEqual({ m: 0, f: 0, p: 0, w: 0, all: 0 });
   });
 });
 
@@ -29,14 +29,14 @@ describe('deriveResults — выдача, укладкі-спісы, фільт�
     const d = deriveResults(ITEMS, [], OPTS);
     expect(d.searching).toBe(false);
     expect(d.results.map((x) => x.id)).toEqual(['p2', 'p1', 'f1', 'm1', 'm2']);
-    expect(d.facetCounts).toEqual({ m: 1, f: 1, p: 2, all: 4 });
+    expect(d.facetCounts).toEqual({ m: 1, f: 1, p: 2, w: 0, all: 4 });
     expect(d.live).toEqual(d.facetCounts);
     expect(summarize(d)).toEqual({ kind: 'total', n: 4 });
   });
   it('з запытам: пошук па ўсіх спісах, лічбы — колькі знойдзена ў кожным (уключна з выдаленымі)', () => {
     const d = deriveResults(ITEMS, q('свабода'), OPTS);
     expect(d.results.map((x) => x.id)).toEqual(['f1', 'm1', 'm2']);
-    expect(d.facetCounts).toEqual({ m: 2, f: 1, p: 0, all: 3 });
+    expect(d.facetCounts).toEqual({ m: 2, f: 1, p: 0, w: 0, all: 3 });
     expect(d.shown).toEqual({ m: true, f: true });
     expect(summarize(d)).toEqual({ kind: 'found', n: 3 });
   });

@@ -71,7 +71,7 @@ export function llmsTxt({ site, facts, stats }) {
 
 > ${SUMMARY.be(f)}
 
-Неафіцыйны сайт з адкрытым кодам. Даныя аўтаматычна бяруцца з афіцыйных публікацый — Рэспубліканскага спісу экстрэмісцкіх матэрыялаў (Мінінфарм), пераліку экстрэмісцкіх фарміраванняў і пераліку фізічных асоб, прычастных да экстрэмісцкай дзейнасці (МУС) — і не рэдагуюцца; у выдачы запісы трох спісаў адрозніваюцца плашкай. Сайт статычны, без сервернай часткі: уся база спампоўваецца ў браўзер, запыты нікуды не адпраўляюцца.
+Неафіцыйны сайт з адкрытым кодам. Даныя аўтаматычна бяруцца з афіцыйных публікацый — Рэспубліканскага спісу экстрэмісцкіх матэрыялаў (Мінінфарм), пераліку экстрэмісцкіх фарміраванняў і пераліку фізічных асоб, прычастных да экстрэмісцкай дзейнасці (МУС), — а база вышуку МУС РФ па беларусах — са штодзённай выбаркі Медыязоны-Беларусь; нічога не рэдагуецца, у выдачы запісы чатырох спісаў адрозніваюцца плашкай. Сайт статычны, без сервернай часткі: уся база спампоўваецца ў браўзер, запыты нікуды не адпраўляюцца.
 
 ## Ключавыя факты
 
@@ -84,10 +84,10 @@ ${years}
 ## Старонкі
 
 - [Пошук](${abs(site, '')}): галоўная старонка; запыт можна перадаць у адрасе — \`#q=запыт\` (прымаецца і \`?q=запыт\`), у адрасны радок ён пры гэтым не запісваецца.
-- [Пытанні і адказы](${abs(site, 'faq.html')}): што такое спіс, што пагражае за рэпост, чым ён адрозніваецца ад спісу экстрэмісцкіх фарміраванняў і пераліку фізічных асоб.
+- [Пытанні і адказы](${abs(site, 'faq.html')}): што такое спіс, што пагражае за рэпост, чым ён адрозніваецца ад спісу экстрэмісцкіх фарміраванняў, пераліку фізічных асоб і базы вышуку РФ.
 - [FAQ (English)](${abs(site, 'faq-en.html')}): тое самае па-англійску.
 - [Новае](${abs(site, '#/new')}): запісы ўсіх спісаў за апошнія 30 дзён, згрупаваныя па даце з’яўлення.
-- [Статыстыка](${abs(site, '#/stats')}): таймлайн колькасці запісаў па месяцах і гадах — матэрыялы з разбіўкай па артыкуле рашэння; [фарміраванні](${abs(site, '#/stats/f')}) — па органе, які прыняў рашэнне (МУС, КДБ, суд); [фізічныя асобы](${abs(site, '#/stats/p')}) — па даце ўключэння ў пералік з разбіўкай па групе артыкулаў КК.
+- [Статыстыка](${abs(site, '#/stats')}): таймлайн колькасці запісаў па месяцах і гадах — матэрыялы з разбіўкай па артыкуле рашэння; [фарміраванні](${abs(site, '#/stats/f')}) — па органе, які прыняў рашэнне (МУС, КДБ, суд); [фізічныя асобы](${abs(site, '#/stats/p')}) — па даце ўключэння ў пералік з разбіўкай па групе артыкулаў КК; [вышук РФ](${abs(site, '#/stats/w')}) — па даце абвяшчэння ў вышук з разбіўкай па ведамстве-ініцыятары.
 - [RSS](${abs(site, 'feed.xml')}): стужка новых запісаў.
 
 ## Часта пытаюць
@@ -124,7 +124,7 @@ export function siteJsonLd({ site, facts, lang = 'be' }) {
       {
         '@type': 'Dataset',
         '@id': `${abs(site, '')}#dataset`,
-        name: lang === 'en' ? 'Extremist lists of Belarus: the Republican list of extremist materials, the list of extremist formations and the list of individuals involved in extremist activity' : 'Экстрэмісцкія спісы Беларусі: Рэспубліканскі спіс экстрэмісцкіх матэрыялаў, пералік экстрэмісцкіх фарміраванняў і пералік фізічных асоб, прычастных да экстрэмісцкай дзейнасці',
+        name: lang === 'en' ? 'Extremist lists of Belarus: the Republican list of extremist materials, the list of extremist formations, the list of individuals involved in extremist activity, and Belarusians in the Russian Interior Ministry wanted database (per Mediazona)' : 'Экстрэмісцкія спісы Беларусі: Рэспубліканскі спіс экстрэмісцкіх матэрыялаў, пералік экстрэмісцкіх фарміраванняў, пералік фізічных асоб, прычастных да экстрэмісцкай дзейнасці, і беларусы ў базе вышуку МУС РФ (паводле Медыязоны)',
         description: SUMMARY[lang](f),
         url: abs(site, ''),
         inLanguage: 'ru',
@@ -135,7 +135,7 @@ export function siteJsonLd({ site, facts, lang = 'be' }) {
           { '@type': 'DataDownload', encodingFormat: 'application/rss+xml', contentUrl: abs(site, 'feed.xml') },
           { '@type': 'DataDownload', encodingFormat: 'application/json', contentUrl: abs(site, 'data/index.json') },
         ],
-        variableMeasured: ['тып матэрыялу', 'апісанне', 'суд', 'дата рашэння', 'дата з’яўлення ў спісе', 'падстава ўключэння (для фарміраванняў і фізічных асоб)', 'дата ўключэння ў пералік'],
+        variableMeasured: ['тып матэрыялу', 'апісанне', 'суд', 'дата рашэння', 'дата з’яўлення ў спісе', 'падстава ўключэння (для фарміраванняў і фізічных асоб)', 'дата ўключэння ў пералік', 'ведамства-ініцыятар і дата абвяшчэння ў вышук (для базы вышуку РФ)'],
       },
       {
         '@type': 'WebApplication',
@@ -224,8 +224,8 @@ export function faqPage({ site, facts, stats, lang, base = '/' }) {
     ? 'FAQ: the extremist lists of Belarus'
     : 'Пытанні і адказы: экстрэмісцкія спісы Беларусі';
   const lead = en
-    ? `This page answers the most common questions about the extremist lists of Belarus — the Republican list of extremist materials, the list of extremist formations and the Interior Ministry list of individuals — and about this search site: what the lists are, how to check a channel, handle or name, what the penalties are, and what data the site stores. As of ${f.updatedStr} the database holds ${f.totalStr} material entries${f.formations ? `, ${f.formationsStr} formations` : ''}${f.persons ? ` and ${f.personsStr} individuals` : ''}; materials and individuals refresh twice a day, formations once a day.`
-    : `Гэтая старонка адказвае на самыя частыя пытанні пра экстрэмісцкія спісы Беларусі — Рэспубліканскі спіс экстрэмісцкіх матэрыялаў, пералік экстрэмісцкіх фарміраванняў і пералік фізічных асоб МУС — і пра гэты сайт: што гэта за спісы, як праверыць канал, нік ці імя, што пагражае за рэпост і якія даныя сайт захоўвае. На ${f.updatedStr} у базе ${f.totalStr} запісаў матэрыялаў${f.formations ? `, ${f.formationsStr} фарміраванняў` : ''}${f.persons ? ` і ${f.personsStr} фізічных асоб` : ''}; матэрыялы і асобы абнаўляюцца двойчы на дзень, фарміраванні — раз на суткі.`;
+    ? `This page answers the most common questions about the extremist lists of Belarus — the Republican list of extremist materials, the list of extremist formations and the Interior Ministry list of individuals — plus the Russian Interior Ministry wanted database of Belarusians (per Mediazona), and about this search site: what the lists are, how to check a channel, handle or name, what the penalties are, and what data the site stores. As of ${f.updatedStr} the database holds ${f.totalStr} material entries${f.formations ? `, ${f.formationsStr} formations` : ''}${f.persons ? `${f.wanted ? ',' : ' and'} ${f.personsStr} individuals` : ''}${f.wanted ? ` and ${f.wantedStr} Belarusians wanted in Russia` : ''}; materials, individuals and the wanted database refresh twice a day, formations once a day.`
+    : `Гэтая старонка адказвае на самыя частыя пытанні пра экстрэмісцкія спісы Беларусі — Рэспубліканскі спіс экстрэмісцкіх матэрыялаў, пералік экстрэмісцкіх фарміраванняў і пералік фізічных асоб МУС, — а таксама пра базу вышуку МУС РФ па беларусах (паводле Медыязоны) і пра гэты сайт: што гэта за спісы, як праверыць канал, нік ці імя, што пагражае за рэпост і якія даныя сайт захоўвае. На ${f.updatedStr} у базе ${f.totalStr} запісаў матэрыялаў${f.formations ? `, ${f.formationsStr} фарміраванняў` : ''}${f.persons ? `${f.wanted ? ',' : ' і'} ${f.personsStr} фізічных асоб` : ''}${f.wanted ? ` і ${f.wantedStr} беларусаў у вышуку РФ` : ''}; матэрыялы, асобы і база вышуку абнаўляюцца двойчы на дзень, фарміраванні — раз на суткі.`;
   const years = (stats.byYear || []).slice(0, 6);
   const yearsTitle = en ? 'Materials list: entries by year of the court decision' : 'Спіс матэрыялаў: запісы па годзе судовага рашэння';
   const factsTitle = en ? 'Key facts' : 'Ключавыя факты';
@@ -244,7 +244,7 @@ export function faqPage({ site, facts, stats, lang, base = '/' }) {
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
-<meta name="description" content="${esc(en ? `FAQ about the extremist lists of Belarus (materials, formations and individuals): ${f.totalStr} entries as of ${f.updatedStr}, penalties under Art. 19.11 and Art. 361-1, how to check a channel or handle, what data the site stores.` : `Пытанні і адказы пра экстрэмісцкія спісы Беларусі (матэрыялы, фарміраванні і фізічныя асобы): ${f.totalStr} запісаў на ${f.updatedStr}, адказнасць паводле арт. 19.11 КаАП і арт. 361-1 КК, як праверыць канал ці нік, якія даныя захоўвае сайт.`)}">
+<meta name="description" content="${esc(en ? `FAQ about the extremist lists of Belarus (materials, formations, individuals and the RF wanted database): ${f.totalStr} entries as of ${f.updatedStr}, penalties under Art. 19.11 and Art. 361-1, how to check a channel or handle, what data the site stores.` : `Пытанні і адказы пра экстрэмісцкія спісы Беларусі (матэрыялы, фарміраванні, фізічныя асобы і база вышуку РФ): ${f.totalStr} запісаў на ${f.updatedStr}, адказнасць паводле арт. 19.11 КаАП і арт. 361-1 КК, як праверыць канал ці нік, якія даныя захоўвае сайт.`)}">
 <link rel="canonical" href="${esc(page)}">
 <link rel="alternate" hreflang="be" href="${esc(abs(site, 'faq.html'))}">
 <link rel="alternate" hreflang="en" href="${esc(abs(site, 'faq-en.html'))}">
@@ -291,7 +291,7 @@ ${sections}
 </main>
 
 <footer>
-<p>${en ? 'Unofficial search over three official lists: the Republican list of extremist materials and the Interior Ministry lists of extremist formations and individuals. The database updates automatically; entry text, grounds and dates are kept exactly as in the official sources.' : 'Неафіцыйны пошук па трох афіцыйных спісах: Рэспубліканскім спісе экстрэмісцкіх матэрыялаў і пераліках МУС — экстрэмісцкіх фарміраванняў і фізічных асоб. База абнаўляецца аўтаматычна; тэкст запісу, падстава і даты захоўваюцца як у афіцыйных крыніцах.'}</p>
+<p>${en ? 'Unofficial search over three official lists — the Republican list of extremist materials and the Interior Ministry lists of extremist formations and individuals — plus the Russian Interior Ministry wanted database of Belarusians per Mediazona Belarus. The database updates automatically; entry text, grounds and dates are kept exactly as in the sources.' : 'Неафіцыйны пошук па трох афіцыйных спісах — Рэспубліканскім спісе экстрэмісцкіх матэрыялаў і пераліках МУС (экстрэмісцкіх фарміраванняў і фізічных асоб) — і па базе вышуку МУС РФ па беларусах паводле Медыязоны-Беларусь. База абнаўляецца аўтаматычна; тэкст запісу, падстава і даты захоўваюцца як у крыніцах.'}</p>
 <p><a href="${base}">${en ? 'Search' : 'Пошук'}</a> · <a href="${base}${en ? 'faq.html' : 'faq-en.html'}">${en ? 'Па-беларуску' : 'English'}</a> · <a href="https://github.com/it-beard/elist" rel="noopener">GitHub</a> · <a href="${base}llms.txt">llms.txt</a></p>
 </footer>
 </div>
@@ -325,6 +325,7 @@ ${years}
 - Індэкс усіх спісаў (~850 КБ gzip) спампоўваецца ў браўзер цалкам, таму запыты нікуды не адпраўляюцца.
 - Не ўлічваюцца рэгістар, «ё/е», лацінская і кірылічная «i», віды лапак; фраза ў лапках шукаецца цалкам.
 - Фізічныя асобы шукаюцца па імені кірыліцай і па лацінскай транслітарацыі з пераліку, а таксама па даце нараджэння («14.10.1983»), артыкуле КК і судзе.
+- Беларусы ў базе вышуку РФ (паводле Медыязоны) шукаюцца па імені (і іншых напісаннях з базы), годзе нараджэння, ведамстве-ініцыятары («розыск», «МВД», «КГБ») і рэгіёне; той жа чалавек у пераліку МУС і ў вышуку — карткі спасылаюцца адна на адну.
 - У запыце адкідаюцца «https://», «www.», «@» у пачатку і «/» у канцы; пошук падрадковы, таму кароткі запыт «nick» знойдзе і «@nick», і «t.me/nick», і «nick.by».
 - Кірыліца ↔ лацінка ў абодва бакі: руская транслітарацыя і беларуская лацінка без дыякрытыкі.
 - Калі дакладных супадзенняў няма — прыблізны пошук: адна памылка для слоў з 5–7 літар, дзве — ад 8 (карацейшыя — толькі дакладна).
@@ -357,7 +358,7 @@ export function openSearchXml({ site }) {
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">
   <ShortName>Экстр. спісы</ShortName>
   <LongName>Пошук па экстрэмісцкіх спісах Беларусі</LongName>
-  <Description>Пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў, пераліку экстрэмісцкіх фарміраванняў і пераліку фізічных асоб Беларусі</Description>
+  <Description>Пошук па Рэспубліканскім спісе экстрэмісцкіх матэрыялаў, пераліку экстрэмісцкіх фарміраванняў, пераліку фізічных асоб Беларусі і базе вышуку РФ па беларусах</Description>
   <InputEncoding>UTF-8</InputEncoding>
   <Language>be</Language>
   <Image width="16" height="16" type="image/x-icon">${esc(abs(site, 'favicon.ico'))}</Image>

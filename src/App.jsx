@@ -38,7 +38,7 @@ export default function App() {
   const [query, setQuery] = useQuery();
   const [storedSort, setSort] = useLocalStorage('sort', 'newest');
   const sort = SORTS.includes(storedSort) ? storedSort : 'newest'; // сапсаванае значэнне ў localStorage — як па змаўчанні
-  const [flags, setFlags] = useState({ any: false, list: '' }); // list: '' | 'm' | 'f' | 'p' — усе / матэрыялы / фарміраванні / асобы
+  const [flags, setFlags] = useState({ any: false, list: '' }); // list: '' | 'm' | 'f' | 'p' | 'w' — усе / матэрыялы / фарміраванні / асобы / вышук РФ
   const [help, setHelp] = useState(false);
   const [copied, setCopied] = useState(false);
   const opts = useMemo(() => ({ ...flags, sort }), [flags, sort]);
@@ -109,9 +109,9 @@ export default function App() {
   const shareChip = query.trim() && status === 'ready' ? { copy: copyQueryLink, copied } : null;
 
   const newCount = items ? items.filter((it) => !it.replacedBy && isRecent(it.added)).length : 0;
-  // дадатковыя спісы (фарміраванні МУС/КДБ, фізічныя асобы МУС): укладкі-спісы і асобны падлік — толькі калі яны ёсць у базе
-  const lists = useMemo(() => ({ f: Boolean(counts?.f), p: Boolean(counts?.p) }), [counts]);
-  const hasLists = lists.f || lists.p;
+  // дадатковыя спісы (фарміраванні МУС/КДБ, фізічныя асобы МУС, вышук РФ): укладкі-спісы і асобны падлік — толькі калі яны ёсць у базе
+  const lists = useMemo(() => ({ f: Boolean(counts?.f), p: Boolean(counts?.p), w: Boolean(counts?.w) }), [counts]);
+  const hasLists = lists.f || lists.p || lists.w;
 
   return (
     <>
@@ -121,7 +121,7 @@ export default function App() {
       <main className="wrap">
         {status === 'ready' && route.name === 'new' && <WhatsNew items={items} chunkSize={chunkSize} lists={lists} />}
         {status === 'ready' && route.name === 'r' && <RecordPage id={route.arg} items={items} chunkSize={chunkSize} watch={watch} />}
-        {route.name === 'stats' && (status === 'ready' ? <StatsPage items={items} initialList={['f', 'p'].includes(route.arg) ? route.arg : 'm'} /> : <p className="summary">{status === 'error' ? t.loadError(error) : t.loading}</p>)}
+        {route.name === 'stats' && (status === 'ready' ? <StatsPage items={items} initialList={['f', 'p', 'w'].includes(route.arg) ? route.arg : 'm'} /> : <p className="summary">{status === 'error' ? t.loadError(error) : t.loading}</p>)}
         {!['new', 'r', 'stats'].includes(route.name) && (
           <>
             <WatchPanel
@@ -141,7 +141,7 @@ export default function App() {
                 <p className={searching || !hasLists ? 'summary' : 'vh'} aria-live="polite">{summaryText}</p>
                 {hasLists && <Facets counts={facetCounts} value={list} onChange={(l) => setFlags((f) => ({ ...f, list: l }))} lists={lists} />}
                 {searching && list && !results.length && derived.all.results.length > 0 && <p className="hint">{t.facetEmpty}</p>}
-                {searching && results.length > 0 && <Consequences formations={Boolean(shown.f)} persons={Boolean(shown.p)} />}
+                {searching && results.length > 0 && <Consequences formations={Boolean(shown.f)} persons={Boolean(shown.p)} wanted={Boolean(shown.w)} />}
                 <ResultList results={results} tokens={hl} chunkSize={chunkSize} />
               </>
             )}
@@ -150,7 +150,7 @@ export default function App() {
       </main>
       <footer className="wrap foot">
         <p>
-          {t.footSrc1}<a href={LINKS.mininform} target="_blank" rel="noopener noreferrer">{t.footSrcM}</a>{t.footSrc2}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcF}</a>{t.footSrc3}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcP}</a>{t.footSrc4}
+          {t.footSrc1}<a href={LINKS.mininform} target="_blank" rel="noopener noreferrer">{t.footSrcM}</a>{t.footSrc2}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcF}</a>{t.footSrc3}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcP}</a>{t.footSrc4}<a href={LINKS.mediazona} target="_blank" rel="noopener noreferrer">{t.footSrcW}</a>{t.footSrc5}
         </p>
         <p className="travel-warn">⚠️ {t.footSrcWarn}</p>
         <p>{t.footPrivacy} <button type="button" className="linklike" onClick={clearAll}>{t.clearAll}</button>.</p>
