@@ -7,6 +7,7 @@
   --wanted: #b45309; --wanted-soft: #fdebd3; /* чацвёрты спіс — беларусы ў базе вышуку РФ (Медыязона) */
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #8a94a6; --trend: #16181d;
   --radius: 14px; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04);
+  --gap: 12px; /* адзіны крок вертыкальнай сеткі паміж блокамі старонкі (пошук, зводка, укладкі, карткі, тлумачэнне) */
 }
 :root[data-theme="dark"] { color-scheme: dark; }
 :root[data-theme="light"] { color-scheme: light; }
@@ -79,12 +80,12 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .tip-dot.w { background: var(--wanted); }
 .tip-val { font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--text); }
 .badge-new { display: inline-block; margin-left: 8px; padding: 1px 9px; border-radius: 99px; background: var(--new); color: #fff; font-weight: 600; font-size: .78rem; white-space: nowrap; }
-.notice { margin: 10px 0 0; padding: 8px 12px; border-radius: 10px; background: var(--line); font-size: .85rem; }
+.notice { margin: var(--gap) 0 0; padding: 8px 12px; border-radius: 10px; background: var(--line); font-size: .85rem; }
 .notice.warn { background: var(--warn-soft); color: var(--warn); }
 .travel-warn { color: var(--warn); font-weight: 600; }
 
 /* ---- укладкі ---- */
-.tabs { display: flex; gap: 4px; margin-top: 14px; border-bottom: 1px solid var(--line); }
+.tabs { display: flex; gap: 4px; margin-top: var(--gap); border-bottom: 1px solid var(--line); }
 .tab { display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; margin-bottom: -1px; color: var(--muted); text-decoration: none; font-weight: 600; font-size: .95rem; border-bottom: 2px solid transparent; }
 .tab:hover { color: var(--text); }
 .tab.on { color: var(--accent); border-bottom-color: var(--accent); }
@@ -93,7 +94,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .pill { padding: 0 7px; border-radius: 99px; background: var(--new); color: #fff; font-size: .72rem; }
 
 /* ---- пошук ---- */
-.search { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 0 10px; }
+.search { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: var(--gap) 0; }
 .field { position: relative; display: flex; align-items: center; }
 .field .icon { position: absolute; left: 16px; width: 20px; height: 20px; color: var(--muted); pointer-events: none; }
 #q { width: 100%; font: inherit; font-size: 1.05rem; padding: 14px 48px; border: 1.5px solid var(--line); border-radius: var(--radius); background: var(--card); color: var(--text); outline: none; box-shadow: var(--shadow); -webkit-appearance: none; appearance: none; }
@@ -104,7 +105,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .clear:hover, .clear:focus-visible { background: var(--line); color: var(--text); }
 
 /* радок чыпаў пераносіцца, а не пракручваецца: пасля пераносу выбару спіса ва ўкладкі (Facets) тут звычайна адзін радок */
-.options { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.options { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: var(--gap); }
 .option-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .chip, .sort select { flex: none; font: inherit; font-size: .88rem; height: 36px; padding: 0 14px; border-radius: 99px; border: 1px solid var(--line-strong); background: var(--card); color: var(--text); cursor: pointer; white-space: nowrap; }
 .chip:hover { border-color: var(--accent); }
@@ -122,7 +123,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 /* ---- укладкі-спісы пад пошукам: «Усе · Матэрыялы · Фарміраванні · Асобы · Вышук РФ» з лічбамі ----
    Пяць укладак з лічбамі мусяць змяшчацца ў адзін радок на кампутары (шырыня старонкі 760px): кароткі подпіс «Усе»,
    шчыльныя водступы і лічбы драбнейшым шрыфтам; на вузкім экране радок пераносіцца. */
-.facets { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 0 10px; padding: 5px 6px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.facets { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 0 var(--gap); padding: 5px 6px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
 .facet { display: inline-flex; align-items: center; gap: 5px; font: inherit; font-size: .82rem; height: 30px; padding: 0 9px; border: 1px solid transparent; border-radius: 99px; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
 .facet:hover { border-color: var(--line-strong); color: var(--text); }
 .facet.on { background: var(--line); color: var(--text); font-weight: 600; }
@@ -135,7 +136,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .facet.m .dot { background: var(--accent); } .facet.f .dot { background: var(--form); } .facet.p .dot { background: var(--person); } .facet.w .dot { background: var(--wanted); }
 .facet .cnt { font-variant-numeric: tabular-nums; opacity: .8; font-weight: 400; font-size: .78rem; }
 /* «Новае»: укладкі-спісы і перамыкач «Выдаленыя» ў адной палосцы; на кампутары — адзін радок, перамыкач справа */
-.new-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 10px 0 10px; padding: 5px 6px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.new-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: var(--gap) 0; padding: 5px 6px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
 .new-toolbar .facets { margin: 0; padding: 0; gap: 4px; background: transparent; border: none; box-shadow: none; border-radius: 0; }
 .filter-divider { width: 1px; height: 18px; background: var(--line); flex: none; }
 .new-actions { display: flex; align-items: center; margin-left: auto; }
@@ -151,7 +152,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .sort:hover .chev { color: var(--text); }
 
 /* ---- спіс назірання ---- */
-.watch { margin: 0 0 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
+.watch { margin: 0 0 var(--gap); border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
 .watch-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; font-weight: 600; }
 .watch-toggle .ico { width: 14px; height: 14px; flex: none; color: var(--muted); }
 .watch-toggle:hover .ico { color: var(--text); }
@@ -183,14 +184,14 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .watch-list .x svg { width: 16px; height: 16px; }
 .watch-list .x:hover { color: var(--accent); }
 .watch-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.hint { color: var(--muted); font-size: .85rem; margin: 10px 0 0; }
+.hint { color: var(--muted); font-size: .85rem; margin: var(--gap) 0 0; }
 .hint.error { color: var(--accent); }
 .hint.travel-warn { color: var(--warn); } /* як у даведцы: .hint не мусіць перабіваць колер папярэджання */
 
 /* ---- вынікі ---- */
-.summary { color: var(--muted); font-size: .88rem; margin: 0 2px 10px; }
+.summary { color: var(--muted); font-size: .88rem; line-height: 1.3; margin: 0 2px var(--gap); }
 .error { color: var(--accent); }
-.results { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.results { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--gap); }
 .item { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
 .item.removed { opacity: .55; }
 .meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: .8rem; color: var(--muted); margin-bottom: 8px; }
@@ -228,7 +229,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 /* фізічная асоба: дата нараджэння, грамадзянства, статус — адным радком пад транслітарацыяй */
 .facts { margin: 4px 0 0; color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; }
 .links { margin: 6px 0 0; font-size: .95rem; white-space: pre-wrap; overflow-wrap: anywhere; }
-.rec-details { margin: 14px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); font-size: .9rem; }
+.rec-details { margin: var(--gap) 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); font-size: .9rem; }
 .rec-details dt { margin: 10px 0 0; color: var(--muted); font-size: .8rem; font-weight: 600; }
 .rec-details dt:first-child { margin-top: 0; }
 .rec-details dd { margin: 2px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -240,13 +241,13 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .skeleton { background: linear-gradient(90deg, var(--line), var(--bg), var(--line)); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 6px; min-height: 2.5em; }
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3px; }
-.more { display: block; width: 100%; margin: 16px 0; padding: 12px 24px; font: inherit; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--card); color: var(--text); cursor: pointer; }
+.more { display: block; width: 100%; margin: var(--gap) 0; padding: 12px 24px; font: inherit; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--card); color: var(--text); cursor: pointer; }
 .more:hover { border-color: var(--accent); }
 
 /* ---- «што гэта значыць» ---- */
-.legal { margin: 0 0 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
-/* блок ідзе за выдачай (ці за кнопкай «Паказаць яшчэ» з яе 16px), а на старонцы запісу — за палямі ці падказкай: водступ зверху */
-.results + .legal, .rec-details + .legal, .hint + .legal { margin-top: 14px; }
+.legal { margin: 0 0 var(--gap); border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
+/* блок ідзе за выдачай (ці за кнопкай «Паказаць яшчэ»), а на старонцы запісу — за палямі ці падказкай: той жа крок зверху */
+.results + .legal, .rec-details + .legal, .hint + .legal { margin-top: var(--gap); }
 .legal summary { padding: 11px 14px; cursor: pointer; font-weight: 600; font-size: .92rem; list-style: none; display: flex; align-items: center; gap: 8px; }
 .legal summary::-webkit-details-marker { display: none; }
 .legal summary::before { content: "?"; flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: .8rem; }
@@ -258,23 +259,23 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
 .legal-links { margin: 10px 0 0; padding-left: 18px; }
 
 /* ---- старонкі ---- */
-.page-title { font-size: 1.2rem; margin: 18px 0 4px; }
+.page-title { font-size: 1.2rem; margin: var(--gap) 0; }
 /* радок над загалоўкам запісу: «Да пошуку» злева, дзеянні справа; на вузкім экране пераносяцца */
-.rec-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0 0; }
+.rec-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: var(--gap) 0 0; }
 .group { margin-top: 20px; }
 .group-title { font-size: .95rem; color: var(--muted); margin: 0 0 8px; position: sticky; top: 0; background: var(--bg); padding: 6px 0; z-index: 4; }
 .rec-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-left: auto; }
 .linklike { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font-size: inherit; }
 
 /* ---- падвал ---- */
-.foot { color: var(--muted); font-size: .82rem; padding-top: 36px; padding-bottom: max(40px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); margin-top: 24px; }
+.foot { color: var(--muted); font-size: .82rem; padding-top: 36px; padding-bottom: max(40px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); margin-top: calc(2 * var(--gap)); }
 .foot p { margin: 0 0 8px; }
 
 @media (max-width: 600px) {
   .top { padding-top: 18px; }
   h1 { font-size: 1.2rem; }
 
-  .tabs { margin-top: 10px; overflow-x: auto; scrollbar-width: none; }
+  .tabs { overflow-x: auto; scrollbar-width: none; }
   .tabs::-webkit-scrollbar { display: none; }
   .tab { padding: 9px 8px; font-size: .9rem; white-space: nowrap; }
   #q { font-size: 16px; padding: 13px 44px; }
@@ -295,8 +296,8 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
   .chip.share:not(.on) .lbl { display: none; }
   .watch-q .cnt { flex-direction: column; align-items: flex-end; gap: 2px; }
   .watch-actions .chip { flex: 1 1 auto; text-align: center; }
-  .facets { padding: 6px 8px; margin: 0 0 10px; }
-  .new-toolbar { padding: 6px 8px; gap: 6px; margin: 10px 0 10px; }
+  .facets { padding: 6px 8px; }
+  .new-toolbar { padding: 6px 8px; gap: 6px; }
   .new-toolbar .facets { padding: 0; margin: 0; }
   .filter-divider { display: none; }
   .new-actions { margin-left: 0; }
