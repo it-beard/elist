@@ -14,8 +14,8 @@ import Consequences from './Consequences.jsx';
 /**
  * Старонка аднаго запісу (#/r/<id>): радок з кнопкай «Да пошуку» злева і дзеяннямі справа («Скапіяваць спасылку»,
  * «Сачыць» — поўнае тлумачэнне ў title), загаловак, картка, палі крыніцы. Нумар у спісе (пазіцыя ў публікацыі, для фізічнай асобы — афіцыйны нумар МУС ці
- * пазнака, што яшчэ не прысвоены) — сярод палёў; для запісу вышуку РФ там жа спасылка на гэты запіс у віджэце
- * Медыязоны (знешняя, з папярэджаннем) і падказка, што нумароў у крыніцы няма.
+ * пазнака, што яшчэ не прысвоены) — сярод палёў. Для запісу вышуку РФ у канцы карткі палёў, за пункцірнай лініяй
+ * (як адрыўны корак білета), — заўвага пра крыніцу са спасылкай на гэты запіс у віджэце Медыязоны (знешняя, з папярэджаннем).
  */
 export default function RecordPage({ id, items, chunkSize, watch }) {
   const { t } = useLang();
@@ -45,7 +45,6 @@ export default function RecordPage({ id, items, chunkSize, watch }) {
       [t.recAliases, rec.aliases?.length ? rec.aliases.map(personName).join(', ') : ''],
       [t.recCategoryW, [rec.category, rec.rf && t.rfLabel[rec.rf]].filter(Boolean).join(' · ')],
       [t.recStatusW, item.removed ? t.wantedOutFull : t.wantedLive],
-      [t.recSourceW, rec.name ? <ExtLink href={mediazonaRecordUrl(LINKS.mediazona, rec.name)}>{t.recSourceWLink} ↗</ExtLink> : ''],
     ] : isP ? [
       [t.recBirth, rec.birth],
       [t.recCitizenship, rec.citizenship],
@@ -93,11 +92,17 @@ export default function RecordPage({ id, items, chunkSize, watch }) {
           )}
           <ol className="results"><ResultItem item={item} tokens={[]} chunkSize={chunkSize} linked={false} /></ol>
           {details.length > 0 && (
-            <dl className="rec-details">
-              {details.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
-            </dl>
+            <div className="rec-details">
+              <dl>
+                {details.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+              </dl>
+              {isW && (
+                <p className="rec-stub">
+                  {t.positionW1}<ExtLink href={mediazonaRecordUrl(LINKS.mediazona, rec.name)}>{t.positionWLink} ↗</ExtLink>{t.positionW2}
+                </p>
+              )}
+            </div>
           )}
-          {isW && <p className="hint">{t.positionW}</p>}
           <Consequences open materials={!isF && !isP && !isW} formations={isF} persons={isP} wanted={isW} />
         </>
       )}

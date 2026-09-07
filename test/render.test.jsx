@@ -130,7 +130,7 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       expect(f).toContain('<p class="crime">'); // блок наступстваў — толькі для свайго спіса
       expect(f).not.toContain('crime material');
       const m = render(lang, <RecordPage id="m1" items={ITEMS} chunkSize={200} watch={watch} />);
-      expect(m).toContain(`<dl class="rec-details"><div><dt>${t.recNumM}</dt><dd>№1</dd></div></dl>`);
+      expect(m).toContain(`<div class="rec-details"><dl><div><dt>${t.recNumM}</dt><dd>№1</dd></div></dl></div>`); // без «корка»: ён толькі ў вышуку РФ
       expect(m).not.toContain('class="hint"');
       expect(m).toContain('crime material');
       expect(m).not.toContain('<p class="crime">');

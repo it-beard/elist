@@ -78,14 +78,15 @@ describe('рэндэр чацвёртага спіса — вышук РФ (SSR,
       const a = render(lang, <RecordPage id="w1" items={ITEMS} chunkSize={200} watch={watch} />);
       expect(a).not.toMatch(/undefined|\[object Object\]/);
       expect(a).toContain(t.recTitleW);
-      expect(a).toContain(t.positionW);
       for (const k of ['recYear', 'recNationality', 'recRegion', 'recAgency', 'recWantedDate', 'recFirstWanted', 'recAliases', 'recCategoryW', 'recStatusW']) expect(a).toContain(t[k]);
       expect(a).toContain(t.agencyName['МВД']);
       expect(a).toContain(`${t.before} 2020`);
       expect(a).toContain(`Полк Калиновского · ${t.rfLabel.terr}`);
       expect(a).toContain(t.wantedLive);
-      // спасылка на гэты запіс у віджэце Медыязоны: імя ў ніжнім рэгістры ў ?q=, знешняя (новая ўкладка, без рэферэра)
-      expect(a).toContain(`<dt>${t.recSourceW}</dt><dd><a href="${LINKS.mediazona}?q=${encodeURIComponent('абадовская юлия леонидовна')}" target="_blank" rel="noopener noreferrer nofollow">${t.recSourceWLink} ↗</a></dd>`);
+      // «корак» у канцы карткі палёў: заўвага пра крыніцу, у ёй спасылка на гэты запіс у віджэце Медыязоны (імя ў ніжнім
+      // рэгістры ў ?q=, знешняя — новая ўкладка, без рэферэра); асобнага поля «Крыніца» няма
+      expect(a).toContain(`</dl><p class="rec-stub">${t.positionW1}<a href="${LINKS.mediazona}?q=${encodeURIComponent('абадовская юлия леонидовна')}" target="_blank" rel="noopener noreferrer nofollow">${t.positionWLink} ↗</a>${t.positionW2}</p></div>`);
+      expect(a).not.toContain('class="hint"');
       expect(a).toContain('crime wanted');
       expect(a).toContain(t.wantedNote.slice(0, 40));
       expect(a).toContain(`☆ ${t.watchAdd}`);
