@@ -138,7 +138,7 @@ export default function App() {
                 {searching && list && !results.length && derived.all.results.length > 0 && <p className="hint">{t.facetEmpty}</p>}
                 <ResultList results={results} tokens={hl} chunkSize={chunkSize} />
                 {/* «Што гэта значыць для мяне?» — пад выдачай: спачатку самі запісы, потым тлумачэнне */}
-                {searching && results.length > 0 && <Consequences formations={Boolean(shown.f)} persons={Boolean(shown.p)} wanted={Boolean(shown.w)} />}
+                {searching && results.length > 0 && <Consequences materials={Boolean(shown.m)} formations={Boolean(shown.f)} persons={Boolean(shown.p)} wanted={Boolean(shown.w)} />}
               </>
             )}
           </>

@@ -98,7 +98,7 @@ export default function RecordPage({ id, items, chunkSize, watch }) {
             </dl>
           )}
           {isW && <p className="hint">{t.positionW}</p>}
-          <Consequences open formations={isF} persons={isP} wanted={isW} />
+          <Consequences open materials={!isF && !isP && !isW} formations={isF} persons={isP} wanted={isW} />
         </>
       )}
     </>

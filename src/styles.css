@@ -234,6 +234,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .rec-details dt:first-child { margin-top: 0; }
 .rec-details dd { margin: 2px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .crime { margin: 0 0 10px; padding: 8px 12px; border-radius: 10px; background: var(--form-soft); color: var(--form); font-size: .88rem; }
+.crime.material { background: var(--accent-soft); color: var(--accent); }
 .crime.person { background: var(--person-soft); color: var(--person); }
 .crime.wanted { background: var(--wanted-soft); color: var(--wanted); }
 .name { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; line-height: 1.45; }
@@ -254,6 +255,7 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
 .legal[open] summary { border-bottom: 1px solid var(--line); }
 .legal-body { padding: 4px 14px 12px; font-size: .9rem; }
 .legal-body h3 { font-size: .92rem; margin: 12px 0 2px; }
+.legal-body > section:first-child h3 { margin-top: 8px; } /* агаворка першай: з 4px падбіўкі — 12px зверху */
 .legal-body p { margin: 0; color: var(--text); }
 .legal-body .crime { margin: 10px 0; } /* каляровыя блокі — з прамежкам зверху і паміж сабой (.legal-body p абнуляў бы яго); зверху з 4px падбіўкі — 14px, як збоку */
 .legal-links { margin: 10px 0 0; padding-left: 18px; }

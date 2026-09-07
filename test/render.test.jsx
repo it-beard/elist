@@ -127,9 +127,13 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       const f = render(lang, <RecordPage id="f1" items={ITEMS} chunkSize={200} watch={watch} />);
       expect(f).toContain(t.recTitleF);
       expect(f).toContain(`<dt>${t.recNum}</dt><dd>№1</dd>`);
+      expect(f).toContain('<p class="crime">'); // блок наступстваў — толькі для свайго спіса
+      expect(f).not.toContain('crime material');
       const m = render(lang, <RecordPage id="m1" items={ITEMS} chunkSize={200} watch={watch} />);
       expect(m).toContain(`<dl class="rec-details"><div><dt>${t.recNumM}</dt><dd>№1</dd></div></dl>`);
       expect(m).not.toContain('class="hint"');
+      expect(m).toContain('crime material');
+      expect(m).not.toContain('<p class="crime">');
       expect(render(lang, <RecordPage id="zzz" items={ITEMS} chunkSize={200} watch={watch} />)).toContain(t.recNotFound);
     });
     it(`${lang}: радок чыпаў — без чыпаў спісаў, «Любое са слоў» толькі для некалькіх слоў, «Спасылка» з іконкай`, () => {
@@ -185,9 +189,15 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       // без пазнак — пусты спіс, latest null; толькі матэрыялы — адзін радок
       expect(listStamps({}, t, lang)).toEqual({ lists: [], latest: null });
       expect(listStamps({ updated: '2026-09-01' }, t, lang).latest).toMatchObject({ key: 'm', iso: '2026-09-01' });
-      const cons = render(lang, <Consequences open formations persons />);
+      const cons = render(lang, <Consequences open materials formations persons />);
       expect(cons).toContain('crime person');
+      expect(cons).toContain('crime material');
       expect(cons).toContain(t.crimeNote.slice(0, 30));
+      expect(cons).toContain(t.materialNote.slice(0, 30));
+      // агаворка — перад каляровымі блокамі; парада «калі знайшлі сябе» — пасля; без вышуку няма і яго блока
+      expect(cons.indexOf(t.legalIntro[0])).toBeLessThan(cons.indexOf('class="crime'));
+      expect(cons.indexOf('class="crime')).toBeLessThan(cons.indexOf(t.legal[0][0]));
+      expect(cons).not.toContain('crime wanted');
       for (const list of ['m', 'f', 'p']) {
         const stats = render(lang, <StatsPage items={ITEMS} initialList={list} />);
         expect(stats).not.toMatch(/undefined|NaN/);
