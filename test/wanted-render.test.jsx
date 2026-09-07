@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { LangContext } from '../src/hooks/useLang.jsx';
-import { STRINGS } from '../src/lib/i18n.js';
+import { LINKS, STRINGS } from '../src/lib/i18n.js';
 import { UNDATED } from '../src/lib/wanted.js';
 
 // Поўныя запісы (фрагменты) па нумары ў індэксе — без сеткі: запіс вышуку з крос-спасылкай на асобу, выключаны
@@ -54,8 +54,9 @@ describe('рэндэр чацвёртага спіса — вышук РФ (SSR,
       expect(html).not.toContain('АБАДОВСКАЯ ЮЛИЯ');
       expect(html).toContain('<mark>Абадовская</mark>-Тэст Юлия'); // і ў іншым напісанні
       expect(html).toContain(`1993 ${t.bornYear} · Беларуска · Минская область · ${t.requestedBy} МВД`);
-      expect(html).toContain('16.07.2024');
-      expect(html).toContain('<svg class="ico"'); // нумароў у крыніцы няма — значок спасылкі
+      expect(html).toContain(`<a class="num date" href="#/r/w1" title="${t.wantedDateTitle}">16.07.2024</a>`); // дата — спасылка на запіс
+      expect(html).toContain('<svg class="ico"'); // значок справа — кнопка «скапіяваць спасылку»
+      expect(html).toContain(`aria-label="${t.permalinkW}"`);
       expect(html).not.toContain('№');
       expect(html).toContain(`href="#/r/p1">↔ ${t.alsoInPersons}</a>`);
       expect(html).toContain('class="also"');
@@ -65,7 +66,7 @@ describe('рэндэр чацвёртага спіса — вышук РФ (SSR,
       expect(gone).toContain('item wanted removed');
       expect(gone).toContain(`<span class="gone">${t.wantedOut}</span>`);
       expect(gone).not.toContain('?</span>');
-      expect(gone).toContain(`${t.before} 05.2026`);
+      expect(gone).toContain(`href="#/r/w2" title="${t.wantedDateTitle}">${t.before} 05.2026</a>`); // прыблізная дата — таксама спасылка
       expect(gone).toContain(`1975 ${t.bornYear}`);
       expect(gone).not.toContain('also');
       expect(gone).toContain(t.wantedLabel('wother'));
@@ -83,9 +84,11 @@ describe('рэндэр чацвёртага спіса — вышук РФ (SSR,
       expect(a).toContain(`${t.before} 2020`);
       expect(a).toContain(`Полк Калиновского · ${t.rfLabel.terr}`);
       expect(a).toContain(t.wantedLive);
+      // спасылка на гэты запіс у віджэце Медыязоны: імя ў ніжнім рэгістры ў ?q=, знешняя (новая ўкладка, без рэферэра)
+      expect(a).toContain(`<dt>${t.recSourceW}</dt><dd><a href="${LINKS.mediazona}?q=${encodeURIComponent('абадовская юлия леонидовна')}" target="_blank" rel="noopener noreferrer nofollow">${t.recSourceWLink} ↗</a></dd>`);
       expect(a).toContain('crime wanted');
       expect(a).toContain(t.wantedNote.slice(0, 40));
-      expect(a).toContain(`☆ ${t.watchThis}`);
+      expect(a).toContain(`☆ ${t.watchAdd}`);
       const b = render(lang, <RecordPage id="w2" items={ITEMS} chunkSize={200} watch={watch} />);
       expect(b).toContain(t.agencyUnknown);
       expect(b).toContain(t.wantedOutFull);

@@ -195,9 +195,15 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .item.removed { opacity: .55; }
 .meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: .8rem; color: var(--muted); margin-bottom: 8px; }
 .meta .badge-new { margin: 0; }
-.meta .idx { margin-left: auto; opacity: .7; color: inherit; text-decoration: none; display: inline-flex; align-items: center; }
-.meta .idx:hover { opacity: 1; color: var(--accent); text-decoration: underline; }
+/* значок спасылкі справа — кнопка «скапіяваць спасылку на запіс»; пасля капіявання зялёны з падказкай «Скапіявана» */
+.meta .idx { position: relative; margin-left: auto; padding: 0; border: 0; background: none; font: inherit; opacity: .7; color: inherit; cursor: pointer; display: inline-flex; align-items: center; }
+.meta .idx:hover { opacity: 1; color: var(--accent); }
+.meta .idx.on { opacity: 1; color: var(--new); }
 .meta .idx .ico { width: 14px; height: 14px; }
+.copy-tip { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; padding: 4px 9px; border-radius: 8px; background: var(--card); color: var(--new); border: 1px solid var(--line-strong); box-shadow: 0 4px 16px rgba(0, 0, 0, .15); font-size: .78rem; font-weight: 600; white-space: nowrap; animation: tipFade .15s ease-out; pointer-events: none; }
+/* дата — спасылка на старонку запісу: пункцірнае падкрэсліванне, як у даты праверкі ў шапцы */
+.meta .date { color: inherit; text-decoration: underline dotted var(--muted); text-underline-offset: 3px; }
+.meta .date:hover { color: var(--accent); text-decoration-color: var(--accent); }
 .type { background: var(--accent-soft); color: var(--accent); padding: 1px 9px; border-radius: 99px; font-weight: 600; }
 .gone { color: var(--accent); }
 /* першы спіс: чырвоная палоска матэрыялаў */
@@ -239,6 +245,8 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
 
 /* ---- «што гэта значыць» ---- */
 .legal { margin: 0 0 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
+/* блок ідзе за выдачай (ці за кнопкай «Паказаць яшчэ» з яе 16px), а на старонцы запісу — за палямі ці падказкай: водступ зверху */
+.results + .legal, .rec-details + .legal, .hint + .legal { margin-top: 14px; }
 .legal summary { padding: 11px 14px; cursor: pointer; font-weight: 600; font-size: .92rem; list-style: none; display: flex; align-items: center; gap: 8px; }
 .legal summary::-webkit-details-marker { display: none; }
 .legal summary::before { content: "?"; flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: .8rem; }
@@ -246,14 +254,16 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
 .legal-body { padding: 4px 14px 12px; font-size: .9rem; }
 .legal-body h3 { font-size: .92rem; margin: 12px 0 2px; }
 .legal-body p { margin: 0; color: var(--text); }
+.legal-body .crime { margin: 10px 0; } /* каляровыя блокі — з прамежкам зверху і паміж сабой (.legal-body p абнуляў бы яго); зверху з 4px падбіўкі — 14px, як збоку */
 .legal-links { margin: 10px 0 0; padding-left: 18px; }
 
 /* ---- старонкі ---- */
 .page-title { font-size: 1.2rem; margin: 18px 0 4px; }
-.crumbs { margin: 14px 0 0; font-size: .9rem; }
+/* радок над загалоўкам запісу: «Да пошуку» злева, дзеянні справа; на вузкім экране пераносяцца */
+.rec-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0 0; }
 .group { margin-top: 20px; }
 .group-title { font-size: .95rem; color: var(--muted); margin: 0 0 8px; position: sticky; top: 0; background: var(--bg); padding: 6px 0; z-index: 4; }
-.rec-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.rec-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-left: auto; }
 .linklike { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font-size: inherit; }
 
 /* ---- падвал ---- */

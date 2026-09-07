@@ -75,12 +75,25 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       expect(t.personLabel('speech')).toContain(lang === 'be' ? 'выказванні' : 'speech');
       expect(t.personLabel('protest')).toContain(lang === 'be' ? 'гр.дз.' : 'group act.');
       expect(t.personTitle('protest')).toContain(lang === 'be' ? 'групавыя дзеянні' : 'group actions');
-      // асоба без афіцыйнага нумара — значок спасылкі замест «б/н», а не выдуманы «№2»; з нумарам — «№1»
+      // нумар у картцы не паказваецца (ён сярод палёў старонкі запісу): справа ва ўсіх — кнопка-значок, што капіюе
+      // спасылку; дата — спасылка на старонку запісу (з тайтлам пра сэнс даты, дзе ён ёсць)
       const card2 = render(lang, <ResultItem item={ITEMS[3]} tokens={[]} chunkSize={200} />);
       expect(card2).toContain('<svg class="ico"');
       expect(card2).not.toContain('б/н');
       expect(card2).not.toContain('№2');
-      expect(render(lang, <ResultItem item={ITEMS[2]} tokens={[]} chunkSize={200} />)).toContain('>№1<');
+      expect(card2).toContain(`<button type="button" class="idx" title="${t.permalinkP}" aria-label="${t.permalinkP}">`);
+      expect(card2).toContain(`<a class="num date" href="#/r/p2" title="${t.includedTitle}">04.09.2026</a>`);
+      const card1 = render(lang, <ResultItem item={ITEMS[2]} tokens={[]} chunkSize={200} />);
+      expect(card1).not.toContain('№1');
+      expect(card1).toContain('href="#/r/p1"');
+      expect(html).toContain(`<a class="num date" href="#/r/m1" title="${t.openRec}">20.08.2026</a>`);
+      expect(html).toContain(`title="${t.permalink}"`);
+      expect(html).toContain(`title="${t.permalinkF}"`);
+      expect(html).not.toMatch(/>№\d+</); // «№ 1ЭК» у падставе фарміравання — тэкст крыніцы, не наш нумар
+      expect(html).not.toContain('copy-tip'); // падказка «Скапіявана» — толькі пасля націску
+      // без даты ў індэксе (адзінкавыя матэрыялы) — спасылка «Адкрыць запіс», каб старонка заставалася даступнай
+      const undated = render(lang, <ResultItem item={{ ...ITEMS[0], date: '' }} tokens={[]} chunkSize={200} />);
+      expect(undated).toContain(`<a class="date" href="#/r/m1">${t.openRec}</a>`);
       // фрагмент не супаў з індэксам — чужы запіс не паказваецца, толькі падказка перазагрузіць
       const stale = render(lang, <ResultItem item={ITEMS[4]} tokens={[]} chunkSize={200} />);
       expect(stale).toContain(t.recStale);
@@ -90,22 +103,33 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       const a = render(lang, <RecordPage id="p1" items={ITEMS} chunkSize={200} watch={watch} />);
       expect(a).not.toMatch(/undefined|\[object Object\]/);
       expect(a).toContain(t.recTitleP);
-      expect(a).toContain(t.positionP(1));
       expect(a).toContain(t.recNum);
+      // «Да пошуку» — кнопка-чып; дзеянні — над карткай; падказкі з пазіцыяй больш няма (нумар — сярод палёў)
+      expect(a).toContain(`<div class="rec-bar"><a class="chip back" href="#/">← ${t.back}</a><div class="rec-actions">`); // адзін радок: назад злева, дзеянні справа
+      expect(a.indexOf('class="rec-actions"')).toBeLessThan(a.indexOf('class="page-title"'));
+      expect(a).toContain(`title="${t.watchThisTitle}"`);
+      expect(a).toContain(`☆ ${t.watchAdd}<`);
+      expect(a).not.toContain('class="hint"');
+      expect(a).toContain(`<dt>${t.recNum}</dt><dd>№1</dd>`);
+      expect(a).not.toContain('class="num date"'); // на самой старонцы дата — не спасылка на сябе
+      expect(a).toContain(`aria-label="${t.permalinkP}"`); // а значок капіявання застаецца
       expect(a).toContain('23.03.2022, 04.04.2025');
       expect(a).toContain('ст. 369 УК');
       expect(a).toContain('Республика Беларусь, г. Минск');
       expect(a).toContain(t.personNote.slice(0, 40));
       const b = render(lang, <RecordPage id="p2" items={ITEMS} chunkSize={200} watch={watch} />);
-      expect(b).toContain(t.positionPNew);
-      expect(b).not.toContain(t.recNum); // без афіцыйнага нумара радок не паказваем
+      expect(b).toContain(`<dt>${t.recNum}</dt><dd>${t.recNumPending}</dd>`); // без афіцыйнага нумара — пазнака замест нумара
       // фрагмент не супаў з індэксам: ні дэталяў, ні чужога імя
       const c = render(lang, <RecordPage id="p3" items={ITEMS} chunkSize={200} watch={watch} />);
       expect(c).toContain(t.recStale);
       expect(c).not.toContain(t.recBirth);
-      // фарміраванне і матэрыял — як раней
-      expect(render(lang, <RecordPage id="f1" items={ITEMS} chunkSize={200} watch={watch} />)).toContain(t.recTitleF);
-      expect(render(lang, <RecordPage id="m1" items={ITEMS} chunkSize={200} watch={watch} />)).toContain(t.position(1));
+      // фарміраванне і матэрыял — нумар у спісе (пазіцыя ў публікацыі) сярод палёў
+      const f = render(lang, <RecordPage id="f1" items={ITEMS} chunkSize={200} watch={watch} />);
+      expect(f).toContain(t.recTitleF);
+      expect(f).toContain(`<dt>${t.recNum}</dt><dd>№1</dd>`);
+      const m = render(lang, <RecordPage id="m1" items={ITEMS} chunkSize={200} watch={watch} />);
+      expect(m).toContain(`<dl class="rec-details"><div><dt>${t.recNumM}</dt><dd>№1</dd></div></dl>`);
+      expect(m).not.toContain('class="hint"');
       expect(render(lang, <RecordPage id="zzz" items={ITEMS} chunkSize={200} watch={watch} />)).toContain(t.recNotFound);
     });
     it(`${lang}: радок чыпаў — без чыпаў спісаў, «Любое са слоў» толькі для некалькіх слоў, «Спасылка» з іконкай`, () => {

@@ -5,7 +5,7 @@ import { decodeBody } from '../scripts/update-wanted.mjs';
 import { CHUNK, chunkRecord, dict, feed, indexRow, linkLists } from '../scripts/index-rows.mjs';
 import { buildDigest, digestHeader, entry, icon, title } from '../scripts/digest.mjs';
 import { sourceMessages } from '../scripts/alert-logic.mjs';
-import { AGENCY_KEY, UNDATED, WANTED_SERIES, isIsoDate, parseWantedDate, personName, wantedSeries, wantedTypeLabel } from '../src/lib/wanted.js';
+import { AGENCY_KEY, UNDATED, WANTED_SERIES, isIsoDate, mediazonaRecordUrl, parseWantedDate, personName, wantedSeries, wantedTypeLabel } from '../src/lib/wanted.js';
 import { parseIndex } from '../src/lib/api.js';
 import { countByList, search } from '../src/lib/search.js';
 import { SERIES_BY_LIST, dailyCounts } from '../src/lib/stats.js';
@@ -279,5 +279,14 @@ describe('дайджэст і алерты для чацвёртага спіс�
     expect(sourceMessages({ steps: { wanted: 'failure' } })).toEqual(['⚠️ Крок абнаўлення базы вышуку РФ (Медыязона) не завяршыўся (таймаўт ці збой да запісу меты).']);
     expect(sourceMessages({ steps: { wanted: 'failure' }, curW: { sourceError: 'x' }, prevW: { sourceError: 'x' } })).toEqual([]);
     expect(sourceMessages({ curW: { sourceError: 'a' }, prevW: { sourceError: 'b' } })).toEqual([]);
+  });
+});
+
+describe('mediazonaRecordUrl: спасылка на запіс у віджэце Медыязоны', () => {
+  it('імя ў ніжнім рэгістры (віджэт параўноўвае словы з адраса як ёсць), прабелы сціснутыя, кадаванне URL', () => {
+    expect(mediazonaRecordUrl('https://m.test/a', 'АБАДОВСКАЯ  ЮЛИЯ ЛЕОНИДОВНА ')).toBe(`https://m.test/a?q=${encodeURIComponent('абадовская юлия леонидовна')}`);
+    expect(mediazonaRecordUrl('https://m.test/a', 'ЁЛКИН-ТЭСТ Ё')).toBe(`https://m.test/a?q=${encodeURIComponent('ёлкин-тэст ё')}`);
+    expect(mediazonaRecordUrl('https://m.test/a', '')).toBe('https://m.test/a?q=');
+    expect(mediazonaRecordUrl('https://m.test/a', null)).toBe('https://m.test/a?q=');
   });
 });

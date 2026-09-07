@@ -62,10 +62,11 @@ describe('Highlight: папярэджанне перад першым перах
   // Свежы модуль на кожны тэст — сцяг «ужо пацвердзіў» жыве ў замыканні модуля.
   async function anchorsOf(text) {
     vi.resetModules();
-    const [{ default: Fresh }, { LangContext: Ctx }] = await Promise.all([import('../src/components/Highlight.jsx'), import('../src/hooks/useLang.jsx')]);
+    // ExtLink імпартуецца пасля resetModules разам з Highlight — той жа свежы асобнік, дзе жыве сцяг
+    const [{ default: Fresh }, { default: FreshExt }, { LangContext: Ctx }] = await Promise.all([import('../src/components/Highlight.jsx'), import('../src/components/ExtLink.jsx'), import('../src/hooks/useLang.jsx')]);
     let out;
-    // Кампанент выкліканы як функцыя ўнутры рэндэру: useContext працуе, а вернутыя элементы — у руках.
-    function Probe() { out = Fresh({ text, tokens: [] }); return out; }
+    // Кампаненты выкліканыя як функцыі ўнутры рэндэру: useContext працуе, а вернутыя элементы <a> з onClick — у руках.
+    function Probe() { out = Fresh({ text, tokens: [] }).filter((el) => el && el.type === FreshExt).map((el) => FreshExt(el.props)); return out; }
     renderToStaticMarkup(<Ctx.Provider value={ctx}><Probe /></Ctx.Provider>);
     return out.filter((el) => el && el.type === 'a');
   }

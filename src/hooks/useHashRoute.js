@@ -25,3 +25,5 @@ export function useHashRoute() {
 }
 
 export const href = (path) => (path ? `#/${path}` : '#/');
+/** Абсалютная спасылка на запіс — для буфера абмену і «падзяліцца» (той жа адрас, што і ў адрасным радку старонкі запісу). */
+export const recordUrl = (id) => new URL(href(`r/${id}`), location.href).href;

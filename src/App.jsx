@@ -6,6 +6,7 @@ import { useLang } from './hooks/useLang.jsx';
 import { useHashRoute } from './hooks/useHashRoute.js';
 import { useWatchlist } from './hooks/useWatchlist.js';
 import { useOnline } from './hooks/useOnline.js';
+import { useCopy } from './hooks/useCopy.js';
 import { parseQuery } from './lib/normalize.js';
 import { deriveResults, summarize } from './lib/results.js';
 import { isRecent } from './lib/format.js';
@@ -40,7 +41,7 @@ export default function App() {
   const sort = SORTS.includes(storedSort) ? storedSort : 'newest'; // сапсаванае значэнне ў localStorage — як па змаўчанні
   const [flags, setFlags] = useState({ any: false, list: '' }); // list: '' | 'm' | 'f' | 'p' | 'w' — усе / матэрыялы / фарміраванні / асобы / вышук РФ
   const [help, setHelp] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copied, copy] = useCopy();
   const opts = useMemo(() => ({ ...flags, sort }), [flags, sort]);
   const setOpts = ({ sort: s, ...rest }) => { if (s !== sort) setSort(s); setFlags(rest); };
   const deferredQuery = useDeferredValue(query);
@@ -94,13 +95,7 @@ export default function App() {
   // Спасылка на запыт — толькі па просьбе (кнопка «Спасылка»): у адрасны радок запыт не пішацца.
   const copyQueryLink = async () => {
     const link = queryLink(query.trim(), import.meta.env.BASE_URL);
-    try {
-      await navigator.clipboard.writeText(link);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      if (navigator.share) navigator.share({ title: t.title, url: link }).catch(() => {});
-    }
+    if (!(await copy(link)) && navigator.share) navigator.share({ title: t.title, url: link }).catch(() => {});
   };
   const watchChip = query.trim() && status === 'ready' ? {
     on: watch.has(query),
@@ -141,8 +136,9 @@ export default function App() {
                 <p className={searching || !hasLists ? 'summary' : 'vh'} aria-live="polite">{summaryText}</p>
                 {hasLists && <Facets counts={facetCounts} value={list} onChange={(l) => setFlags((f) => ({ ...f, list: l }))} lists={lists} />}
                 {searching && list && !results.length && derived.all.results.length > 0 && <p className="hint">{t.facetEmpty}</p>}
-                {searching && results.length > 0 && <Consequences formations={Boolean(shown.f)} persons={Boolean(shown.p)} wanted={Boolean(shown.w)} />}
                 <ResultList results={results} tokens={hl} chunkSize={chunkSize} />
+                {/* «Што гэта значыць для мяне?» — пад выдачай: спачатку самі запісы, потым тлумачэнне */}
+                {searching && results.length > 0 && <Consequences formations={Boolean(shown.f)} persons={Boolean(shown.p)} wanted={Boolean(shown.w)} />}
               </>
             )}
           </>
