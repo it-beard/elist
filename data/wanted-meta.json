@@ -1,10 +1,10 @@
 {
   "updated": "2026-09-07",
   "checked": "2026-09-07",
-  "checkedAt": "2026-09-07T10:00:56.118Z",
+  "checkedAt": "2026-09-07T19:58:30.300Z",
   "sourceError": null,
   "sourcePage": "https://mediazonaby.com/article/2026/08/26/wanted_all",
-  "sourceFile": "file:///Users/aliskseikartynnik/Documents/Programming_Projects/elist/.cache/wanted.json",
+  "sourceFile": "https://s3.zona.media/infographics/wanted/data_bel.json.br",
   "sourceDate": "2026-08-31",
   "parse": {
     "skipped": 0,
