@@ -34,7 +34,7 @@ export default function ResultItem({ item, tokens, chunkSize, linked = true }) {
   const pArt = isP ? (item.art || (rec?.articles ? personSeries(rec.articles) : 'other')) : null;
   const wArt = isW ? (item.art || (rec ? wantedSeries(rec.agency) : 'wother')) : null;
   const facts = isP && rec ? [rec.birth && `${t.born} ${rec.birth}`, rec.citizenship, rec.info].filter(Boolean).join(' · ')
-    : isW && rec ? [rec.year && `${rec.year} ${t.bornYear}`, rec.nationality && personName(rec.nationality), rec.region, rec.agency && `${t.requestedBy} ${rec.agency}`].filter(Boolean).join(' · ') : '';
+    : isW && rec ? [rec.year && t.bornYear(rec.year), rec.nationality && personName(rec.nationality), rec.region, rec.agency && `${t.requestedBy} ${rec.agency}`].filter(Boolean).join(' · ') : '';
   const permalink = isW ? t.permalinkW : isP ? t.permalinkP : isF ? t.permalinkF : t.permalink;
   const to = href(`r/${item.id}`);
   // дата: для матэрыялу — рашэння суда, для асобы — уключэння ў пералік, для вышуку — абвяшчэння (прыблізная — «да …»)

@@ -53,7 +53,8 @@ describe('рэндэр чацвёртага спіса — вышук РФ (SSR,
       expect(html).toContain('<mark>Абадовская</mark> Юлия Леонидовна'); // падсветка працуе на пераўтвораным рэгістры
       expect(html).not.toContain('АБАДОВСКАЯ ЮЛИЯ');
       expect(html).toContain('<mark>Абадовская</mark>-Тэст Юлия'); // і ў іншым напісанні
-      expect(html).toContain(`1993 ${t.bornYear} · Беларуска · Минская область · ${t.requestedBy} МВД`);
+      expect(t.bornYear(1993)).toBe(lang === 'be' ? '1993 г.н.' : 'b. 1993'); // парадак слоў — свой для кожнай мовы
+      expect(html).toContain(`${t.bornYear(1993)} · Беларуска · Минская область · ${t.requestedBy} МВД`);
       expect(html).toContain(`<a class="num date" href="#/r/w1" title="${t.wantedDateTitle}">16.07.2024</a>`); // дата — спасылка на запіс
       expect(html).toContain('<svg class="ico"'); // значок справа — кнопка «скапіяваць спасылку»
       expect(html).toContain(`aria-label="${t.permalinkW}"`);
@@ -67,7 +68,7 @@ describe('рэндэр чацвёртага спіса — вышук РФ (SSR,
       expect(gone).toContain(`<span class="gone">${t.wantedOut}</span>`);
       expect(gone).not.toContain('?</span>');
       expect(gone).toContain(`href="#/r/w2" title="${t.wantedDateTitle}">${t.before} 05.2026</a>`); // прыблізная дата — таксама спасылка
-      expect(gone).toContain(`1975 ${t.bornYear}`);
+      expect(gone).toContain(t.bornYear(1975));
       expect(gone).not.toContain('also');
       expect(gone).toContain(t.wantedLabel('wother'));
       const person = render(lang, <ResultItem item={ITEMS[2]} tokens={[]} chunkSize={200} />);

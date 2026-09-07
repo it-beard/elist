@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { STRINGS, LANGS, DEFAULT_LANG, LINKS } from '../src/lib/i18n.js';
 import { NEW_DAYS } from '../src/lib/format.js';
+import { FAQ, siteFacts } from '../src/lib/faq.js';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)]));
@@ -39,12 +40,26 @@ describe('i18n: парытэт моў і жывыя ключы', () => {
   it('спасылкі — толькі https', () => {
     for (const [k, v] of Object.entries(LINKS)) expect(v, k).toMatch(/^https:\/\//);
   });
-  it('тэксты не супярэчаць UI: назва ўкладкі «Усе», без «валанцёраў», без «30 дзён» літаральна', () => {
+  it('тэксты не супярэчаць UI: укладкі і плашкі ўсіх чатырох спісаў — тымі ж словамі, без «валанцёраў», без «30 дзён» літаральна', () => {
+    const facts = siteFacts({ total: 1, updated: '2026-09-07', formations: { total: 1 }, persons: { total: 1 }, wanted: { total: 1 } });
     for (const lang of LANGS) {
       const t = STRINGS[lang];
-      const all = t.facet.all;
+      const [open, close] = lang === 'en' ? ['“', '”'] : ['«', '»'];
+      // радок укладак — як у Facets.jsx (ORDER), і ў даведцы, і ў FAQ пра адрозненне спісаў
+      const tabs = `${open}${['all', 'm', 'f', 'p', 'w'].map((k) => t.facet[k]).join(' · ')}${close}`;
       const joined = [...t.helpHow, t.helpAbout1, t.helpAbout2].join('\n');
-      expect(joined).toContain(`«${all} ·`.replace('«', lang === 'en' ? '“' : '«'));
+      const faq = FAQ[lang].map((x) => x.a(facts)).join('\n');
+      expect(joined).toContain(tabs);
+      expect(faq).toContain(tabs);
+      // плашкі на картках — «Матэрыял», «Фарміраванне», «Асоба», «Вышук РФ» — у даведцы і FAQ названыя так, як на картках
+      const chips = [t.article(302, 'kgs').split(' · ')[0], t.formationLabel(), t.personLabel(), t.wantedLabel()];
+      for (const c of chips) {
+        expect(joined, c).toContain(`${open}${c}${close}`);
+        expect(faq, c).toContain(`${open}${c}${close}`);
+      }
+      // скароты дат нараджэння на картках («д.н.» — асоба, «г.н.» — вышук РФ) — растлумачаныя ў даведцы
+      expect(joined).toContain(`${open}${t.born}${close}`);
+      expect(joined).toContain(`${open}${t.bornYear(1993).replace('1993', '').trim()}${close}`);
       expect(joined).not.toMatch(/валанцёр|volunteer/);
       expect(t.showRemovedTitle(7)).toContain('7');
       expect(t.newFilterEmpty(7)).toContain('7');
