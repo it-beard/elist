@@ -3,7 +3,7 @@ import zlib from 'node:zlib';
 import { findDataUrl, findWidgetBundle, isWantedEdit, mergeWanted, parseWanted, wantedId } from '../scripts/parse-wanted.mjs';
 import { decodeBody } from '../scripts/update-wanted.mjs';
 import { CHUNK, chunkRecord, dict, feed, indexRow, linkLists } from '../scripts/index-rows.mjs';
-import { buildDigest, digestHeader, entry, icon, title } from '../scripts/digest.mjs';
+import { ICON, NAME, buildDigest, digestHeader, entry, subheader, title } from '../scripts/digest.mjs';
 import { sourceMessages } from '../scripts/alert-logic.mjs';
 import { AGENCY_KEY, UNDATED, WANTED_SERIES, isIsoDate, mediazonaRecordUrl, parseWantedDate, personName, wantedSeries, wantedTypeLabel } from '../src/lib/wanted.js';
 import { parseIndex } from '../src/lib/api.js';
@@ -256,22 +256,25 @@ describe('дайджэст і алерты для чацвёртага спіс�
   const w = { id: 'w1', list: 'w', name: 'АБАДОВСКАЯ ЮЛИЯ <ЛЕОНИДОВНА>', year: 1993, nationality: 'БЕЛАРУСКА', region: 'Минская область', agency: 'МВД', date: '2024-07-16', added: '2026-09-07', order: 0 };
   const p = { id: 'p1', list: 'p', name: 'Ковалевский Николай', articles: ['342'], court: 'суда Быховского района', date: '2022-03-23', added: '2026-09-07' };
   it('эмодзі, назва ў звычайным рэгістры, радок мэты без года нараджэння', () => {
-    expect(icon(w)).toBe('🔎');
+    expect(ICON.w).toBe('🔎');
     expect(title(w)).toBe('Абадовская Юлия <Леонидовна>');
     const e = entry(w, 1, SITE);
     expect(e).toContain('🔎 <b>1.</b> Абадовская Юлия &lt;Леонидовна&gt;');
-    expect(e).toContain('<i>16.07.2024 · 🔎 па запыце МВД · Минская область</i>');
+    expect(e).toContain('<i>16.07.2024 · па запыце МВД · Минская область</i>');
+    expect(e.split('🔎')).toHaveLength(2); // эмодзі спіса — адно на запіс
     expect(e).not.toContain('1993');
     expect(e).not.toContain('БЕЛАРУСКА');
-    expect(entry({ ...w, date: '', agency: '', region: '' }, 2, SITE)).toContain('<i>🔎 база вышуку МУС РФ</i>');
+    expect(entry({ ...w, date: '', agency: '', region: '' }, 2, SITE)).toContain('<i>база вышуку МУС РФ</i>');
   });
   it('шапка: асобная для вышуку, у змяшанай — лічба; падзагаловак у змяшаным дайджэсце', () => {
-    expect(digestHeader([w], { total: 1 })).toBe('🔎 <b>База вышуку МУС РФ па беларусах (паводле Медыязоны): +1 новы запіс</b>\n<i>7 верасня 2026</i>');
-    expect(digestHeader([p, w], { total: 6038 })).toBe('🔴 <b>Экстрэмісцкія спісы: +2 новыя запісы</b>\n<i>7 верасня 2026 · асоб +1, у вышуку РФ +1</i>');
-    const mixed = buildDigest([p, w], { site: SITE, today: '2026-09-07', total: 1 });
-    expect(mixed.messages[0]).toContain('\n\n🔎 <b>База вышуку МУС РФ: беларусы (паводле Медыязоны)</b> — ');
+    const totals = { m: 6038, f: 377, p: 6874, w: 6680 };
+    expect(digestHeader([w], { totals })).toBe(`<b>${NAME.w}: +1 новы запіс</b>\n<i>7 верасня 2026 · у спісе 6 680, ва ўсіх чатырох спісах 19 969</i>`);
+    expect(digestHeader([p, w], { totals })).toBe('<b>Экстрэмісцкія спісы Беларусі: +2 новыя запісы</b>\n<i>7 верасня 2026 · асоб +1, у вышуку РФ +1 · ва ўсіх чатырох спісах 19 969</i>');
+    const mixed = buildDigest([p, w], { site: SITE, today: '2026-09-07', totals });
+    expect(mixed.messages[0]).toContain(`\n\n${subheader('p', 1)}\n\n<blockquote>👤 <b>1.</b>`);
+    expect(mixed.messages[0]).toContain(`\n\n🔎 <b>${NAME.w}: +1</b>\n\n<blockquote>🔎 <b>2.</b>`);
     expect(mixed.ids).toEqual([['p1', 'w1']]);
-    expect(buildDigest([w], { site: SITE, today: '2026-09-07', total: 1 }).messages[0]).not.toContain('(паводле Медыязоны)</b> — ');
+    expect(buildDigest([w], { site: SITE, today: '2026-09-07', totals }).messages[0]).not.toContain(`${NAME.w}: +1</b>`);
   });
   it('алерты: крыніца ўпала / аднавілася, крок не завяршыўся', () => {
     expect(sourceMessages({ curW: { sourceError: 'HTTP 404' }, prevW: {} })).toEqual(['⚠️ База вышуку РФ (Медыязона) не абнаўляецца: HTTP 404']);

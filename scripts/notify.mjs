@@ -26,13 +26,14 @@ const KEEP_DAYS = 60;    // як доўга трымаем адзнакі ў dat
 
 if (!token || !chat) { console.log('Telegram не наладжаны — прапускаю.'); process.exit(0); }
 
-const meta = JSON.parse(await fs.readFile(path.join(DATA_DIR, 'meta.json'), 'utf8'));
 const materials = JSON.parse(await fs.readFile(path.join(DATA_DIR, 'materials.json'), 'utf8'));
 const formations = await readJson(path.join(DATA_DIR, 'formations.json'), []);
 const persons = await readJson(path.join(DATA_DIR, 'persons.json'), []);
 const wanted = await readJson(path.join(DATA_DIR, 'wanted.json'), []);
 const db = [...materials.map((x) => ({ ...x, list: 'm' })), ...formations.map((x) => ({ ...x, list: 'f' })), ...persons.map((x) => ({ ...x, list: 'p' })), ...wanted.map((x) => ({ ...x, list: 'w' }))];
 const byId = new Map(db.map((x) => [x.id, x]));
+const live = (a) => a.filter((x) => !x.removed).length;
+const totals = { m: live(materials), f: live(formations), p: live(persons), w: live(wanted) }; // памер кожнага спіса для шапкі
 const sent = (await readJson(STATE_FILE, {})).sent || {};
 const today = new Date().toISOString().slice(0, 10);
 const since = shiftDays(today, -WINDOW_DAYS);
@@ -49,7 +50,7 @@ const fresh = test
 if (!fresh.length) { console.log('Новых запісаў няма — паведамленне не патрэбнае.'); process.exit(0); }
 const target = test && adminChat ? adminChat : chat;
 const n = fresh.length;
-const { messages, ids } = buildDigest(fresh, { site: SITE, test, today, total: meta.total });
+const { messages, ids } = buildDigest(fresh, { site: SITE, test, today, totals });
 
 /** Захаваць адзнакі пра адпраўку, адкінуўшы старыя (файл не расце бясконца). */
 async function saveState() {
