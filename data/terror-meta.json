@@ -1,0 +1,19 @@
+{
+  "updated": "2026-09-15",
+  "checked": "2026-09-15",
+  "checkedAt": "2026-09-15T19:00:00.697Z",
+  "sourceError": null,
+  "sourcePage": "https://www.kgb.by/ru/perechen-inf-ru/",
+  "sourceFile": "file:///Users/aliskseikartynnik/Documents/Programming_Projects/elist/rrrr.xlsx",
+  "channel": "https://t.me/KGB_BY_channel",
+  "sourceDate": "2026-09-11",
+  "parse": {
+    "total": 1474,
+    "un": 736,
+    "skipped": 0,
+    "noBirth": 0
+  },
+  "total": 738,
+  "lastAdded": null,
+  "lastAddedCount": 0
+}

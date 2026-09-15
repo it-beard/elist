@@ -268,8 +268,8 @@ describe('дайджэст і алерты для чацвёртага спіс�
   });
   it('шапка: асобная для вышуку, у змяшанай — лічба; падзагаловак у змяшаным дайджэсце', () => {
     const totals = { m: 6038, f: 377, p: 6874, w: 6680 };
-    expect(digestHeader([w], { totals })).toBe(`<b>${NAME.w}: +1 новы запіс</b>\n<i>7 верасня 2026 · у спісе 6 680, ва ўсіх чатырох спісах 19 969</i>`);
-    expect(digestHeader([p, w], { totals })).toBe('<b>Экстрэмісцкія спісы Беларусі: +2 новыя запісы</b>\n<i>7 верасня 2026 · асоб +1, у вышуку РФ +1 · ва ўсіх чатырох спісах 19 969</i>');
+    expect(digestHeader([w], { totals })).toBe(`<b>${NAME.w}: +1 новы запіс</b>\n<i>7 верасня 2026 · у спісе 6 680, ва ўсіх спісах 19 969</i>`);
+    expect(digestHeader([p, w], { totals })).toBe('<b>Экстрэмісцкія спісы Беларусі: +2 новыя запісы</b>\n<i>7 верасня 2026 · асоб +1, у вышуку РФ +1 · ва ўсіх спісах 19 969</i>');
     const mixed = buildDigest([p, w], { site: SITE, today: '2026-09-07', totals });
     expect(mixed.messages[0]).toContain(`\n\n${subheader('p', 1)}\n\n<blockquote>👤 <b>1.</b>`);
     expect(mixed.messages[0]).toContain(`\n\n🔎 <b>${NAME.w}: +1</b>\n\n<blockquote>🔎 <b>2.</b>`);

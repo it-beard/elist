@@ -23,7 +23,8 @@ export function runSearch(items, tokens, opts) {
  * Вяртае { all, results, mode, hl, list, searching, live, facetCounts, shown }:
  * facetCounts — пры запыце колькі знойдзена ў кожным спісе, без запыту колькі запісаў у базе
  * («Усяго запісаў» — адно правіла ўсюды: без выдаленых і старых версій выпраўленых);
- * shown — у якіх спісах ёсць паказаныя вынікі.
+ * shown — у якіх спісах ёсць паказаныя вынікі (t — людзі з пераліку КДБ «прычастных да тэрарыстычнай дзейнасці»:
+ * самастойныя запісы КДБ ідуць у t, а не ў p; запісы МУС з пазнакай kgb — і ў p, і ў t).
  */
 export function deriveResults(items, tokens, opts) {
   const list = opts.list || '';
@@ -37,7 +38,10 @@ export function deriveResults(items, tokens, opts) {
   const live = countByList(all.results, { live: true });
   const facetCounts = searching ? countByList(all.results) : live;
   const shown = {};
-  for (const r of view.results) shown[r.list || 'm'] = true;
+  for (const r of view.results) {
+    shown[r.art === 'terror' ? 't' : r.list || 'm'] = true;
+    if (r.kgb) shown.t = true;
+  }
   return { all, results: view.results, mode: view.mode, hl: view.hl, list, searching, live, facetCounts, shown };
 }
 

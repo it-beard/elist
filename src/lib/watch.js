@@ -8,7 +8,8 @@ export const watchTokens = (q) => parseQuery(q).map(variants);
 /**
  * Правярае кожны запыт са спісу назірання па індэксе.
  * entry: { q, seen: [id…], at }. Вяртае { entry, matches, fresh } — fresh = супадзенні, якіх карыстальнік яшчэ не бачыў.
- * Выпраўлены ў крыніцы запіс (editOf) лічыцца бачаным, калі бачылі якую-небудзь з яго папярэдніх версій.
+ * Выпраўлены ў крыніцы запіс (editOf) лічыцца бачаным, калі бачылі якую-небудзь з яго папярэдніх версій. Запісы
+ * пераліку КДБ, улінутыя ў запіс МУС (у выдачы схаваныя), тут улічваюцца: з’яўленне чалавека ў пераліку КДБ — новае.
  */
 export function checkWatchlist(items, entries) {
   const editOf = new Map();
@@ -19,7 +20,7 @@ export function checkWatchlist(items, entries) {
   };
   return entries.map((entry) => {
     const tokens = watchTokens(entry.q);
-    const matches = tokens.length ? search(items, tokens, { sort: 'newest' }) : [];
+    const matches = tokens.length ? search(items, tokens, { sort: 'newest', merged: true }) : [];
     const seen = new Set(entry.seen || []);
     const fresh = matches.filter((m) => !seenVia(seen, m.id));
     return { entry, matches, fresh };

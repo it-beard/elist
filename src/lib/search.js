@@ -2,7 +2,7 @@ import { isRecent } from './format.js';
 
 const has = (h, t) => (Array.isArray(t) ? t.some((v) => v && h.includes(v)) : h.includes(t));
 
-/** Спісы базы: матэрыялы, фарміраванні, фізічныя асобы, вышук РФ. */
+/** Спісы базы: матэрыялы, фарміраванні, фізічныя асобы (пералік МУС і асобы з пераліку КДБ), вышук РФ. */
 export const LISTS = ['m', 'f', 'p', 'w'];
 
 /**
@@ -10,17 +10,20 @@ export const LISTS = ['m', 'f', 'p', 'w'];
  * list ('m' — матэрыял, 'f' — экстрэмісцкае фарміраванне, 'p' — фізічная асоба, 'w' — вышук РФ; адсутнасць = 'm').
  * Токен — радок або масіў варыянтаў (дастаткова любога з іх).
  * replacedBy — старая версія выпраўленага запісу: у выніках не паказваем (пастаянная спасылка вядзе на новую).
+ * merged — запіс пераліку КДБ пра чалавека, які ёсць і ў пераліку МУС: у выдачы схаваны (той жа чалавек ідзе адной
+ * карткай пераліку МУС з пазнакай «тэрарыст»), калі толькі не зададзена опцыя merged (спіс назірання: з’яўленне ў
+ * пераліку КДБ — таксама новае супадзенне).
  * list — абмежаваць адным спісам ('m', 'f', 'p', 'w'); без яго выдача змяшаная.
  * sort — 'newest' (па даце рашэння спачатку новыя), 'oldest' (спачатку старыя), 'source' (як у афіцыйнай крыніцы).
  */
-export function search(items, tokens, { any = false, onlyNew = false, sort = 'newest', list = '' } = {}) {
+export function search(items, tokens, { any = false, onlyNew = false, sort = 'newest', list = '', merged = false } = {}) {
   const hit = tokens.length
     ? any
       ? (it) => tokens.some((t) => has(it.h, t))
       : (it) => tokens.every((t) => has(it.h, t))
     : () => true;
   const inList = list ? (it) => (it.list || 'm') === list : () => true;
-  const out = items.filter((it) => !it.replacedBy && inList(it) && hit(it) && (!onlyNew || isRecent(it.added)));
+  const out = items.filter((it) => !it.replacedBy && (merged || !it.merged) && inList(it) && hit(it) && (!onlyNew || isRecent(it.added)));
   if (sort === 'newest') out.sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.i - a.i);
   else if (sort === 'oldest') out.sort((a, b) => (a.date || '9').localeCompare(b.date || '9') || a.i - b.i);
   else if (sort === 'source') out.sort((a, b) => a.i - b.i);

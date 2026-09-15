@@ -1,7 +1,7 @@
 /**
  * Паведамленні адміну пра змену стану крыніц — чыстая логіка для scripts/alert.mjs source. Бягучыя мета-файлы
  * параўноўваюцца з тымі, што ў HEAD, і шлюцца толькі пераходы: крыніца перастала/пачала адказваць, уключылася/
- * выключылася запасная; для пералікаў МУС sourceError — і недаступная крыніца, і засцярога, што спыніла абнаўленне.
+ * выключылася запасная; для пералікаў МУС і КДБ sourceError — і недаступная крыніца, і засцярога, што спыніла абнаўленне.
  * steps — вынікі крокаў CI (steps.<id>.outcome): крок упаў, а ў меце няма sourceError — скрыпт не паспеў яе запісаць
  * (таймаўт кроку ці збой да запісу меты); інакш пра такое ніхто б не даведаўся.
  */
@@ -10,7 +10,7 @@ export const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
 const DIED = new Set(['failure', 'cancelled']); // крок не завяршыўся сам: упаў ці забіты таймаўтам
 
 /** Паведамленні (масіў радкоў HTML) для пераходаў стану; пусты масіў — стан не змяніўся. */
-export function sourceMessages({ cur = {}, prev = {}, curF = {}, prevF = {}, curP = {}, prevP = {}, curW = {}, prevW = {}, steps = {} } = {}) {
+export function sourceMessages({ cur = {}, prev = {}, curF = {}, prevF = {}, curP = {}, prevP = {}, curT = {}, prevT = {}, curW = {}, prevW = {}, steps = {} } = {}) {
   const msgs = [];
   if (Boolean(cur.sourceError) !== Boolean(prev.sourceError)) {
     msgs.push(cur.sourceError ? `⚠️ Крыніца не адказвае: ${esc(cur.sourceError)}` : '✅ Крыніца зноў адказвае.');
@@ -31,6 +31,13 @@ export function sourceMessages({ cur = {}, prev = {}, curF = {}, prevF = {}, cur
   }
   if (DIED.has(steps.persons) && !curP.sourceError) {
     msgs.push('⚠️ Крок абнаўлення пераліку фізічных асоб (МУС) не завяршыўся (таймаўт ці збой да запісу меты).');
+  }
+  // пералік КДБ: асобы, прычастныя да тэрарыстычнай дзейнасці (xlsx з Telegram-канала КДБ ці лакальна)
+  if (Boolean(curT.sourceError) !== Boolean(prevT.sourceError)) {
+    msgs.push(curT.sourceError ? `⚠️ Пералік КДБ (тэрарыстычная дзейнасць) не абнаўляецца: ${esc(curT.sourceError)}` : '✅ Пералік КДБ (тэрарыстычная дзейнасць) зноў абнаўляецца.');
+  }
+  if (DIED.has(steps.terror) && !curT.sourceError) {
+    msgs.push('⚠️ Крок абнаўлення пераліку КДБ (тэрарыстычная дзейнасць) не завяршыўся (таймаўт ці збой да запісу меты).');
   }
   // чацвёрты спіс: база вышуку РФ па беларусах (JSON Медыязоны)
   if (Boolean(curW.sourceError) !== Boolean(prevW.sourceError)) {

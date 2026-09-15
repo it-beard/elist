@@ -5,7 +5,8 @@
   --form: #5b3fbf; --form-soft: #ece7fb; /* другі спіс — экстрэмісцкія фарміраванні (МУС/КДБ) */
   --person: #0f766e; --person-soft: #d5f0ec; /* трэці спіс — фізічныя асобы (пералік МУС) */
   --wanted: #b45309; --wanted-soft: #fdebd3; /* чацвёрты спіс — беларусы ў базе вышуку РФ (Медыязона) */
-  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #8a94a6; --trend: #16181d;
+  --terror: #be123c; --terror-soft: #fce7ee; /* пералік КДБ — асобы, прычастныя да тэрарыстычнай дзейнасці (у спісе асоб) */
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #8a94a6; --s5: #be123c; --trend: #16181d;
   --radius: 14px; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04);
   --gap: 12px; /* адзіны крок вертыкальнай сеткі паміж блокамі старонкі (пошук, зводка, укладкі, карткі, тлумачэнне) */
 }
@@ -19,7 +20,8 @@
     --form: #b39dfc; --form-soft: #2b2447;
     --person: #4fd1c5; --person-soft: #143530;
     --wanted: #f5a524; --wanted-soft: #3b2a10;
-    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #6f7787; --trend: #e9ebef;
+    --terror: #fb7185; --terror-soft: #3d1a28;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #6f7787; --s5: #f43f5e; --trend: #e9ebef;
     --shadow: 0 1px 2px rgba(0,0,0,.4);
   }
 }
@@ -30,7 +32,8 @@
   --form: #b39dfc; --form-soft: #2b2447;
   --person: #4fd1c5; --person-soft: #143530;
   --wanted: #f5a524; --wanted-soft: #3b2a10;
-  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #6f7787; --trend: #e9ebef;
+  --terror: #fb7185; --terror-soft: #3d1a28;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #6f7787; --s5: #f43f5e; --trend: #e9ebef;
   --shadow: 0 1px 2px rgba(0,0,0,.4);
 }
 * { box-sizing: border-box; }
@@ -78,6 +81,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .tip-dot.f { background: var(--form); }
 .tip-dot.p { background: var(--person); }
 .tip-dot.w { background: var(--wanted); }
+.tip-dot.t { background: var(--terror); }
 .tip-val { font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--text); }
 .badge-new { display: inline-block; margin-left: 8px; padding: 1px 9px; border-radius: 99px; background: var(--new); color: #fff; font-weight: 600; font-size: .78rem; white-space: nowrap; }
 .notice { margin: var(--gap) 0 0; padding: 8px 12px; border-radius: 10px; background: var(--line); font-size: .85rem; }
@@ -215,6 +219,10 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 /* трэці спіс: бірузовая палоска і плашка асобы */
 .item.person { border-left: 3px solid var(--person); }
 .type.person { background: var(--person-soft); color: var(--person); }
+/* пералік КДБ у спісе асоб: малінавая плашка «Тэрарыст · КДБ» (і палоска, калі чалавека няма ў пераліку МУС);
+   у запісу МУС пра таго ж чалавека — тая ж плашка побач з бірузовай */
+.item.terror { border-left-color: var(--terror); }
+.type.terror { background: var(--terror-soft); color: var(--terror); }
 /* чацвёрты спіс: янтарная палоска і плашка «Вышук РФ» */
 .item.wanted { border-left: 3px solid var(--wanted); }
 .type.wanted { background: var(--wanted-soft); color: var(--wanted); }
@@ -224,6 +232,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .also a:hover { text-decoration: underline; }
 .also a + a { margin-left: 10px; }
 .item.person .also a { color: var(--wanted); }
+.item.person .also a.mvd { color: var(--person); } /* запіс КДБ → запіс МУС пра таго ж чалавека */
 .item.wanted .also a { color: var(--person); }
 .alias { margin: 4px 0 0; color: var(--muted); font-size: .9rem; white-space: pre-wrap; overflow-wrap: anywhere; }
 /* фізічная асоба: дата нараджэння, грамадзянства, статус — адным радком пад транслітарацыяй */
@@ -240,6 +249,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
 .crime.material { background: var(--accent-soft); color: var(--accent); }
 .crime.person { background: var(--person-soft); color: var(--person); }
 .crime.wanted { background: var(--wanted-soft); color: var(--wanted); }
+.crime.terror { background: var(--terror-soft); color: var(--terror); }
 .name { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; line-height: 1.45; }
 .court { white-space: pre-wrap; overflow-wrap: anywhere; margin: 10px 0 0; font-size: .85rem; color: var(--muted); border-left: 3px solid var(--line-strong); padding-left: 10px; }
 .skeleton { background: linear-gradient(90deg, var(--line), var(--bg), var(--line)); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 6px; min-height: 2.5em; }
@@ -364,7 +374,7 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
 .tl .grid { stroke: var(--line); stroke-width: 1; }
 .tl .base { stroke: var(--line-strong); stroke-width: 1; }
 .tl .band { fill: var(--line); opacity: .8; }
-.tl .s-gpk, .tl .s-mvd, .tl .s-protest, .tl .s-wmvd { fill: var(--s1); } .tl .s-kgs, .tl .s-kgb, .tl .s-speech, .tl .s-wkgk { fill: var(--s2); } .tl .s-none, .tl .s-court, .tl .s-ext, .tl .s-wkgb { fill: var(--s3); } .tl .s-other, .tl .s-wother { fill: var(--s4); }
+.tl .s-gpk, .tl .s-mvd, .tl .s-protest, .tl .s-wmvd { fill: var(--s1); } .tl .s-kgs, .tl .s-kgb, .tl .s-speech, .tl .s-wkgk { fill: var(--s2); } .tl .s-none, .tl .s-court, .tl .s-ext, .tl .s-wkgb { fill: var(--s3); } .tl .s-other, .tl .s-wother { fill: var(--s4); } .tl .s-terror { fill: var(--s5); }
 .tl .partial { fill: url(#tl-hatch); }
 .tl .hatch { stroke: var(--card); stroke-width: 2.5; }
 .tl .trend { fill: none; stroke: var(--trend); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; opacity: .75; }
@@ -378,7 +388,7 @@ mark { background: var(--mark); color: inherit; padding: 0 1px; border-radius: 3
 .legend .cnt { color: var(--muted); }
 .legend .trend-key { display: inline-flex; align-items: center; gap: 7px; font-size: .8rem; height: 30px; padding: 0 10px; color: var(--muted); }
 .key { flex: none; width: 12px; height: 12px; border-radius: 3px; }
-.key.s-gpk, .key.s-mvd, .key.s-protest, .key.s-wmvd { background: var(--s1); } .key.s-kgs, .key.s-kgb, .key.s-speech, .key.s-wkgk { background: var(--s2); } .key.s-none, .key.s-court, .key.s-ext, .key.s-wkgb { background: var(--s3); } .key.s-other, .key.s-wother { background: var(--s4); }
+.key.s-gpk, .key.s-mvd, .key.s-protest, .key.s-wmvd { background: var(--s1); } .key.s-kgs, .key.s-kgb, .key.s-speech, .key.s-wkgk { background: var(--s2); } .key.s-none, .key.s-court, .key.s-ext, .key.s-wkgb { background: var(--s3); } .key.s-other, .key.s-wother { background: var(--s4); } .key.s-terror { background: var(--s5); }
 .stats-switch { margin: 12px 0 0; }
 .key.line { width: 16px; height: 0; border-top: 2px solid var(--trend); border-radius: 0; opacity: .75; }
 .readout { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 10px 12px; margin: 0 0 12px; }

@@ -31,9 +31,11 @@ const LIST_CLASS = { f: ' form', p: ' person', w: ' wanted' };
 /**
  * Старонка «Статыстыка»: пліткі, таймлайн з маштабам, легенда, картка перыяду, табліца.
  * Спісы — асобна, праз пераключальнік: матэрыялы (серыі — артыкул рашэння суда), фарміраванні
- * (серыі — хто прыняў рашэнне), фізічныя асобы (серыі — група артыкулаў КК; дата — дата ўключэння ў пералік)
+ * (серыі — хто прыняў рашэнне), фізічныя асобы (серыі — група артыкулаў КК і асобна людзі з пераліку КДБ, якіх няма
+ * ў пераліку МУС; дата — дата ўключэння ў пералік, для запісаў КДБ — версія пераліку, у якой яны з’явіліся)
  * і вышук РФ (серыі — ведамства-ініцыятар; дата — дата абвяшчэння ў вышук; запісы з прыблізнай датай «да …»
- * на графік не трапляюць, іх колькасць — асобным радком). У адзін графік іх не змешваем: сотні матэрыялаў у месяц
+ * на графік не трапляюць, іх колькасць — асобным радком). Для спіса асоб асобным радком — лічбы па пераліку КДБ: колькі
+ * людзей, колькі з іх злітыя з пералікам МУС (на графіку ў серыях МУС) і колькі без даты не трапілі на графік. У адзін графік іх не змешваем: сотні матэрыялаў у месяц
  * схавалі б адзінкі фарміраванняў.
  */
 export default function StatsPage({ items, initialList = 'm' }) {
@@ -43,10 +45,23 @@ export default function StatsPage({ items, initialList = 'm' }) {
   // #/stats — матэрыялы, #/stats/f — фарміраванні, #/stats/p — фізічныя асобы, #/stats/w — вышук РФ (спасылкай можна падзяліцца)
   const [list, setList] = useState(has[initialList] ? initialList : 'm');
   const SERIES = SERIES_BY_LIST[list];
-  // адно правіла ўсюды: лічым запісы, якія цяпер ёсць у спісе — без выдаленых і старых версій выпраўленых
-  const inList = (it, l) => (it.list || 'm') === l && !it.removed && !it.replacedBy;
+  // адно правіла ўсюды: лічым запісы, якія цяпер ёсць у спісе — без выдаленых, старых версій выпраўленых і запісаў
+  // пераліку КДБ, улінутых у запіс МУС (той жа чалавек ужо палічаны запісам МУС)
+  const inList = (it, l) => (it.list || 'm') === l && !it.removed && !it.replacedBy && !it.merged;
   const listItems = useMemo(() => items.filter((it) => inList(it, list)), [items, list]);
   const undated = useMemo(() => (list === 'w' ? listItems.filter((it) => !it.date).length : 0), [listItems, list]);
+  // спіс асоб: людзі з пераліку КДБ — усяго, злітыя з запісамі МУС (на графіку ў серыях МУС) і асобныя без даты (не на графіку)
+  const kgb = useMemo(() => {
+    if (list !== 'p') return null;
+    let total = 0, inMvd = 0, noDate = 0;
+    for (const it of items) {
+      if (it.list !== 'p' || it.art !== 'terror' || it.removed || it.replacedBy) continue;
+      total++;
+      if (it.merged) inMvd++;
+      else if (!it.date) noDate++;
+    }
+    return total ? { total, inMvd, noDate } : null;
+  }, [items, list]);
   const daily = useMemo(() => dailyCounts(listItems, SERIES), [listItems, SERIES]);
   const minT = daily[0]?.[0] ?? now - 365 * DAY;
   const maxT = nextOf(now, 'day');
@@ -147,6 +162,7 @@ export default function StatsPage({ items, initialList = 'm' }) {
       )}
       <p className="hint">{list === 'w' ? t.statsIntroW : list === 'p' ? t.statsIntroP : list === 'f' ? t.statsIntroF : t.statsIntro}</p>
       {undated > 0 && <p className="hint">{t.statsApproxW(fmtNum(undated))}</p>}
+      {kgb && <p className="hint">{t.statsKgbP(kgb.total, kgb.inMvd, kgb.noDate)}</p>}
 
       <div className="tiles">
         <div className="tile"><span className="lbl">{t.tileTotal}</span><span className="val">{fmtNum(listItems.length)}</span>{sum.first && <span className="dlt">{t.since(fmtDate(iso(sum.first)))}</span>}</div>

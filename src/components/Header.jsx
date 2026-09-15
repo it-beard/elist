@@ -10,18 +10,20 @@ export const stampOf = (m) => m?.checkedAt || m?.checked || m?.updated || '';
 /**
  * Даты праверкі па спісах для шапкі: lists — усе, у якіх ёсць пазнака ({ key, label, iso, value, sub }),
  * latest — самая свежая з іх (у бачным радку), астатнія — у папове. Для вышуку РФ sub — дата файла Медыязоны
- * (sourceDate), асобным радком толькі ў папове: іх выбарка абнаўляецца нерэгулярна, і карыстальнік мусіць бачыць,
- * наколькі яна свежая; у бачны радок шапкі яна не трапляе. Чыстая функцыя.
+ * (sourceDate), для пераліку КДБ — дата версіі пераліку, асобным радком толькі ў папове: выбарка Медыязоны
+ * абнаўляецца нерэгулярна, а пералік КДБ выходзіць раз на тыдзень-два, і карыстальнік мусіць бачыць, наколькі
+ * яны свежыя; у бачны радок шапкі яны не трапляюць. Чыстая функцыя.
  */
 export function listStamps(meta, t, lang) {
   const lists = [
     ['m', t.updatedMaterials, meta],
     ['f', t.formationsChecked, meta?.formations],
     ['p', t.personsChecked, meta?.persons],
+    ['t', t.terrorChecked, meta?.terror],
     ['w', t.wantedChecked, meta?.wanted],
   ].filter(([, , m]) => stampOf(m)).map(([key, label, m]) => ({
     key, label, iso: stampOf(m), value: updatedLabel(m, t, lang),
-    sub: key === 'w' && m.sourceDate ? t.wantedSource(fmtDate(m.sourceDate)) : '',
+    sub: key === 'w' && m.sourceDate ? t.wantedSource(fmtDate(m.sourceDate)) : key === 't' && m.sourceDate ? t.terrorSource(fmtDate(m.sourceDate)) : '',
   }));
   let latest = lists[0] || null;
   for (const it of lists) if ((Date.parse(it.iso) || 0) > (Date.parse(latest.iso) || 0)) latest = it;
@@ -40,8 +42,8 @@ export default function Header({ meta, online, onHelp }) {
   const updatedStr = updatedLabel(meta, t, lang);
   const checkedAgo = meta ? hoursSince(stampOf(meta)) : 0;
   const stale = Boolean(online && meta && !meta.sourceError && checkedAgo > STALE_HOURS);
-  // другі, трэці і чацвёрты спісы правяраюцца асобнымі крокамі — свае даты і свае папярэджанні
-  const fm = meta?.formations, pm = meta?.persons, wm = meta?.wanted;
+  // астатнія спісы правяраюцца асобнымі крокамі — свае даты і свае папярэджанні
+  const fm = meta?.formations, pm = meta?.persons, wm = meta?.wanted, tm = meta?.terror;
   const { lists, latest } = listStamps(meta, t, lang);
 
   // Папоў з датамі па кожным спісе: адкрываецца кнопкай, зачыняецца ёю ж, Escape ці націскам па-за ім;
@@ -104,6 +106,7 @@ export default function Header({ meta, online, onHelp }) {
       {meta?.fallback && <p className="notice warn">{t.fallbackSrc}</p>}
       {fm?.sourceError && <p className="notice warn">{t.formationsDown(fmtDate(fm.checked || fm.updated))}</p>}
       {pm?.sourceError && <p className="notice warn">{t.personsDown(fmtDate(pm.checked || pm.updated))}</p>}
+      {tm?.sourceError && <p className="notice warn">{t.terrorDown(fmtDate(tm.checked || tm.updated))}</p>}
       {wm?.sourceError && <p className="notice warn">{t.wantedDown(fmtDate(wm.checked || wm.updated))}</p>}
       {stale && <p className="notice warn">{t.stale(updatedStr)}</p>}
       {!online && meta && <p className="notice">{t.offline(fmtDate(meta.updated))}</p>}

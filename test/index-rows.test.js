@@ -78,15 +78,15 @@ describe('publicMeta', () => {
     );
     // адрасы .doc-частак пераліку асоб — выключэнне: з іх старонка запісу робіць спасылку на файл
     expect(pub).toEqual({
-      updated: '2026-09-06', total: 1, formations: { total: 2 }, wanted: null,
+      updated: '2026-09-06', total: 1, formations: { total: 2 }, wanted: null, terror: null,
       persons: { total: 3, parts: 4, files: ['https://mvd.test/1.doc', 'https://mvd.test/2.doc'] },
     });
     expect(JSON.stringify(pub)).not.toMatch(/sourcePage|sourceFiles/);
     // лакальны запуск (file://) адрасоў не публікуе
     expect(publicMeta({ total: 1 }, {}, { total: 3, sourceFiles: ['file:///tmp/part1.doc'] }).persons).toEqual({ total: 3 });
-    expect(publicMeta({ total: 1 }, {}, {})).toEqual({ total: 1, formations: null, persons: null, wanted: null });
-    expect(publicMeta({ total: 1 }, { sourcePage: 'a' }, { sourceFiles: [] })).toEqual({ total: 1, formations: null, persons: null, wanted: null });
-    expect(publicMeta({ total: 1 })).toEqual({ total: 1, formations: null, persons: null, wanted: null });
+    expect(publicMeta({ total: 1 }, {}, {})).toEqual({ total: 1, formations: null, persons: null, wanted: null, terror: null });
+    expect(publicMeta({ total: 1 }, { sourcePage: 'a' }, { sourceFiles: [] })).toEqual({ total: 1, formations: null, persons: null, wanted: null, terror: null });
+    expect(publicMeta({ total: 1 })).toEqual({ total: 1, formations: null, persons: null, wanted: null, terror: null });
     // чацвёрты спіс: дата файла Медыязоны публічная, адрасы — не
     expect(publicMeta({ total: 1 }, {}, {}, { total: 5, sourceDate: '2026-08-31', sourcePage: 'x', sourceFile: 'y' }).wanted).toEqual({ total: 5, sourceDate: '2026-08-31' });
   });

@@ -131,7 +131,7 @@ describe('person.js', () => {
     expect(personSeries(['368', '369'])).toBe('speech');
     expect(personSeries(['328'])).toBe('other');
     expect(personSeries([])).toBe('other');
-    expect(PERSON_SERIES).toEqual(['protest', 'speech', 'ext', 'other']);
+    expect(PERSON_SERIES).toEqual(['protest', 'speech', 'ext', 'terror', 'other']);
     expect(articlesLabel(['342', '368'])).toBe('ст. 342, 368 УК');
     expect(articlesLabel([])).toBe('');
   });
@@ -257,7 +257,7 @@ describe('пошук і статыстыка па трох спісах', () => 
   });
   it('серыі трэцяга спісу: невядомая — у апошнюю («іншыя»)', () => {
     const d = dailyCounts(items.filter((x) => x.list === 'p'), PERSON_SERIES);
-    expect(d).toEqual([[Date.parse('2026-03-01'), [1, 0, 0, 1]]]);
+    expect(d).toEqual([[Date.parse('2026-03-01'), [1, 0, 0, 0, 1]]]);
   });
 });
 

@@ -13,9 +13,10 @@ export const fetchMeta = (fresh) => getJson('meta.json', opts(fresh));
 
 /**
  * Код у слоце «артыкул» → назва серыі статыстыкі (гл. stats.js): матэрыялы — артыкул, фарміраванні — хто прыняў
- * рашэнне, фізічныя асобы — група артыкулаў КК (гл. person.js), вышук РФ — ведамства-ініцыятар (гл. wanted.js).
+ * рашэнне, фізічныя асобы — група артыкулаў КК (гл. person.js; 4 — запіс пераліку КДБ «прычастных да тэрарыстычнай
+ * дзейнасці», якога няма ў пераліку МУС), вышук РФ — ведамства-ініцыятар (гл. wanted.js).
  */
-const ART = { 1: 'gpk', 2: 'kgs' }, DEC = { 1: 'mvd', 2: 'kgb', 3: 'court' }, PSER = { 1: 'protest', 2: 'speech', 3: 'ext' }, WSER = { 1: 'wmvd', 2: 'wkgk', 3: 'wkgb' };
+const ART = { 1: 'gpk', 2: 'kgs' }, DEC = { 1: 'mvd', 2: 'kgb', 3: 'court' }, PSER = { 1: 'protest', 2: 'speech', 3: 'ext', 4: 'terror' }, WSER = { 1: 'wmvd', 2: 'wkgk', 3: 'wkgb' };
 const LIST = { 1: 'f', 2: 'p', 3: 'w' };
 
 /**
@@ -23,17 +24,21 @@ const LIST = { 1: 'f', 2: 'p', 3: 'w' };
  * 'p' — фізічная асоба, 'w' — вышук РФ (у старым кэшы поля няма — усё матэрыялы); n — нумар у сваім спісе: для матэрыялаў
  * і фарміраванняў — пазіцыя ў публікацыі, для фізічных асоб — афіцыйны № з крыніцы або null (свежае дапаўненне,
  * якому МУС нумар яшчэ не даў: пазіцыя тут не падыходзіць, бо супадала б з чужымі нумарамі), для вышуку РФ — null
- * (нумароў у крыніцы няма). Чыстая функцыя.
+ * (нумароў у крыніцы няма). У спісе асоб 13-ы слот радка: для запісу пераліку КДБ — id запісу МУС пра таго ж чалавека
+ * (merged: у выдачы такі радок схаваны, каб адзін чалавек не ішоў дзвюма карткамі), для запісу МУС — 1, калі чалавек
+ * ёсць і ў пераліку КДБ; kgb — чалавек ёсць у пераліку КДБ (і той, і другі выпадак). Чыстая функцыя.
  */
 export function parseIndex(idx) {
   const counters = { m: 0, f: 0, p: 0, w: 0 };
-  const items = idx.items.map(([t, c, date, added, removed, name, id, art, editOf, replacedBy, list, num], i) => {
+  const items = idx.items.map(([t, c, date, added, removed, name, id, art, editOf, replacedBy, list, num, extra], i) => {
     const l = LIST[list] || 'm';
     const pos = ++counters[l];
     return {
       i, id, date, added, removed, editOf: editOf || '', replacedBy: replacedBy || '',
       art: l === 'f' ? DEC[art] || 'court' : l === 'p' ? PSER[art] || 'other' : l === 'w' ? WSER[art] || 'wother' : ART[art] || 'none',
       list: l, n: l === 'p' ? num || null : l === 'w' ? null : pos,
+      merged: l === 'p' && typeof extra === 'string' ? extra : '',
+      kgb: l === 'p' && (extra === 1 || art === 4),
       h: `${name}\n${idx.types[t]}\n${idx.courts[c]}\n${idx.dates[date] || ''}`,
     };
   });

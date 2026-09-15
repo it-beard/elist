@@ -104,7 +104,7 @@ export default function App() {
   const shareChip = query.trim() && status === 'ready' ? { copy: copyQueryLink, copied } : null;
 
   const newCount = items ? items.filter((it) => !it.replacedBy && isRecent(it.added)).length : 0;
-  // дадатковыя спісы (фарміраванні МУС/КДБ, фізічныя асобы МУС, вышук РФ): укладкі-спісы і асобны падлік — толькі калі яны ёсць у базе
+  // дадатковыя спісы (фарміраванні МУС/КДБ, фізічныя асобы МУС і пераліку КДБ, вышук РФ): укладкі-спісы і асобны падлік — толькі калі яны ёсць у базе
   const lists = useMemo(() => ({ f: Boolean(counts?.f), p: Boolean(counts?.p), w: Boolean(counts?.w) }), [counts]);
   const hasLists = lists.f || lists.p || lists.w;
 
@@ -138,7 +138,7 @@ export default function App() {
                 {searching && list && !results.length && derived.all.results.length > 0 && <p className="hint">{t.facetEmpty}</p>}
                 <ResultList results={results} tokens={hl} chunkSize={chunkSize} />
                 {/* «Што гэта значыць для мяне?» — пад выдачай: спачатку самі запісы, потым тлумачэнне */}
-                {searching && results.length > 0 && <Consequences materials={Boolean(shown.m)} formations={Boolean(shown.f)} persons={Boolean(shown.p)} wanted={Boolean(shown.w)} />}
+                {searching && results.length > 0 && <Consequences materials={Boolean(shown.m)} formations={Boolean(shown.f)} persons={Boolean(shown.p)} terror={Boolean(shown.t)} wanted={Boolean(shown.w)} />}
               </>
             )}
           </>
@@ -146,7 +146,7 @@ export default function App() {
       </main>
       <footer className="wrap foot">
         <p>
-          {t.footSrc1}<a href={LINKS.mininform} target="_blank" rel="noopener noreferrer">{t.footSrcM}</a>{t.footSrc2}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcF}</a>{t.footSrc3}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcP}</a>{t.footSrc4}<a href={LINKS.mediazona} target="_blank" rel="noopener noreferrer">{t.footSrcW}</a>{t.footSrc5}
+          {t.footSrc1}<a href={LINKS.mininform} target="_blank" rel="noopener noreferrer">{t.footSrcM}</a>{t.footSrc2}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcF}</a>{t.footSrc3}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcP}</a>{t.footSrc4}<a href={LINKS.kgb} target="_blank" rel="noopener noreferrer">{t.footSrcT}</a>{t.footSrc4b}<a href={LINKS.mediazona} target="_blank" rel="noopener noreferrer">{t.footSrcW}</a>{t.footSrc5}
         </p>
         <p className="travel-warn">⚠️ {t.footSrcWarn}</p>
         <p>{t.footPrivacy} <button type="button" className="linklike" onClick={clearAll}>{t.clearAll}</button>.</p>

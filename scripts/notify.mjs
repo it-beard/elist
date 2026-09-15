@@ -16,6 +16,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { DATA_DIR, readJson } from './common.mjs';
 import { buildDigest, plural, selectFresh, shiftDays } from './digest.mjs';
+import { foldTerror } from './index-rows.mjs';
 
 const STATE_FILE = path.join(DATA_DIR, 'notified.json');
 const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID, adminChat = process.env.TELEGRAM_ADMIN_CHAT_ID;
@@ -30,10 +31,14 @@ const materials = JSON.parse(await fs.readFile(path.join(DATA_DIR, 'materials.js
 const formations = await readJson(path.join(DATA_DIR, 'formations.json'), []);
 const persons = await readJson(path.join(DATA_DIR, 'persons.json'), []);
 const wanted = await readJson(path.join(DATA_DIR, 'wanted.json'), []);
-const db = [...materials.map((x) => ({ ...x, list: 'm' })), ...formations.map((x) => ({ ...x, list: 'f' })), ...persons.map((x) => ({ ...x, list: 'p' })), ...wanted.map((x) => ({ ...x, list: 'w' }))];
+const terror = await readJson(path.join(DATA_DIR, 'terror.json'), []);
+const db = [...materials.map((x) => ({ ...x, list: 'm' })), ...formations.map((x) => ({ ...x, list: 'f' })), ...persons.map((x) => ({ ...x, list: 'p' })), ...terror.map((x) => ({ ...x, list: 't' })), ...wanted.map((x) => ({ ...x, list: 'w' }))];
+// хто з пераліку КДБ ёсць і ў пераліку МУС — спасылка ў дайджэсце вядзе на запіс МУС, а ў суме па спісах ён лічыцца адзін раз
+const merged = foldTerror(db);
 const byId = new Map(db.map((x) => [x.id, x]));
 const live = (a) => a.filter((x) => !x.removed).length;
-const totals = { m: live(materials), f: live(formations), p: live(persons), w: live(wanted) }; // памер кожнага спіса для шапкі
+const totals = { m: live(materials), f: live(formations), p: live(persons), t: live(terror), w: live(wanted) }; // памер кожнага спіса для шапкі
+totals.all = totals.m + totals.f + totals.p + totals.t + totals.w - merged;
 const sent = (await readJson(STATE_FILE, {})).sent || {};
 const today = new Date().toISOString().slice(0, 10);
 const since = shiftDays(today, -WINDOW_DAYS);
@@ -44,6 +49,7 @@ const fresh = test
     ...materials.filter((x) => !x.removed).sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 3).map((x) => ({ ...x, list: 'm' })),
     ...formations.filter((x) => !x.removed).slice(-1).map((x) => ({ ...x, list: 'f' })),
     ...persons.filter((x) => !x.removed).slice(-1).map((x) => ({ ...x, list: 'p' })),
+    ...terror.filter((x) => !x.removed).slice(-1).map((x) => ({ ...x, list: 't' })),
     ...wanted.filter((x) => !x.removed && x.date).slice(-1).map((x) => ({ ...x, list: 'w' })),
   ]
   : selectFresh(db, sent, since);

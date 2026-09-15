@@ -8,10 +8,12 @@ import { LINKS } from '../lib/i18n.js';
  * materials — Рэспубліканскі спіс экстрэмісцкіх матэрыялаў (суды): адміністрацыйная адказнасць і падпіскі;
  * formations — пералік экстрэмісцкіх фарміраванняў (МУС/КДБ): крымінальная адказнасць;
  * persons — пералік фізічных асоб (МУС): што гэта за пералік і якія абмежаванні ён цягне;
+ * terror — пералік КДБ «прычастных да тэрарыстычнай дзейнасці»: хто туды трапляе і што гэта значыць (замарожванне
+ * сродкаў, фінансаванне як злачынства);
  * wanted — база вышуку РФ (паводле Медыязоны): што азначае расійскі вышук па запыце Беларусі.
  * У канцы — што рабіць, калі знайшлі сябе, і спасылкі на праваабаронцаў.
  */
-export default function Consequences({ open = false, materials = false, formations = false, persons = false, wanted = false }) {
+export default function Consequences({ open = false, materials = false, formations = false, persons = false, terror = false, wanted = false }) {
   const { t } = useLang();
   return (
     <details className="legal" open={open || undefined}>
@@ -21,6 +23,7 @@ export default function Consequences({ open = false, materials = false, formatio
         {materials && <p className="crime material">{t.materialNote}</p>}
         {formations && <p className="crime">{t.crimeNote}</p>}
         {persons && <p className="crime person">{t.personNote}</p>}
+        {terror && <p className="crime terror">{t.terrorNote}</p>}
         {wanted && <p className="crime wanted">{t.wantedNote}</p>}
         {t.legal.map(([h, p]) => (
           <section key={h}><h3>{h}</h3><p>{p}</p></section>

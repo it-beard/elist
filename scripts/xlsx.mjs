@@ -1,7 +1,8 @@
 /**
- * Мінімальны чытач .xlsx без залежнасцяў: ZIP (node:zlib) + разбор sharedStrings і першага ліста
- * рэгулярнымі выразамі. Дастаткова для табліцы-пераліку МУС; формулы, стылі і даты-фарматы ігнаруюцца
- * (даты Excel прыходзяць лічбамі-серыяламі — гл. excelDate).
+ * Мінімальны чытач .xlsx без залежнасцяў: ZIP (node:zlib) + разбор sharedStrings і лістоў рэгулярнымі
+ * выразамі. Дастаткова для табліц-пералікаў МУС і КДБ; формулы, стылі і даты-фарматы ігнаруюцца
+ * (даты Excel прыходзяць лічбамі-серыяламі — гл. excelDate). readXlsx — першы ліст, readXlsxSheets — усе
+ * лісты з назвамі (у пераліку КДБ фізічныя асобы і арганізацыі на розных лістах), xlsxModified — дата файла.
  */
 import { inflateRawSync } from 'node:zlib';
 
@@ -74,10 +75,13 @@ export function sheetRows(xml, strings) {
   return rows;
 }
 
-/** Серыял даты Excel (дні ад 30.12.1899) → «2021-09-21»; не лічба — null. */
-export function excelDate(v) {
+/**
+ * Серыял даты Excel (дні ад 30.12.1899) → «2021-09-21»; не лічба — null. Па змаўчанні прымаюцца 1954–2119
+ * (даты рашэнняў; меншыя лічбы — нумары, а не даты); для дат нараджэння задайце min меншым (1 = ад 1900 года).
+ */
+export function excelDate(v, min = 20_000) {
   const n = Number(v);
-  if (!Number.isFinite(n) || n < 20_000 || n > 80_000) return null; // 1954–2119: усё астатняе — не дата
+  if (!Number.isFinite(n) || n < min || n > 80_000) return null;
   return new Date(Date.UTC(1899, 11, 30) + Math.floor(n) * 864e5).toISOString().slice(0, 10);
 }
 
@@ -88,4 +92,38 @@ export function readXlsx(buf) {
   if (!sheetName) throw new Error('у архіве няма ліста xl/worksheets/sheet1.xml');
   const strings = sharedStrings(files.get('xl/sharedStrings.xml')?.toString('utf8'));
   return sheetRows(files.get(sheetName).toString('utf8'), strings);
+}
+
+/**
+ * .xlsx (Buffer) → усе лісты ў парадку кнігі: [{ name, rows }]. Назвы і парадак — з xl/workbook.xml, файл ліста —
+ * праз xl/_rels/workbook.xml.rels (r:id → target); калі сувязяў няма — па нумары ліста.
+ */
+export function readXlsxSheets(buf) {
+  const files = unzip(buf);
+  const strings = sharedStrings(files.get('xl/sharedStrings.xml')?.toString('utf8'));
+  const wb = files.get('xl/workbook.xml')?.toString('utf8') || '';
+  const rels = files.get('xl/_rels/workbook.xml.rels')?.toString('utf8') || '';
+  const target = new Map([...rels.matchAll(/<Relationship\b[^>]*>/g)].map((m) => [
+    (m[0].match(/\bId="([^"]+)"/) || [])[1], (m[0].match(/\bTarget="([^"]+)"/) || [])[1],
+  ]));
+  const sheets = [];
+  for (const m of wb.matchAll(/<sheet\b([^>]*)\/?>/g)) {
+    const name = unescapeXml((m[1].match(/\bname="([^"]*)"/) || [])[1] || '');
+    const rid = (m[1].match(/\br:id="([^"]+)"/) || [])[1];
+    const sheetId = (m[1].match(/\bsheetId="(\d+)"/) || [])[1];
+    let file = target.get(rid) || `worksheets/sheet${sheetId}.xml`;
+    file = file.startsWith('/') ? file.slice(1) : `xl/${file.replace(/^xl\//, '')}`;
+    const xml = files.get(file);
+    if (!xml) continue;
+    sheets.push({ name, rows: sheetRows(xml.toString('utf8'), strings) });
+  }
+  if (!sheets.length) throw new Error('у архіве няма лістоў (xl/workbook.xml)');
+  return sheets;
+}
+
+/** Дата апошняга захавання файла з docProps/core.xml (dcterms:modified) → «2026-09-11»; няма — null. */
+export function xlsxModified(buf) {
+  const core = unzip(buf).get('docProps/core.xml')?.toString('utf8') || '';
+  const m = core.match(/<dcterms:modified[^>]*>(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : null;
 }

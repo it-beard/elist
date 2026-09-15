@@ -3,13 +3,14 @@
  * адбор свежых запісаў (selectFresh), фарматаванне (entry, subheader, digestHeader, digestFooter) і разбіццё
  * на паведамленні ≤ 4096 сімвалаў (splitDigest, buildDigest).
  *
- * Чатыры спісы ў адным дайджэсце, у кожнага сваё эмодзі (ICON) і назва (NAME): 📄 матэрыялы (суд),
+ * Пяць крыніц у адным дайджэсце, у кожнай сваё эмодзі (ICON) і назва (NAME): 📄 матэрыялы (суд),
  * 👥 экстрэмісцкія фарміраванні (хто прыняў рашэнне і від запісу), 👤 фізічныя асобы (артыкулы КК і суд;
- * дата нараджэння і адрас у канал не ідуць — яны на старонцы запісу), 🔎 беларусы ў базе вышуку РФ
- * (ведамства-ініцыятар і рэгіён; год нараджэння ў канал не ідзе). Змяшаны дайджэст згрупаваны па спісах,
+ * дата нараджэння і адрас у канал не ідуць — яны на старонцы запісу), 🚫 пералік КДБ «прычастных да тэрарыстычнай
+ * дзейнасці» (стан справы і артыкулы; хто ёсць і ў пераліку МУС — спасылка вядзе на запіс МУС), 🔎 беларусы ў базе
+ * вышуку РФ (ведамства-ініцыятар і рэгіён; год нараджэння ў канал не ідзе). Змяшаны дайджэст згрупаваны па спісах,
  * перад кожнай групай — кароткі падзагаловак з назвай спіса і колькасцю новых запісаў; у шапцы — разбіўка
- * новых па спісах і колькасць запісаў ва ўсіх чатырох спісах разам. Пры першым імпарце added = null —
- * у дайджэст нічога не трапляе.
+ * новых па спісах і колькасць запісаў ва ўсіх спісах разам (totals.all — без падвойнага ліку людзей, якія ёсць
+ * і ў пераліку МУС, і ў пераліку КДБ). Пры першым імпарце added = null — у дайджэст нічога не трапляе.
  *
  * Фарматаванне — HTML-рэжым Bot API (дазволеныя толькі b/i/u/s/code/a/blockquote):
  * https://core.telegram.org/bots/api#html-style. Ліміт — 4096 сімвалаў на паведамленне,
@@ -18,19 +19,22 @@
 import { courtName } from '../src/lib/court.js';
 import { articlesLabel } from '../src/lib/person.js';
 import { personName } from '../src/lib/wanted.js';
+import { terrorStatus } from '../src/lib/terror.js';
 
 export const LIMIT = 3900;      // запас да 4096
 export const NAME_MAX = 220;    // даўжыня назвы ў дайджэсце
-export const RANK = { m: 0, f: 1, p: 2, w: 3 }; // парадак спісаў у дайджэсце
+export const RANK = { m: 0, f: 1, p: 2, t: 3, w: 4 }; // парадак спісаў у дайджэсце
 /** Адно эмодзі на спіс — каб спісы адрозніваліся з першага погляду (у радках запісу іншых эмодзі няма). */
-export const ICON = { m: '📄', f: '👥', p: '👤', w: '🔎' };
+export const ICON = { m: '📄', f: '👥', p: '👤', t: '🚫', w: '🔎' };
 export const NAME = {
   m: 'Спіс экстрэмісцкіх матэрыялаў',
   f: 'Пералік экстрэмісцкіх фарміраванняў (МУС/КДБ)',
   p: 'Пералік фізічных асоб, прычастных да экстрэмісцкай дзейнасці (МУС)',
+  t: 'Пералік асоб, прычастных да тэрарыстычнай дзейнасці (КДБ)',
   w: 'Беларусы ў базе вышуку МУС РФ (паводле Медыязоны)',
 };
-const ADDED = { m: 'матэрыялаў', f: 'фарміраванняў', p: 'асоб', w: 'у вышуку РФ' }; // «матэрыялаў +5» у шапцы
+const ADDED = { m: 'матэрыялаў', f: 'фарміраванняў', p: 'асоб', t: 'у пераліку КДБ', w: 'у вышуку РФ' }; // «матэрыялаў +5» у шапцы
+const STATUS = { charged: 'абвінавачваецца', verdict: 'прысуд', other: '' }; // стан справы ў пераліку КДБ
 
 export const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const MONTHS = ['студзеня', 'лютага', 'сакавіка', 'красавіка', 'мая', 'чэрвеня', 'ліпеня', 'жніўня', 'верасня', 'кастрычніка', 'лістапада', 'снежня'];
@@ -68,30 +72,36 @@ function metaParts(x) {
     const parts = [x.agency && `па запыце ${esc(x.agency)}`, x.region && esc(x.region)].filter(Boolean);
     return parts.length ? parts : ['база вышуку МУС РФ'];
   }
+  if (x.list === 't') return [STATUS[terrorStatus(x.basis)], articlesLabel(x.articles) && esc(articlesLabel(x.articles)), x.mergedInto && 'ёсць у пераліку МУС'];
   if (x.list === 'p') return [articlesLabel(x.articles) && esc(articlesLabel(x.articles)), x.court && court(x.court)];
   if (x.list === 'f') return [DECIDER[x.decidedBy], KIND[x.kind] || KIND.formation];
   return [x.court && court(courtName(x.court))];
 }
 
-/** Блок аднаго запісу: эмодзі спіса, нумар n, назва, радок мэты і спасылка на запіс на сайце site. */
+/**
+ * Блок аднаго запісу: эмодзі спіса, нумар n, назва, радок мэты і спасылка на запіс на сайце site. Для запісу пераліку
+ * КДБ дата — версія пераліку, у якой ён з’явіўся, а спасылка для таго, хто ёсць і ў пераліку МУС, — на запіс МУС.
+ */
 export function entry(x, n, site) {
-  const metaLine = [x.date && dateShort(x.date), ...metaParts(x)].filter(Boolean).join(' · ');
+  const date = x.list === 't' ? x.since : x.date;
+  const metaLine = [date && dateShort(date), ...metaParts(x)].filter(Boolean).join(' · ');
   return (
     `<blockquote>${ICON[x.list]} <b>${n}.</b> ${esc(title(x))}` +
     (metaLine ? `\n<i>${metaLine}</i>` : '') +
-    `\n<a href="${site}#/r/${x.id}">Адкрыць запіс →</a></blockquote>`
+    `\n<a href="${site}#/r/${x.mergedInto || x.id}">Адкрыць запіс →</a></blockquote>`
   );
 }
 
 /** Падзагаловак групы ў змяшаным дайджэсце: з якога спіса далей запісы і колькі іх. */
 export const subheader = (list, n) => `${ICON[list]} <b>${NAME[list]}: +${n}</b>`;
 
-const countBy = (fresh) => { const nBy = { m: 0, f: 0, p: 0, w: 0 }; for (const x of fresh) nBy[x.list]++; return nBy; };
-const sum = (o) => Object.values(o).reduce((s, v) => s + v, 0);
+const countBy = (fresh) => { const nBy = { m: 0, f: 0, p: 0, t: 0, w: 0 }; for (const x of fresh) nBy[x.list]++; return nBy; };
+const sum = (o) => Object.entries(o).reduce((s, [k, v]) => (k === 'all' ? s : s + v), 0);
 
 /**
  * Шапка дайджэсту: змяшаная (некалькі спісаў — разбіўка новых па спісах) ці аднаго спіса (яго назва і памер).
- * totals — колькі запісаў у кожным спісе без выдаленых ({ m, f, p, w }); у шапцы — і сума па ўсіх чатырох.
+ * totals — колькі запісаў у кожным спісе без выдаленых ({ m, f, p, t, w }); у шапцы — і сума па ўсіх (totals.all,
+ * калі зададзена — без падвойнага ліку людзей з абодвух пералікаў; інакш проста сума).
  * Пробная (test) — тая ж шапка з пазнакай зверху, каб было відаць, як будзе выглядаць сапраўдная.
  */
 export function digestHeader(fresh, { test = false, today, totals }) {
@@ -101,7 +111,7 @@ export function digestHeader(fresh, { test = false, today, totals }) {
   // дата дайджэсту — калі запісы трапілі ў базу, а не калі мы дасылаем (важна для дабору за мінулыя дні)
   const day = test ? today : fresh.reduce((d, x) => (x.added > d ? x.added : d), '');
   const newN = `+${n} ${plural(n, 'новы запіс', 'новыя запісы', 'новых запісаў')}`;
-  const inAll = `ва ўсіх чатырох спісах ${num(sum(totals))}`;
+  const inAll = `ва ўсіх спісах ${num(totals.all ?? sum(totals))}`;
   const header = lists.length > 1
     ? `<b>Экстрэмісцкія спісы Беларусі: ${newN}</b>\n<i>${dateBe(day)} · ${lists.map((l) => `${ADDED[l]} +${nBy[l]}`).join(', ')} · ${inAll}</i>`
     : `<b>${NAME[lists[0]]}: ${newN}</b>\n<i>${dateBe(day)} · у спісе ${num(totals[lists[0]])}, ${inAll}</i>`;

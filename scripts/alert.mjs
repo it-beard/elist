@@ -4,9 +4,10 @@
  *   node scripts/alert.mjs failed   — джоб упаў (ALERT_JOB, ALERT_RUN_URL)
  *   node scripts/alert.mjs source   — стан крыніцы ў data/meta.json змяніўся адносна HEAD:
  *                                     крыніца перастала/пачала адказваць, уключылася/выключылася запасная;
- *                                     тое ж для пералікаў МУС (data/formations-meta.json, data/persons-meta.json) і базы
- *                                     вышуку РФ (data/wanted-meta.json), а таксама крок, што не завяршыўся
- *                                     (FORMATIONS_STEP / PERSONS_STEP / WANTED_STEP — steps.<id>.outcome з воркфлоў).
+ *                                     тое ж для пералікаў МУС (data/formations-meta.json, data/persons-meta.json), пераліку
+ *                                     КДБ (data/terror-meta.json) і базы вышуку РФ (data/wanted-meta.json), а таксама крок,
+ *                                     што не завяршыўся (FORMATIONS_STEP / PERSONS_STEP / TERROR_STEP / WANTED_STEP —
+ *                                     steps.<id>.outcome з воркфлоў).
  *                                     Логіка — scripts/alert-logic.mjs.
  */
 import path from 'node:path';
@@ -41,8 +42,9 @@ if (mode === 'failed') {
     cur: await readJson(path.join(DATA_DIR, 'meta.json'), {}), prev: headJson('meta.json'),
     curF: await readJson(path.join(DATA_DIR, 'formations-meta.json'), {}), prevF: headJson('formations-meta.json'),
     curP: await readJson(path.join(DATA_DIR, 'persons-meta.json'), {}), prevP: headJson('persons-meta.json'),
+    curT: await readJson(path.join(DATA_DIR, 'terror-meta.json'), {}), prevT: headJson('terror-meta.json'),
     curW: await readJson(path.join(DATA_DIR, 'wanted-meta.json'), {}), prevW: headJson('wanted-meta.json'),
-    steps: { formations: process.env.FORMATIONS_STEP, persons: process.env.PERSONS_STEP, wanted: process.env.WANTED_STEP },
+    steps: { formations: process.env.FORMATIONS_STEP, persons: process.env.PERSONS_STEP, terror: process.env.TERROR_STEP, wanted: process.env.WANTED_STEP },
   });
   if (!msgs.length) { console.log('Стан крыніцы не змяніўся.'); process.exit(0); }
   await send(`<b>elist: стан крыніцы</b>\n${msgs.join('\n')}`);

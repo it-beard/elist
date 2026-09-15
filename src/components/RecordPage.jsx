@@ -16,7 +16,11 @@ import Consequences from './Consequences.jsx';
  * «Сачыць» — поўнае тлумачэнне ў title), загаловак, картка, палі крыніцы. Нумар у спісе (пазіцыя ў публікацыі, для фізічнай асобы — афіцыйны нумар МУС ці
  * пазнака, што яшчэ не прысвоены) — сярод палёў, а апошняе поле — спасылка на .doc-частку пераліку, у якой чалавек
  * ёсць цяпер (знік з крыніцы — спасылкі няма). Даведка з пераліку («судзімасць не пагашана») не паказваецца: МУС
- * не абнаўляе яе ва ўжо апублікаваных частках. Для запісу вышуку РФ у канцы карткі палёў, за пункцірнай лініяй
+ * не абнаўляе яе ва ўжо апублікаваных частках. Калі той жа чалавек ёсць і ў пераліку КДБ «прычастных да тэрарыстычнай
+ * дзейнасці», за палямі МУС ідуць палі пераліку КДБ (нумар, стан справы, падстава, версія пераліку). Запіс пераліку
+ * КДБ, якога няма ў пераліку МУС, — свае палі: стан справы, адрас, нумар КДБ, версія пераліку, у якой ён з’явіўся
+ * (дат уключэння пералік не публікуе), і спасылка на афіцыйную старонку; запіс КДБ, улінуты ў запіс МУС (mergedInto),
+ * адкрываецца з заўвагай і спасылкай на запіс МУС. Для запісу вышуку РФ у канцы карткі палёў, за пункцірнай лініяй
  * (як адрыўны корак білета), — заўвага пра крыніцу са спасылкай на гэты запіс у віджэце Медыязоны (знешняя, з папярэджаннем).
  */
 export default function RecordPage({ id, items, chunkSize, watch, meta }) {
@@ -29,6 +33,7 @@ export default function RecordPage({ id, items, chunkSize, watch, meta }) {
   // «знізу»; да малявання — уверх (useLayoutEffect, каб не міргала)
   useLayoutEffect(() => { scrollTo(0, 0); }, [id]);
   const isF = item?.list === 'f', isP = item?.list === 'p', isW = item?.list === 'w';
+  const isT = isP && (item?.art === 'terror' || rec?.src === 'kgb'); // запіс пераліку КДБ, якога няма ў пераліку МУС
   // назіраць за назвай запісу — бяром спасылку, калі яна ёсць, інакш першыя словы назвы (для асобы — імя)
   const watchSrc = rec ? `${rec.links || ''}\n${rec.name || ''}` : '';
   const watchQuery = rec?.name ? (watchSrc.match(/(?:https?:\/\/|t\.me\/|@)[^\s,;"]+/) || [(isW ? personName(rec.name) : rec.name).replace(/\s+/g, ' ').slice(0, 60)])[0] : null;
@@ -38,10 +43,12 @@ export default function RecordPage({ id, items, chunkSize, watch, meta }) {
   const num = item?.n ? `№${item.n}` : '';
   // .doc-частка пераліку МУС, у якой цяпер ёсць гэты чалавек (rec.part — з апошняга разбору, адрасы — з меты).
   // Для запісу, які знік з крыніцы, спасылкі няма: у файле яго ўжо не будзе.
-  const partUrl = isP && !item?.removed && rec?.part ? (meta?.persons?.files || [])[rec.part - 1] : null;
+  const partUrl = isP && !isT && !item?.removed && rec?.part ? (meta?.persons?.files || [])[rec.part - 1] : null;
   const partLink = partUrl && (
     <ExtLink href={partUrl} title={t.recSourcePTitle}>{t.partFile(rec.part, (partUrl.match(/\.(docx?)(?:[?#]|$)/i) || [, 'doc'])[1].toLowerCase())} ↗</ExtLink>
   );
+  const status = (s) => t.statusT[s] || '';
+  const kgbLink = <ExtLink href={LINKS.kgb} title={t.recSourceTTitle}>{t.recSourceTName} ↗</ExtLink>;
   const details = rec && !rec.error && !rec.stale ? (
     isW ? [
       [t.recYear, rec.year ? String(rec.year) : ''],
@@ -53,6 +60,17 @@ export default function RecordPage({ id, items, chunkSize, watch, meta }) {
       [t.recAliases, rec.aliases?.length ? rec.aliases.map(personName).join(', ') : ''],
       [t.recCategoryW, [rec.category, rec.rf && t.rfLabel[rec.rf]].filter(Boolean).join(' · ')],
       [t.recStatusW, item.removed ? t.wantedOutFull : t.wantedLive],
+    ] : isT ? [
+      [t.recBirth, rec.birth],
+      [t.recCitizenship, rec.citizenship],
+      [t.recArticles, articlesLabel(rec.articles)],
+      [t.recStatusT, status(rec.status)],
+      [t.recAddressP, rec.address],
+      [t.recAliases, rec.aka],
+      [t.recInfo, rec.info],
+      [t.recNumT, num],
+      [t.recSinceT, rec.since ? fmtDate(rec.since) : t.recSinceUnknown],
+      [t.recSourceT, kgbLink],
     ] : isP ? [
       [t.recBirth, rec.birth],
       [t.recCitizenship, rec.citizenship],
@@ -61,6 +79,13 @@ export default function RecordPage({ id, items, chunkSize, watch, meta }) {
       [t.recAddressP, rec.address],
       [t.recNum, num || t.recNumPending],
       [t.recSourceP, partLink],
+      // той жа чалавек у пераліку КДБ «прычастных да тэрарыстычнай дзейнасці» — палі адтуль (foldTerror пры зборцы)
+      ...(rec.kgb ? [
+        [t.recKgb, [`№${rec.kgb.num}`, status(rec.kgb.status), articlesLabel(rec.kgb.articles)].filter(Boolean).join(' · ')],
+        [t.recKgbBasis, rec.kgb.basis],
+        [t.recSinceT, rec.kgb.since ? fmtDate(rec.kgb.since) : t.recSinceUnknown],
+        [t.recSourceT, kgbLink],
+      ] : []),
     ] : isF ? [
       [t.recIncluded, rec.included ? fmtDate(rec.included) : ''],
       [t.recAddress, rec.address],
@@ -90,13 +115,16 @@ export default function RecordPage({ id, items, chunkSize, watch, meta }) {
           </div>
         )}
       </div>
-      <h2 className="page-title">{isW ? t.recTitleW : isP ? t.recTitleP : isF ? t.recTitleF : t.recTitle}</h2>
+      <h2 className="page-title">{isW ? t.recTitleW : isT ? t.recTitleT : isP ? t.recTitleP : isF ? t.recTitleF : t.recTitle}</h2>
       {!item ? (
         <p className="summary error">{t.recNotFound}</p>
       ) : (
         <>
           {item.replacedBy && (
             <p className="notice warn">{t.recReplaced} <a href={href(`r/${item.replacedBy}`)}>{t.recOpenNew}</a></p>
+          )}
+          {isT && rec?.mergedInto && (
+            <p className="notice warn">{t.recMerged} <a href={href(`r/${rec.mergedInto}`)}>{t.recOpenPersons}</a></p>
           )}
           <ol className="results"><ResultItem item={item} tokens={[]} chunkSize={chunkSize} linked={false} /></ol>
           {details.length > 0 && (
@@ -111,7 +139,7 @@ export default function RecordPage({ id, items, chunkSize, watch, meta }) {
               )}
             </div>
           )}
-          <Consequences open materials={!isF && !isP && !isW} formations={isF} persons={isP} wanted={isW} />
+          <Consequences open materials={!isF && !isP && !isW} formations={isF} persons={isP && !isT} terror={isT || Boolean(rec?.kgb)} wanted={isW} />
         </>
       )}
     </>

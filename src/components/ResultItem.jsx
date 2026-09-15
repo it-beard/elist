@@ -16,6 +16,11 @@ import { LinkIcon } from './icons.jsx';
  * адпаведна артыкулаў («экстрэміст», «выказванні», «гр.дз.»), імя, транслітарацыя, дата нараджэння
  * з грамадзянствам, падстава (прысуд). Даведка з пераліку («судзімасць не пагашана», «адбывае пакаранне»)
  * не паказваецца нідзе: МУС не абнаўляе яе ва ўжо апублікаваных частках, і яна часта састарэлая.
+ * Асоба з пераліку КДБ «прычастных да тэрарыстычнай дзейнасці», якой няма ў пераліку МУС, — той жа спіс асоб, але
+ * малінавая палоска і плашка «Тэрарыст · КДБ», падстава з пераліку КДБ; чалавек, які ёсць у абодвух пераліках, —
+ * адна картка пераліку МУС з дадатковай плашкай «тэрарыст · КДБ» (пазнака вядомая з індэкса, item.kgb, да загрузкі
+ * фрагмента). Запіс КДБ, улінуты ў запіс МУС (mergedInto), у выдачы не паказваецца, а ў «Новым» ідзе са спасылкай
+ * на запіс МУС.
  * Вышук РФ (паводле Медыязоны) — янтарная палоска і плашка
  * «Вышук РФ · МУС» (ведамства-ініцыятар), імя ў звычайным рэгістры, іншыя напісанні, год нараджэння з нацыянальнасцю,
  * рэгіёнам і ведамствам; дата — абвяшчэння ў вышук, прыблізная — «да …»; выключаны з базы — без даты, калі яе няма.
@@ -31,17 +36,20 @@ export default function ResultItem({ item, tokens, chunkSize, linked = true }) {
   const rec = useRecord(item.i, chunkSize, item.id);
   const [copied, copy] = useCopy();
   const isF = item.list === 'f', isP = item.list === 'p', isW = item.list === 'w';
+  // запіс пераліку КДБ, якога няма ў пераліку МУС (серыя terror у індэксе; у фрагменце — src: 'kgb')
+  const isT = isP && (item.art === 'terror' || rec?.src === 'kgb');
   // лэйбл: артыкул з рашэння суда; калі яго ў тэксце няма — тып матэрыялу
   const art = !isF && !isP && !isW && rec?.court ? extractArticle(rec.court) : null;
-  const pArt = isP ? (item.art || (rec?.articles ? personSeries(rec.articles) : 'other')) : null;
+  const pArt = isP ? (isT ? 'terror' : item.art || (rec?.articles ? personSeries(rec.articles) : 'other')) : null;
   const wArt = isW ? (item.art || (rec ? wantedSeries(rec.agency) : 'wother')) : null;
   const facts = isP && rec ? [rec.birth && `${t.born} ${rec.birth}`, rec.citizenship].filter(Boolean).join(' · ')
     : isW && rec ? [rec.year && t.bornYear(rec.year), rec.nationality && personName(rec.nationality), rec.region, rec.agency && `${t.requestedBy} ${rec.agency}`].filter(Boolean).join(' · ') : '';
-  const permalink = isW ? t.permalinkW : isP ? t.permalinkP : isF ? t.permalinkF : t.permalink;
+  const permalink = isW ? t.permalinkW : isT ? t.permalinkT : isP ? t.permalinkP : isF ? t.permalinkF : t.permalink;
   const to = href(`r/${item.id}`);
-  // дата: для матэрыялу — рашэння суда, для асобы — уключэння ў пералік, для вышуку — абвяшчэння (прыблізная — «да …»)
+  // дата: для матэрыялу — рашэння суда, для асобы — уключэння ў пералік, для запісу пераліку КДБ — версіі пераліку,
+  // у якой ён з’явіўся, для вышуку — абвяшчэння (прыблізная — «да …»)
   const dateText = item.date ? fmtDate(item.date) : isW && rec?.before ? `${t.before} ${fmtDate(rec.before)}` : '';
-  const dateTitle = isW ? t.wantedDateTitle : isP ? t.includedTitle : undefined;
+  const dateTitle = isW ? t.wantedDateTitle : isT ? t.sinceTitle : isP ? t.includedTitle : undefined;
   // буфер абмену недаступны (не-https, адмова) — «падзяліцца», а без яго — адкрыць запіс: спасылка будзе ў адрасным радку
   const copyLink = async () => {
     const url = recordUrl(item.id);
@@ -52,18 +60,25 @@ export default function ResultItem({ item, tokens, chunkSize, linked = true }) {
   // выключаны з базы вышуку без даты (крыніца яе не дае) — толькі словы, без «??.??.????»
   const gone = item.removed ? `${isW ? t.wantedOut : t.removed}${isIsoDate(item.removed) ? ` ${fmtDate(item.removed)}` : ''}` : '';
   const also = rec?.also?.length ? rec.also : [];
-  const alsoLinks = also.length > 0 && (
+  const mergedInto = isT ? rec?.mergedInto || '' : '';
+  const alsoLinks = (also.length > 0 || mergedInto) && (
     <p className="also">
+      {mergedInto && <a className="mvd" href={href(`r/${mergedInto}`)}>↔ {t.alsoInPersons}</a>}
       {also.map((id, i) => <a key={id} href={href(`r/${id}`)}>↔ {isW ? t.alsoInPersons : t.alsoInWanted}{also.length > 1 ? ` (${i + 1})` : ''}</a>)}
     </p>
   );
+  // запіс пераліку МУС пра чалавека, які ёсць і ў пераліку КДБ, — дадатковая плашка (з індэкса, да загрузкі фрагмента)
+  const kgbTag = isP && !isT && (item.kgb || rec?.kgb) ? <span className="type terror" title={t.terrorTagTitle}>{t.terrorTag}</span> : null;
   return (
-    <li className={`item${isW ? ' wanted' : isF ? ' formation' : isP ? ' person' : ' material'}${item.removed ? ' removed' : ''}`}>
+    <li className={`item${isW ? ' wanted' : isF ? ' formation' : isP ? ' person' : ' material'}${isT ? ' terror' : ''}${item.removed ? ' removed' : ''}`}>
       <div className="meta">
         {isW ? (
           <span className="type wanted" title={t.wantedTitle(wArt)}>{t.wantedLabel(wArt)}</span>
         ) : isP ? (
-          <span className="type person" title={t.personTitle(pArt)}>{t.personLabel(pArt)}</span>
+          <>
+            <span className={`type ${isT ? 'terror' : 'person'}`} title={t.personTitle(pArt)}>{t.personLabel(pArt)}</span>
+            {kgbTag}
+          </>
         ) : isF ? (
           <span className="type form" title={rec?.basis ? rec.basis.replace(/\s+/g, ' ') : t.formationTitle}>{t.formationLabel(rec?.kind, rec?.decidedBy)}</span>
         ) : art ? (
@@ -74,7 +89,7 @@ export default function ResultItem({ item, tokens, chunkSize, linked = true }) {
         {dateText ? (
           linked ? <a className="num date" href={to} title={dateTitle || t.openRec}>{dateText}</a> : <span className="num" title={dateTitle}>{dateText}</span>
         ) : linked ? (
-          // без даты ў індэксе (адзінкавыя матэрыялы) — старонка запісу ўсё роўна мусіць быць даступная з карткі
+          // без даты ў індэксе (адзінкавыя матэрыялы, запісы пераліку КДБ з першага імпарту) — старонка запісу ўсё роўна мусіць быць даступная з карткі
           <a className="date" href={to}>{t.openRec}</a>
         ) : null}
         {isRecent(item.added) && <span className="badge-new" title={t.addedTitle}>{t.isNew} · {fmtDate(item.added)}</span>}
@@ -99,7 +114,7 @@ export default function ResultItem({ item, tokens, chunkSize, linked = true }) {
         ) : isP ? (
           <>
             <p className="name"><Highlight text={rec.name} tokens={tokens} /></p>
-            {rec.translit && <p className="alias"><Highlight text={rec.translit} tokens={tokens} /></p>}
+            {(rec.translit || rec.aka) && <p className="alias"><Highlight text={[rec.translit, rec.aka].filter(Boolean).join(' · ')} tokens={tokens} /></p>}
             {facts && <p className="facts"><Highlight text={facts} tokens={tokens} /></p>}
             {rec.basis && <p className="court"><Highlight text={rec.basis} tokens={tokens} /></p>}
             {alsoLinks}
