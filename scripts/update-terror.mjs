@@ -9,8 +9,10 @@
  *   2) Telegram праз карыстальніцкі акаўнт (MTProto, пакет `telegram` — gramjs, ставіцца асобна): TELEGRAM_API_ID,
  *      TELEGRAM_API_HASH, TELEGRAM_SESSION (StringSession, гл. scripts/telegram-session.mjs); бярэцца апошні пост канала
  *      з файлам .xlsx і назвай пераліку, дата версіі — з тэксту паста «… от 11.09.2026»;
- *   3) прамы адрас файла TERROR_SOURCE (люстэрка, калі з’явіцца).
+ *   3) прамы адрас файла TERROR_SOURCE (люстэрка, калі з’явіцца, ці аднаразова — укладанне ў GitHub issue, перададзенае
+ *      параметрам ручнога запуску воркфлоў); дата версіі для гэтага шляху — TERROR_DATE (неабавязкова).
  * Нічога не наладжана — ціхі выхад без змены меты: база і дата апошняй праверкі застаюцца ад лакальнага запуску.
+ * Яшчэ адзін шлях без гэтага скрыпта наўпрост — тэчка inbox/terror/ у рэпазіторыі (джоб inbox у воркфлоў CI).
  *
  * Разбор — scripts/parse-terror.mjs (толькі фізічныя асобы з нацыянальнай падставай, без санкцыйных пералікаў ААН),
  * зліццё — mergeTerror у data/terror.json. Усё ці нічога: недаступная крыніца, змена фармату ці засцярога пакідаюць
@@ -29,6 +31,7 @@ const META_FILE = path.join(DATA_DIR, 'terror-meta.json');
 const SOURCE_PAGE = 'https://www.kgb.by/ru/perechen-inf-ru/';
 const CHANNEL = process.env.TERROR_CHANNEL || 'KGB_BY_channel';
 const SOURCE_URL = process.env.TERROR_SOURCE || '';
+const ENV_DATE = process.env.TERROR_DATE || '';
 const TG = { apiId: process.env.TELEGRAM_API_ID, apiHash: process.env.TELEGRAM_API_HASH, session: process.env.TELEGRAM_SESSION };
 const FILE_TIMEOUT = 120_000, TG_LIMIT = 30;
 const MIN_TOTAL = 300;   // нацыянальных запісаў у пераліку — сотні; менш — узяты не той ліст ці змяніўся фармат
@@ -100,6 +103,7 @@ async function main() {
   } else if (TG.apiId && TG.apiHash && TG.session) {
     try { ({ buf, sourceUrl, listDate } = await fetchFromTelegram()); } catch (e) { await unavailable(e); return; }
   } else if (SOURCE_URL) {
+    if (ENV_DATE) { listDate = parseListDate(ENV_DATE); if (!listDate) throw new Error(`Незразумелая дата версіі пераліку TERROR_DATE: ${ENV_DATE} (чакаецца «11.09.2026»)`); }
     try { ({ buf } = await downloadBuffer(SOURCE_URL, { timeout: FILE_TIMEOUT })); sourceUrl = SOURCE_URL; } catch (e) { await unavailable(e); return; }
   } else {
     console.log('Крыніца пераліку КДБ не наладжана (лакальны файл, TELEGRAM_API_ID/HASH/SESSION ці TERROR_SOURCE) — прапускаю.');

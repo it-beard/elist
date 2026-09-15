@@ -14,6 +14,16 @@ on:
         description: 'Прыняць абнаўленне, нават калі новых запісаў падазрона шмат (UPDATE_FORCE=1)'
         type: boolean
         default: false
+      # Пералік КДБ уручную: адрас файла «Перечень.xlsx» (напрыклад, укладанне ў GitHub issue — перацягніце файл у каментар
+      # і скапіюйце спасылку) і дата версіі з паста ў канале. Іншы шлях без запуску ўручную — тэчка inbox/terror/ (джоб inbox).
+      terror_url:
+        description: 'Пералік КДБ: адрас файла Перечень.xlsx (напрыклад, укладанне ў issue) — разабраць і дадаць у базу'
+        type: string
+        default: ''
+      terror_date:
+        description: 'Пералік КДБ: дата версіі з паста ў канале, напрыклад 11.09.2026 (без яе — дата захавання файла)'
+        type: string
+        default: ''
   push:
     branches: [main]
 
@@ -86,7 +96,8 @@ jobs:
           TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
           TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
           TELEGRAM_SESSION: ${{ secrets.TELEGRAM_SESSION }}
-          TERROR_SOURCE: ${{ vars.TERROR_SOURCE }}
+          TERROR_SOURCE: ${{ inputs.terror_url || vars.TERROR_SOURCE }}
+          TERROR_DATE: ${{ inputs.terror_date }}
       # Чацвёрты спіс — беларусы ў базе вышуку МУС РФ паводле штодзённай выбаркі Медыязоны (адзін JSON, ~1 МБ). Правяраем пры
       # кожным запуску; збой не спыняе дэплой: sourceError у wanted-meta.json, сайт папярэдзіць, alert.mjs source скажа адміну.
       - name: Абнавіць базу вышуку РФ (Медыязона)
@@ -162,10 +173,91 @@ jobs:
           ALERT_JOB: update
           ALERT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
+  # Пералік КДБ з тэчкі inbox/terror/: уладальнік кладзе туды «Перечень.xlsx» (git push ці «Upload files» на GitHub; у назве
+  # файла можа быць дата версіі з паста ў канале — 2026-09-11.xlsx ці Перечень-11.09.2026.xlsx, інакш бярэцца дата захавання
+  # файла), і на push у main гэты джоб разбірае файлы па чарзе (па назве), даўносіць у data/terror.json, выдаляе іх з тэчкі,
+  # дасылае дайджэст і камітуе — далей deploy публікуе сайт з новай базай. Без файлаў у тэчцы джоб нічога не робіць.
+  # Збой разбору (фармат, засцярога) — файл застаецца ў тэчцы, адмін атрымае алерт.
+  inbox:
+    name: Разабраць файл пераліку КДБ з inbox/
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    timeout-minutes: 15
+    permissions:
+      contents: write   # каміт data/ і выдаленне разабраных файлаў
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { ref: main, persist-credentials: false }
+      - name: Ці ёсць файлы ў inbox/terror
+        id: files
+        run: |
+          list=$(ls inbox/terror/*.xlsx 2>/dev/null | tr '\n' ' ' || true)
+          echo "list=${list}" >> "$GITHUB_OUTPUT"
+          if [ -n "$list" ]; then echo "Файлы: $list"; else echo "У inbox/terror файлаў няма — нічога не робім."; fi
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: steps.files.outputs.list != ''
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --omit=dev --ignore-scripts
+        if: steps.files.outputs.list != ''
+      - name: Разабраць і дадаць у базу
+        if: steps.files.outputs.list != ''
+        env:
+          UPDATE_FORCE: '0'
+        run: |
+          for f in inbox/terror/*.xlsx; do
+            # дата версіі пераліку — з назвы файла (11.09.2026 ці 2026-09-11), калі яна там ёсць
+            date=$(basename "$f" .xlsx | grep -oE '[0-9]{2}\.[0-9]{2}\.[0-9]{4}|[0-9]{4}-[0-9]{2}-[0-9]{2}' | head -1 || true)
+            echo "== $f (дата версіі: ${date:-з файла})"
+            node scripts/update-terror.mjs "$f" $date
+            git rm -q "$f"
+          done
+      - name: Дайджэст у Telegram (калі наладжаны сакрэты)
+        if: steps.files.outputs.list != ''
+        run: node scripts/notify.mjs
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+          SITE_URL: https://elist.itbeard.com/
+      - name: Закамітаваць базу і прыбраць разабраныя файлы
+        if: steps.files.outputs.list != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git add data inbox
+          git diff --cached --quiet && { echo "Зменаў няма"; exit 0; }
+          git commit -q -m "data: пералік КДБ з inbox $(date -u +%F)"
+          for i in 1 2 3; do
+            git fetch -q origin main
+            if git rebase -q origin/main; then
+              git push -q origin HEAD:main && exit 0
+              echo "Push адхілены (спроба $i), паўтараю…"
+            else
+              git rebase --abort 2>/dev/null || true
+              echo "::error::Канфлікт з origin/main (спроба $i) — паўтарыце push файла ў inbox/terror пасля таго, як main супакоіцца"
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "::error::Не ўдалося запушыць пасля 3 спробаў"
+          exit 1
+      - name: Папярэдзіць адміна пра збой
+        if: failure()
+        run: node scripts/alert.mjs failed
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+          ALERT_JOB: inbox
+          ALERT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
   deploy:
     name: Сабраць і апублікаваць
-    needs: update
-    if: always() && (needs.update.result == 'success' || needs.update.result == 'skipped')
+    needs: [update, inbox]
+    # на push абнаўленне прапускаецца, а inbox ідзе (нават пусты); на cron/ручным запуску — наадварот
+    if: always() && (needs.update.result == 'success' || needs.update.result == 'skipped') && (needs.inbox.result == 'success' || needs.inbox.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
