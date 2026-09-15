@@ -146,7 +146,7 @@ export default function App() {
       </main>
       <footer className="wrap foot">
         <p>
-          {t.footSrc1}<a href={LINKS.mininform} target="_blank" rel="noopener noreferrer">{t.footSrcM}</a>{t.footSrc2}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcF}</a>{t.footSrc3}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcP}</a>{t.footSrc4}<a href={LINKS.kgb} target="_blank" rel="noopener noreferrer">{t.footSrcT}</a>{t.footSrc4b}<a href={LINKS.mediazona} target="_blank" rel="noopener noreferrer">{t.footSrcW}</a>{t.footSrc5}
+          {t.footSrc1}<a href={LINKS.mininform} target="_blank" rel="noopener noreferrer">{t.footSrcM}</a>{t.footSrc2}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcF}</a>{t.footSrc3}<a href={LINKS.mvd} target="_blank" rel="noopener noreferrer">{t.footSrcP}</a>{t.footSrc4}<a href={LINKS.kgb} target="_blank" rel="noopener noreferrer">{t.footSrcT}</a>{t.footSrc4b}<a href={LINKS.kgbChannel} target="_blank" rel="noopener noreferrer">{t.footSrcTg}</a>{t.footSrc4c}<a href={LINKS.mediazona} target="_blank" rel="noopener noreferrer">{t.footSrcW}</a>{t.footSrc5}
         </p>
         <p className="travel-warn">⚠️ {t.footSrcWarn}</p>
         <p>{t.footPrivacy} <button type="button" className="linklike" onClick={clearAll}>{t.clearAll}</button>.</p>
