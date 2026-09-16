@@ -7,6 +7,7 @@ export const DEFAULT_LANG = 'be';
 export const LINKS = {
   telegram: 'https://t.me/elist_by',
   author: 'https://itbeard.com',
+  support: 'https://itbeard.com/support',
   // «Перечень организаций, формирований, ИП и физических лиц, причастных к экстремистской деятельности»:
   // МУС публікуе яго файламі ў гэтай навіне, асобнай старонкі ў спісу няма
   mvd: 'https://www.mvd.gov.by/ru/news/8642',
@@ -293,6 +294,7 @@ export const STRINGS = {
     privacy: 'Сайт не збірае ніякіх даных: ні запытаў, ні cookies, ні статыстыкі. Пошук цалкам працуе ў вашым браўзеры, а запыт не трапляе ў адрасны радок і гісторыю браўзера; спіс назірання і яго налады (апавяшчэнні, стан панэлі), тэма, мова і сартаванне захоўваюцца толькі ў localStorage гэтай прылады, а згода на пераход па спасылках — у sessionStorage да закрыцця ўкладкі. Сайт працуе і без інтэрнэту — пасля першага адкрыцця копія базы застаецца ў браўзеры.',
     code: 'Код сайта на GitHub',
     faq: 'Пытанні і адказы',
+    support: 'Падзякаваць',
   },
   en: {
     title: 'Search the extremist lists of Belarus',
@@ -548,6 +550,7 @@ export const STRINGS = {
     privacy: 'This site collects no data: no queries, no cookies, no analytics. Search runs entirely in your browser and the query never enters the address bar or browser history; the watchlist and its settings (notifications, panel state), theme, language and sort order are kept only in this device’s localStorage, and the once-per-session consent to open links in sessionStorage until the tab is closed. The site also works offline — after the first visit a copy of the database stays in the browser.',
     code: 'Source code on GitHub',
     faq: 'FAQ',
+    support: 'Say thanks',
   },
 };
 

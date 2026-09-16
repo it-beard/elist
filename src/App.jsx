@@ -156,6 +156,7 @@ export default function App() {
           {' · '}<a href="https://github.com/it-beard/elist" target="_blank" rel="noopener">{t.code}</a>
           {' · '}<a href={LINKS.telegram} target="_blank" rel="noopener">Telegram</a>
           {' · '}<a href={`${import.meta.env.BASE_URL}feed.xml`}>RSS</a>
+          {' · '}<a href={LINKS.support} target="_blank" rel="noopener">{t.support}</a>
         </p>
       </footer>
     </>
