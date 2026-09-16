@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
+import fs from 'node:fs';
 import zlib from 'node:zlib';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { readXlsxSheets, xlsxModified, excelDate } from '../scripts/xlsx.mjs';
 import { birthText, isTerrorEdit, mergeTerror, parseTerror, splitTranslit, terrorId } from '../scripts/parse-terror.mjs';
-import { parseListDate, pickPost } from '../scripts/update-terror.mjs';
+import { botInboxFiles, isFreshPost, parseChannelPreview, parseListDate, pickPost, postDate } from '../scripts/update-terror.mjs';
 import { CHUNK, chunkRecord, dict, feed, foldTerror, indexRow, linkLists, publicMeta } from '../scripts/index-rows.mjs';
 import { ICON, NAME, RANK, buildDigest, digestHeader, entry, selectFresh, subheader } from '../scripts/digest.mjs';
 import { sourceMessages } from '../scripts/alert-logic.mjs';
@@ -227,6 +228,52 @@ describe('update-terror.mjs — дата версіі і выбар паста',
     expect(pickPost(posts).id).toBe(78);
     expect(pickPost([])).toBe(null);
     expect(pickPost(undefined)).toBe(null);
+  });
+  it('parseChannelPreview: пасты з публічнага прэв’ю канала (id, тэкст, файл, памер, дата), найноўшыя спачатку; чужы HTML — пуста', () => {
+    const html = fs.readFileSync(new URL('./fixtures/kgb-channel.html', import.meta.url), 'utf8');
+    const posts = parseChannelPreview(html);
+    expect(posts.map((p) => p.id)).toEqual([78, 77, 59]);
+    expect(posts[0]).toEqual({ id: 78, text: 'Перечень организаций и физических лиц, причастных к террористической деятельности от 11.09.2026', fileName: 'Перечень.xlsx', size: '427.9 KB', date: '2026-09-15T14:34:04+00:00' });
+    expect(posts[1].text).toContain('от 03.09.2026');
+    expect(pickPost(posts).id).toBe(78);
+    expect(postDate(posts[0])).toBe('2026-09-11');
+    expect(postDate({ id: 1, text: 'без даты', date: '2026-09-15T14:34:04+00:00' })).toBe('2026-09-15');
+    expect(postDate(null)).toBe(null);
+    expect(parseChannelPreview('<html>нічога</html>')).toEqual([]);
+    expect(parseChannelPreview('')).toEqual([]);
+    // пост без файла і з экранаваннем у тэксце
+    const one = parseChannelPreview('<div class="tgme_widget_message_wrap"><div data-post="X/5"><div class="tgme_widget_message_text js-message_text" dir="auto">Навіна &amp; <b>тэкст</b><br/>другі радок</div><time datetime="2026-09-16T10:00:00+00:00"></time></div></div>');
+    expect(one).toEqual([{ id: 5, text: 'Навіна & тэкст другі радок', fileName: '', size: '', date: '2026-09-16T10:00:00+00:00' }]);
+    expect(pickPost(one)).toBe(null);
+  });
+  it('isFreshPost: паведамляць толькі пра версію навейшую за базу і толькі раз', () => {
+    const post = { id: 78, text: 'Перечень … от 11.09.2026', fileName: 'Перечень.xlsx', date: '2026-09-15T14:34:04+00:00' };
+    expect(isFreshPost(post, { sourceDate: '2026-09-03' })).toBe(true);
+    expect(isFreshPost(post, {})).toBe(true);
+    expect(isFreshPost(post, { sourceDate: '2026-09-11' })).toBe(false);
+    expect(isFreshPost(post, { sourceDate: '2026-09-25' })).toBe(false);
+    expect(isFreshPost(post, { sourceDate: '2026-09-03', announcedPost: 78 })).toBe(false);
+    expect(isFreshPost(post, { sourceDate: '2026-09-03', announcedPost: 77 })).toBe(true);
+    expect(isFreshPost(null, {})).toBe(false);
+  });
+  it('botInboxFiles: толькі .xlsx з адмін-чата, дата з подпісу, спасылка на зыходны пост', () => {
+    const doc = (over = {}) => ({ file_id: 'f1', file_name: 'Перечень.xlsx', file_size: 438_146, ...over });
+    const updates = [
+      { update_id: 1, message: { chat: { id: 111 }, document: doc(), caption: 'Перечень организаций и физических лиц, причастных к террористической деятельности от 25.09.2026', forward_origin: { type: 'channel', chat: { username: 'KGB_BY_channel' }, message_id: 80 } } },
+      { update_id: 2, message: { chat: { id: 222 }, document: doc({ file_id: 'чужы' }), caption: 'от 25.09.2026' } },   // чужы чат
+      { update_id: 3, message: { chat: { id: 111 }, document: doc({ file_id: 'pdf', file_name: 'Перечень.pdf' }) } },   // не xlsx
+      { update_id: 4, message: { chat: { id: 111 }, document: doc({ file_id: 'big', file_size: 50e6 }) } },            // зашмат
+      { update_id: 5, message: { chat: { id: 111 }, text: 'проста тэкст' } },
+      { update_id: 6, message: { chat: { id: 111 }, document: doc({ file_id: 'f2', file_name: '2026-10-02.xlsx' }) } }, // без подпісу
+      { update_id: 7, edited_message: { chat: { id: 111 }, document: doc({ file_id: 'edited' }) } },
+    ];
+    expect(botInboxFiles(updates, '111')).toEqual([
+      { fileId: 'f1', fileName: 'Перечень.xlsx', listDate: '2026-09-25', sourceUrl: 'https://t.me/KGB_BY_channel/80' },
+      { fileId: 'f2', fileName: '2026-10-02.xlsx', listDate: null, sourceUrl: 'telegram-bot:2026-10-02.xlsx' },
+    ]);
+    expect(botInboxFiles(updates, 222)).toHaveLength(1);
+    expect(botInboxFiles([], '111')).toEqual([]);
+    expect(botInboxFiles(undefined, '111')).toEqual([]);
   });
 });
 

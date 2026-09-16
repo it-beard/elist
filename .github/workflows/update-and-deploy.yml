@@ -83,8 +83,10 @@ jobs:
           UPDATE_FORCE: ${{ inputs.force }}
       # Пералік КДБ «прычастных да тэрарыстычнай дзейнасці» (фізічныя асобы; на сайце — у спісе асоб). Сайт КДБ з-за мяжы не
       # адказвае, файл «Перечень.xlsx» КДБ публікуе ў сваім Telegram-канале: скрыпт бярэ яго праз карыстальніцкі акаўнт Telegram
-      # (сакрэты TELEGRAM_API_ID / TELEGRAM_API_HASH / TELEGRAM_SESSION і пакет `telegram` у залежнасцях) ці па прамым адрасе
-      # TERROR_SOURCE (зменная рэпазіторыя); нічога не наладжана — крок ціха прапускаецца, а базу абнаўляюць лакальна
+      # (сакрэты TELEGRAM_API_ID / TELEGRAM_API_HASH / TELEGRAM_SESSION і пакет `telegram` у залежнасцях), з файлаў, якія адмін
+      # пераслаў боту ў асабісты чат (TELEGRAM_BOT_TOKEN + TELEGRAM_ADMIN_CHAT_ID), ці па прамым адрасе TERROR_SOURCE (зменная
+      # рэпазіторыя / параметр запуску). Калі файла няма — глядзіць публічнае прэв’ю канала і пра новую версію піша адміну ў
+      # чат са спасылкай на пост. Іншы шлях — тэчка inbox/terror/ (джоб inbox ніжэй) ці лакальны запуск
       # (node scripts/update-terror.mjs Перечень.xlsx). Збой не спыняе дэплой: sourceError у terror-meta.json, alert.mjs source.
       - name: Абнавіць пералік КДБ (тэрарыстычная дзейнасць)
         id: terror
@@ -98,6 +100,8 @@ jobs:
           TELEGRAM_SESSION: ${{ secrets.TELEGRAM_SESSION }}
           TERROR_SOURCE: ${{ inputs.terror_url || vars.TERROR_SOURCE }}
           TERROR_DATE: ${{ inputs.terror_date }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
       # Чацвёрты спіс — беларусы ў базе вышуку МУС РФ паводле штодзённай выбаркі Медыязоны (адзін JSON, ~1 МБ). Правяраем пры
       # кожным запуску; збой не спыняе дэплой: sourceError у wanted-meta.json, сайт папярэдзіць, alert.mjs source скажа адміну.
       - name: Абнавіць базу вышуку РФ (Медыязона)
