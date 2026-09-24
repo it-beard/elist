@@ -43,7 +43,7 @@ const watch = { has: () => false, add() { }, remove() { } };
 describe('рэндэр чацвёртага спіса — вышук РФ (SSR, абедзве мовы)', () => {
   for (const lang of ['be', 'en']) {
     const t = STRINGS[lang];
-    it(`${lang}: картка вышуку — янтарная плашка, імя ў звычайным рэгістры, факты без «undefined», крос-спасылка на асобу`, () => {
+    it(`${lang}: картка вышуку — бурштынавая плашка, імя ў звычайным рэгістры, факты без «undefined», крос-спасылка на асобу`, () => {
       const html = render(lang, <ResultItem item={ITEMS[0]} tokens={[['абадовская']]} chunkSize={200} />);
       expect(html).not.toMatch(/undefined|\[object Object\]|NaN/);
       expect(html).toContain('class="item wanted"');

@@ -5,7 +5,7 @@
   --form: #5b3fbf; --form-soft: #ece7fb; /* другі спіс — экстрэмісцкія фарміраванні (МУС/КДБ) */
   --person: #0f766e; --person-soft: #d5f0ec; /* трэці спіс — фізічныя асобы (пералік МУС) */
   --wanted: #b45309; --wanted-soft: #fdebd3; /* чацвёрты спіс — беларусы ў базе вышуку РФ (Медыязона) */
-  --terror: #be123c; --terror-soft: #fce7ee; /* пералік КДБ — асобы, прычастныя да тэрарыстычнай дзейнасці (у спісе асоб) */
+  --terror: #be123c; --terror-soft: #fce7ee; /* пералік КДБ — асобы, датычныя да тэрарыстычнай дзейнасці (у спісе асоб) */
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #8a94a6; --s5: #be123c; --trend: #16181d;
   --radius: 14px; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04);
   --gap: 12px; /* адзіны крок вертыкальнай сеткі паміж блокамі старонкі (пошук, зводка, укладкі, карткі, тлумачэнне) */
@@ -223,7 +223,7 @@ h1 { font-size: 1.5rem; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 6p
    у запісу МУС пра таго ж чалавека — тая ж плашка побач з бірузовай */
 .item.terror { border-left-color: var(--terror); }
 .type.terror { background: var(--terror-soft); color: var(--terror); }
-/* чацвёрты спіс: янтарная палоска і плашка «Вышук РФ» */
+/* чацвёрты спіс: бурштынавая палоска і плашка «Вышук РФ» */
 .item.wanted { border-left: 3px solid var(--wanted); }
 .type.wanted { background: var(--wanted-soft); color: var(--wanted); }
 /* крос-спасылка паміж пералікам асоб МУС і базай вышуку РФ — колерам спіса, куды вядзе */

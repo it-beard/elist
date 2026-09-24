@@ -71,7 +71,7 @@ export function llmsTxt({ site, facts, stats }) {
 
 > ${SUMMARY.be(f)}
 
-Неафіцыйны сайт з адкрытым кодам. Даныя аўтаматычна бяруцца з афіцыйных публікацый — Рэспубліканскага спісу экстрэмісцкіх матэрыялаў (Мінінфарм), пераліку экстрэмісцкіх фарміраванняў і пераліку фізічных асоб, прычастных да экстрэмісцкай дзейнасці (МУС), пераліку арганізацый і фізічных асоб, прычастных да тэрарыстычнай дзейнасці (КДБ), — а база вышуку МУС РФ па беларусах — са штодзённай выбаркі Медыязоны-Беларусь; нічога не рэдагуецца, у выдачы запісы спісаў адрозніваюцца плашкай (людзі з пераліку КДБ — у спісе асоб з пазнакай «тэрарыст · КДБ»). Сайт статычны, без сервернай часткі: уся база спампоўваецца ў браўзер, запыты нікуды не адпраўляюцца.
+Неафіцыйны сайт з адкрытым кодам. Даныя аўтаматычна бяруцца з афіцыйных публікацый — Рэспубліканскага спісу экстрэмісцкіх матэрыялаў (Мінінфарм), пераліку экстрэмісцкіх фарміраванняў і пераліку фізічных асоб, датычных да экстрэмісцкай дзейнасці (МУС), пераліку арганізацый і фізічных асоб, датычных да тэрарыстычнай дзейнасці (КДБ), — а база вышуку МУС РФ па беларусах — са штодзённай выбаркі Медыязоны-Беларусь; нічога не рэдагуецца, у выніках пошуку запісы спісаў адрозніваюцца плашкай (людзі з пераліку КДБ — у спісе асоб з пазнакай «тэрарыст · КДБ»). Сайт статычны, без сервернай часткі: уся база спампоўваецца ў браўзер, запыты нікуды не адпраўляюцца.
 
 ## Ключавыя факты
 
@@ -84,7 +84,7 @@ ${years}
 ## Старонкі
 
 - [Пошук](${abs(site, '')}): галоўная старонка; запыт можна перадаць у адрасе — \`#q=запыт\` (прымаецца і \`?q=запыт\`), у адрасны радок ён пры гэтым не запісваецца.
-- [Пытанні і адказы](${abs(site, 'faq.html')}): што такое спіс, што пагражае за рэпост, чым ён адрозніваецца ад спісу экстрэмісцкіх фарміраванняў, пераліку фізічных асоб, пераліку КДБ «прычастных да тэрарыстычнай дзейнасці» і базы вышуку РФ.
+- [Пытанні і адказы](${abs(site, 'faq.html')}): што такое спіс, што пагражае за рэпост, чым ён адрозніваецца ад спісу экстрэмісцкіх фарміраванняў, пераліку фізічных асоб, пераліку КДБ «датычных да тэрарыстычнай дзейнасці» і базы вышуку РФ.
 - [FAQ (English)](${abs(site, 'faq-en.html')}): тое самае па-англійску.
 - [Новае](${abs(site, '#/new')}): запісы ўсіх спісаў за апошнія 30 дзён, згрупаваныя па даце з’яўлення.
 - [Статыстыка](${abs(site, '#/stats')}): таймлайн колькасці запісаў па месяцах і гадах — матэрыялы з разбіўкай па артыкуле рашэння; [фарміраванні](${abs(site, '#/stats/f')}) — па органе, які прыняў рашэнне (МУС, КДБ, суд); [фізічныя асобы](${abs(site, '#/stats/p')}) — па даце ўключэння ў пералік з разбіўкай па групе артыкулаў КК; [вышук РФ](${abs(site, '#/stats/w')}) — па даце абвяшчэння ў вышук з разбіўкай па ведамстве-ініцыятары.
@@ -124,7 +124,7 @@ export function siteJsonLd({ site, facts, lang = 'be' }) {
       {
         '@type': 'Dataset',
         '@id': `${abs(site, '')}#dataset`,
-        name: lang === 'en' ? 'Extremist lists of Belarus: the Republican list of extremist materials, the list of extremist formations, the list of individuals involved in extremist activity, the KGB list of individuals involved in terrorist activity, and Belarusians in the Russian Interior Ministry wanted database (per Mediazona)' : 'Экстрэмісцкія спісы Беларусі: Рэспубліканскі спіс экстрэмісцкіх матэрыялаў, пералік экстрэмісцкіх фарміраванняў, пералік фізічных асоб, прычастных да экстрэмісцкай дзейнасці, пералік асоб, прычастных да тэрарыстычнай дзейнасці (КДБ), і беларусы ў базе вышуку МУС РФ (паводле Медыязоны)',
+        name: lang === 'en' ? 'Extremist lists of Belarus: the Republican list of extremist materials, the list of extremist formations, the list of individuals involved in extremist activity, the KGB list of individuals involved in terrorist activity, and Belarusians in the Russian Interior Ministry wanted database (per Mediazona)' : 'Экстрэмісцкія спісы Беларусі: Рэспубліканскі спіс экстрэмісцкіх матэрыялаў, пералік экстрэмісцкіх фарміраванняў, пералік фізічных асоб, датычных да экстрэмісцкай дзейнасці, пералік асоб, датычных да тэрарыстычнай дзейнасці (КДБ), і беларусы ў базе вышуку МУС РФ (паводле Медыязоны)',
         description: SUMMARY[lang](f),
         url: abs(site, ''),
         inLanguage: 'ru',
@@ -225,7 +225,7 @@ export function faqPage({ site, facts, stats, lang, base = '/' }) {
     : 'Пытанні і адказы: экстрэмісцкія спісы Беларусі';
   const lead = en
     ? `This page answers the most common questions about the extremist lists of Belarus — the Republican list of extremist materials, the list of extremist formations, the Interior Ministry list of individuals and the KGB list of individuals involved in terrorist activity — plus the Russian Interior Ministry wanted database of Belarusians (per Mediazona), and about this search site: what the lists are, how to check a channel, handle or name, what the penalties are, and what data the site stores. As of ${f.updatedStr} the database holds ${f.totalStr} material entries${f.formations ? `, ${f.formationsStr} formations` : ''}${f.persons ? `${f.wanted ? ',' : ' and'} ${f.personsStr} individuals` : ''}${f.wanted ? ` and ${f.wantedStr} Belarusians wanted in Russia` : ''}; materials, individuals and the wanted database refresh twice a day, formations once a day.`
-    : `Гэтая старонка адказвае на самыя частыя пытанні пра экстрэмісцкія спісы Беларусі — Рэспубліканскі спіс экстрэмісцкіх матэрыялаў, пералік экстрэмісцкіх фарміраванняў, пералік фізічных асоб МУС і пералік КДБ асоб, прычастных да тэрарыстычнай дзейнасці, — а таксама пра базу вышуку МУС РФ па беларусах (паводле Медыязоны) і пра гэты сайт: што гэта за спісы, як праверыць канал, нік ці імя, што пагражае за рэпост і якія даныя сайт захоўвае. На ${f.updatedStr} у базе ${f.totalStr} запісаў матэрыялаў${f.formations ? `, ${f.formationsStr} фарміраванняў` : ''}${f.persons ? `${f.wanted ? ',' : ' і'} ${f.personsStr} фізічных асоб` : ''}${f.wanted ? ` і ${f.wantedStr} беларусаў у вышуку РФ` : ''}; матэрыялы, асобы і база вышуку абнаўляюцца двойчы на дзень, фарміраванні — раз на суткі.`;
+    : `Гэтая старонка адказвае на самыя частыя пытанні пра экстрэмісцкія спісы Беларусі — Рэспубліканскі спіс экстрэмісцкіх матэрыялаў, пералік экстрэмісцкіх фарміраванняў, пералік фізічных асоб МУС і пералік КДБ асоб, датычных да тэрарыстычнай дзейнасці, — а таксама пра базу вышуку МУС РФ па беларусах (паводле Медыязоны) і пра гэты сайт: што гэта за спісы, як праверыць канал, нік ці імя, што пагражае за рэпост і якія даныя сайт захоўвае. На ${f.updatedStr} у базе ${f.totalStr} запісаў матэрыялаў${f.formations ? `, ${f.formationsStr} фарміраванняў` : ''}${f.persons ? `${f.wanted ? ',' : ' і'} ${f.personsStr} фізічных асоб` : ''}${f.wanted ? ` і ${f.wantedStr} беларусаў у вышуку РФ` : ''}; матэрыялы, асобы і база вышуку абнаўляюцца двойчы на дзень, фарміраванні — раз на суткі.`;
   const years = (stats.byYear || []).slice(0, 6);
   const yearsTitle = en ? 'Materials list: entries by year of the court decision' : 'Спіс матэрыялаў: запісы па годзе судовага рашэння';
   const factsTitle = en ? 'Key facts' : 'Ключавыя факты';
@@ -291,7 +291,7 @@ ${sections}
 </main>
 
 <footer>
-<p>${en ? 'Unofficial search over four official lists — the Republican list of extremist materials, the Interior Ministry lists of extremist formations and individuals, and the KGB list of individuals involved in terrorist activity — plus the Russian Interior Ministry wanted database of Belarusians per Mediazona Belarus. The database updates automatically; entry text, grounds and dates are kept exactly as in the sources.' : 'Неафіцыйны пошук па чатырох афіцыйных спісах — Рэспубліканскім спісе экстрэмісцкіх матэрыялаў, пераліках МУС (экстрэмісцкіх фарміраванняў і фізічных асоб) і пераліку КДБ асоб, прычастных да тэрарыстычнай дзейнасці, — і па базе вышуку МУС РФ па беларусах паводле Медыязоны-Беларусь. База абнаўляецца аўтаматычна; тэкст запісу, падстава і даты захоўваюцца як у крыніцах.'}</p>
+<p>${en ? 'Unofficial search over four official lists — the Republican list of extremist materials, the Interior Ministry lists of extremist formations and individuals, and the KGB list of individuals involved in terrorist activity — plus the Russian Interior Ministry wanted database of Belarusians per Mediazona Belarus. The database updates automatically; entry text, grounds and dates are kept exactly as in the sources.' : 'Неафіцыйны пошук па чатырох афіцыйных спісах — Рэспубліканскім спісе экстрэмісцкіх матэрыялаў, пераліках МУС (экстрэмісцкіх фарміраванняў і фізічных асоб) і пераліку КДБ асоб, датычных да тэрарыстычнай дзейнасці, — і па базе вышуку МУС РФ па беларусах паводле Медыязоны-Беларусь. База абнаўляецца аўтаматычна; тэкст запісу, падстава і даты захоўваюцца як у крыніцах.'}</p>
 <p><a href="${base}">${en ? 'Search' : 'Пошук'}</a> · <a href="${base}${en ? 'faq.html' : 'faq-en.html'}">${en ? 'Па-беларуску' : 'English'}</a> · <a href="https://github.com/it-beard/elist" rel="noopener">GitHub</a> · <a href="${base}llms.txt">llms.txt</a></p>
 </footer>
 </div>
@@ -325,7 +325,7 @@ ${years}
 - Індэкс усіх спісаў (~1,1 МБ gzip) спампоўваецца ў браўзер цалкам, таму запыты нікуды не адпраўляюцца.
 - Не ўлічваюцца рэгістар, «ё/е», лацінская і кірылічная «i», віды лапак; фраза ў лапках шукаецца цалкам.
 - Фізічныя асобы шукаюцца па імені кірыліцай і па лацінскай транслітарацыі з пераліку, а таксама па даце нараджэння («14.10.1983»), артыкуле КК і судзе.
-- Людзі з пераліку КДБ «прычастных да тэрарыстычнай дзейнасці» — у тым жа спісе асоб: шукаюцца па імені, транслітарацыі, даце нараджэння, артыкуле КК і словах «тэрарыст», «террорист», «КГБ»; хто ёсць і ў пераліку МУС — адной карткай пераліку МУС з пазнакай «тэрарыст · КДБ».
+- Людзі з пераліку КДБ «датычных да тэрарыстычнай дзейнасці» — у тым жа спісе асоб: шукаюцца па імені, транслітарацыі, даце нараджэння, артыкуле КК і словах «тэрарыст», «террорист», «КГБ»; хто ёсць і ў пераліку МУС — адной карткай пераліку МУС з пазнакай «тэрарыст · КДБ».
 - Беларусы ў базе вышуку РФ (паводле Медыязоны) шукаюцца па імені (і іншых напісаннях з базы), годзе нараджэння, ведамстве-ініцыятары («розыск», «МВД», «КГБ») і рэгіёне; той жа чалавек у пераліку МУС і ў вышуку — карткі спасылаюцца адна на адну.
 - У запыце адкідаюцца «https://», «www.», «@» у пачатку і «/» у канцы; пошук падрадковы, таму кароткі запыт «nick» знойдзе і «@nick», і «t.me/nick», і «nick.by».
 - Кірыліца ↔ лацінка ў абодва бакі: руская транслітарацыя і беларуская лацінка без дыякрытыкі.

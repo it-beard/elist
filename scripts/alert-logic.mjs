@@ -32,7 +32,7 @@ export function sourceMessages({ cur = {}, prev = {}, curF = {}, prevF = {}, cur
   if (DIED.has(steps.persons) && !curP.sourceError) {
     msgs.push('⚠️ Крок абнаўлення пераліку фізічных асоб (МУС) не завяршыўся (таймаўт ці збой да запісу меты).');
   }
-  // пералік КДБ: асобы, прычастныя да тэрарыстычнай дзейнасці (xlsx з Telegram-канала КДБ ці лакальна)
+  // пералік КДБ: асобы, датычныя да тэрарыстычнай дзейнасці (xlsx з Telegram-канала КДБ ці лакальна)
   if (Boolean(curT.sourceError) !== Boolean(prevT.sourceError)) {
     msgs.push(curT.sourceError ? `⚠️ Пералік КДБ (тэрарыстычная дзейнасць) не абнаўляецца: ${esc(curT.sourceError)}` : '✅ Пералік КДБ (тэрарыстычная дзейнасць) зноў абнаўляецца.');
   }

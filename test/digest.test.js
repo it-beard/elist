@@ -101,9 +101,9 @@ describe('buildDigest — падзагалоўкі і разбіццё', () => {
     expect(ids).toHaveLength(messages.length);
     expect(ids.flat()).toEqual(many.map((x) => x.id));
     expect(messages[0]).toMatch(/^<b>Спіс экстрэмісцкіх матэрыялаў/);
-    expect(messages[0]).not.toContain('Працяг дайджэсту');
+    expect(messages[0]).not.toContain('Працяг дайджэста');
     expect(messages[0]).not.toContain('RSS');
-    messages.slice(1).forEach((m, i) => expect(m.startsWith(`<i>Працяг дайджэсту (${i + 2}/${messages.length})</i>\n\n`)).toBe(true));
+    messages.slice(1).forEach((m, i) => expect(m.startsWith(`<i>Працяг дайджэста (${i + 2}/${messages.length})</i>\n\n`)).toBe(true));
     expect(messages[messages.length - 1]).toMatch(/RSS<\/a>$/);
     expect(messages.join('')).toContain('<b>40.</b>');
   });
