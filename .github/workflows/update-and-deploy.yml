@@ -43,6 +43,10 @@ jobs:
     timeout-minutes: 55   # горшы выпадак: матэрыялы да ~20 хв, фарміраванні ~3, крок фізічных асоб да 25 (свой ліміт ніжэй), пералік КДБ і вышук РФ да 5 кожны, без запасу на вячэрнім запуску
     permissions:
       contents: write   # каміт data/ у main
+    # data_ok: база абноўленая і закамічаная. Калі джоб пры гэтым чырвоны, упала толькі Telegram-частка (дайджэст ці алерт
+    # адміну) — deploy усё роўна публікуе сайт, а дайджэст дашле наступны запуск (data/notified.json).
+    outputs:
+      data_ok: ${{ steps.materials.outcome == 'success' && steps.commit.outcome == 'success' }}
     steps:
       # Токен не застаецца ў .git/config: разбор чужога .doc і npm ідуць без крэдэнцыялаў,
       # push робіцца асобным крокам праз x-access-token.
@@ -55,16 +59,23 @@ jobs:
       # Толькі runtime-залежнасці і без install-скрыптоў: у джобе з правамі на запіс — мінімум чужога кода.
       - run: npm ci --omit=dev --ignore-scripts
       - name: Спампаваць і разабраць свежы .doc
+        id: materials
         run: npm run update
         env:
           UPDATE_FORCE: ${{ inputs.force }}
       # Другі спіс — пералік экстрэмісцкіх фарміраванняў (МУС/КДБ, .xlsx): раз на суткі (ранішні cron, ручны запуск
       # і паўторы; вячэрні cron яго прапускае — але пасля канфлікту каміта ніжэй ён бяжыць зноў безумоўна, у любым
-      # запуску). Збой гэтай крыніцы не спыняе абнаўленне матэрыялаў і дэплой: і сеткавыя памылкі, і засцярогі скрыпт
-      # сам піша ў formations-meta.json як sourceError (сайт папярэдзіць, alert.mjs source скажа адміну).
+      # запуску). Калі ранішняя спроба скончылася збоем (sourceError у formations-meta.json), вячэрні cron паўтарае яе:
+      # інакш папярэджанне на сайце вісела б суткі праз хвілінны збой сервера МУС. Збой гэтай крыніцы не спыняе
+      # абнаўленне матэрыялаў і дэплой: і сеткавыя памылкі, і засцярогі скрыпт сам піша ў formations-meta.json як
+      # sourceError (сайт папярэдзіць, alert.mjs source скажа адміну).
+      - name: Ці быў збой крыніцы фарміраванняў
+        id: formations_state
+        run: |
+          echo "error=$(jq -r 'if .sourceError then "true" else "false" end' data/formations-meta.json 2>/dev/null || echo false)" >> "$GITHUB_OUTPUT"
       - name: Абнавіць пералік экстрэмісцкіх фарміраванняў (раз на суткі)
         id: formations
-        if: github.event.schedule != '17 16 * * *'
+        if: github.event.schedule != '17 16 * * *' || steps.formations_state.outputs.error == 'true'
         continue-on-error: true
         run: npm run update:formations
         env:
@@ -111,6 +122,8 @@ jobs:
         run: npm run update:wanted
         env:
           UPDATE_FORCE: ${{ inputs.force }}
+      # Збой дайджэсту (Telegram не адказаў нават пасля паўтораў) робіць джоб чырвоным, але не спыняе ні каміт, ні
+      # дэплой (data_ok вышэй): незасланае дабярэ наступны запуск.
       - name: Дайджэст у Telegram (калі наладжаны сакрэты)
         run: node scripts/notify.mjs
         env:
@@ -135,6 +148,7 @@ jobs:
       # інакш наступны запуск прышле тое самае паўторна. Перад push — rebase і паўторы: паралельны push
       # у main (напрыклад, ваш каміт з кодам) не павінен губляць гэты каміт і валіць дэплой.
       - name: Закамітаваць змены ў базе
+        id: commit
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -189,6 +203,9 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write   # каміт data/ і выдаленне разабраных файлаў
+    # data_ok — як у джобе update: файлы разабраныя і закамічаныя, упаў толькі дайджэст ці алерт — сайт публікуецца.
+    outputs:
+      data_ok: ${{ steps.parse.outcome == 'success' && steps.commit.outcome == 'success' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { ref: main, persist-credentials: false }
@@ -204,6 +221,7 @@ jobs:
       - run: npm ci --omit=dev --ignore-scripts
         if: steps.files.outputs.list != ''
       - name: Разабраць і дадаць у базу
+        id: parse
         if: steps.files.outputs.list != ''
         env:
           UPDATE_FORCE: '0'
@@ -223,8 +241,11 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
           SITE_URL: https://elist.itbeard.com/
+      # Каміт ідзе і пасля збою дайджэсту (але не пасля збою разбору — тады файл застаецца ў тэчцы): інакш разабраная
+      # база згубілася б, а часткова дасланы дайджэст пры паўторы пайшоў бы ў канал другі раз.
       - name: Закамітаваць базу і прыбраць разабраныя файлы
-        if: steps.files.outputs.list != ''
+        id: commit
+        if: ${{ !cancelled() && steps.files.outputs.list != '' && steps.parse.outcome == 'success' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -260,8 +281,12 @@ jobs:
   deploy:
     name: Сабраць і апублікаваць
     needs: [update, inbox]
-    # на push абнаўленне прапускаецца, а inbox ідзе (нават пусты); на cron/ручным запуску — наадварот
-    if: always() && (needs.update.result == 'success' || needs.update.result == 'skipped') && (needs.inbox.result == 'success' || needs.inbox.result == 'skipped')
+    # на push абнаўленне прапускаецца, а inbox ідзе (нават пусты); на cron/ручным запуску — наадварот.
+    # Чырвоны джоб з data_ok == 'true' — упаў толькі дайджэст ці алерт у Telegram, база закамічаная: публікуем.
+    if: >-
+      always()
+      && (needs.update.result == 'success' || needs.update.result == 'skipped' || (needs.update.result == 'failure' && needs.update.outputs.data_ok == 'true'))
+      && (needs.inbox.result == 'success' || needs.inbox.result == 'skipped' || (needs.inbox.result == 'failure' && needs.inbox.outputs.data_ok == 'true'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { FormatError, UA, downloadBuffer, expectedLength, findLinks, isComplete, readJson, runMain, writeSourceError } from '../scripts/common.mjs';
+import { FormatError, UA, downloadBuffer, expectedLength, fetchRetry, findLinks, isComplete, netError, readJson, runMain, writeSourceError } from '../scripts/common.mjs';
 import { findPersonDocs } from '../scripts/update-persons.mjs';
 import { findXlsxUrl } from '../scripts/update-formations.mjs';
 
@@ -85,6 +85,51 @@ describe('downloadBuffer', () => {
     await expect(downloadBuffer('https://x.by/f.doc', { minBytes: 100 })).resolves.toBeTruthy();
     stub(body, {}, 503);
     await expect(downloadBuffer('https://x.by/f.doc')).rejects.toThrow('HTTP 503');
+  });
+});
+
+describe('fetchRetry / netError', () => {
+  const netFail = () => Object.assign(new TypeError('fetch failed'), { cause: { code: 'ECONNRESET' } });
+  const opts = (fetchImpl) => ({ pause: 0, label: 'Telegram', fetchImpl });
+  afterEach(() => vi.restoreAllMocks());
+
+  it('сеткавы збой паўтараецца; у лог ідзе label і прычына, але не адрас з токенам', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const fetchImpl = vi.fn().mockRejectedValueOnce(netFail()).mockResolvedValueOnce({ ok: true, status: 200 });
+    const res = await fetchRetry('https://api.telegram.org/botSECRET/sendMessage', { method: 'POST', body: '{}' }, opts(fetchImpl));
+    expect(res.status).toBe(200);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(fetchImpl.mock.calls[1][0]).toBe('https://api.telegram.org/botSECRET/sendMessage');
+    expect(fetchImpl.mock.calls[1][1]).toMatchObject({ method: 'POST', body: '{}' });
+    expect(fetchImpl.mock.calls[1][1].signal).toBeInstanceOf(AbortSignal);
+    expect(warn).toHaveBeenCalledWith('Telegram: спроба 1/3 не ўдалася (fetch failed (ECONNRESET)), паўтараю…');
+    expect(warn.mock.calls.flat().join(' ')).not.toContain('SECRET');
+  });
+  it('HTTP 429 і 5xx паўтараюцца, 4xx — не; пасля апошняй спробы вяртаецца той жа адказ', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const busy = vi.fn().mockResolvedValueOnce({ ok: false, status: 429 }).mockResolvedValueOnce({ ok: false, status: 502 }).mockResolvedValueOnce({ ok: true, status: 200 });
+    expect((await fetchRetry('u', {}, opts(busy))).status).toBe(200);
+    expect(busy).toHaveBeenCalledTimes(3);
+    const bad = vi.fn().mockResolvedValue({ ok: false, status: 400 });
+    expect((await fetchRetry('u', {}, opts(bad))).status).toBe(400);
+    expect(bad).toHaveBeenCalledTimes(1);
+    const down = vi.fn().mockResolvedValue({ ok: false, status: 503 });
+    expect((await fetchRetry('u', {}, opts(down))).status).toBe(503);
+    expect(down).toHaveBeenCalledTimes(3);
+  });
+  it('усе спробы з сеткавым збоем — тая ж памылка; таймаўт не паўтараецца (паведамленне магло сысці)', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const dead = vi.fn().mockRejectedValue(netFail());
+    await expect(fetchRetry('u', {}, { ...opts(dead), retries: 2 })).rejects.toThrow('fetch failed');
+    expect(dead).toHaveBeenCalledTimes(2);
+    const slow = vi.fn().mockRejectedValue(Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' }));
+    await expect(fetchRetry('u', {}, opts(slow))).rejects.toThrow('timeout');
+    expect(slow).toHaveBeenCalledTimes(1);
+  });
+  it('netError: прычына з cause, калі яна ёсць', () => {
+    expect(netError(netFail())).toBe('fetch failed (ECONNRESET)');
+    expect(netError(Object.assign(new TypeError('fetch failed'), { cause: new Error('getaddrinfo ENOTFOUND api.telegram.org') }))).toBe('fetch failed (getaddrinfo ENOTFOUND api.telegram.org)');
+    expect(netError(new Error('HTTP 500'))).toBe('HTTP 500');
   });
 });
 

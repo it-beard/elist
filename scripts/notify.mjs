@@ -11,10 +11,12 @@
  * шлём толькі тое, чаго яшчэ не было ў канале. Незасланае за апошнія WINDOW_DAYS дзён
  * дабіраецца пры наступным запуску, калі адпраўка ўпала. Выпраўлены ў крыніцы запіс (editOf)
  * не абвяшчаецца, калі яго папярэднюю версію ўжо дасылалі.
+ * Сеткавы збой паўтараецца (fetchRetry); калі не дапамагло — exit 1: джоб чырвоны, але даныя камітуюцца і сайт
+ * публікуецца (data_ok у воркфлоў), а дайджэст дашле наступны запуск.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { DATA_DIR, readJson } from './common.mjs';
+import { DATA_DIR, fetchRetry, netError, readJson } from './common.mjs';
 import { buildDigest, plural, selectFresh, shiftDays } from './digest.mjs';
 import { foldTerror } from './index-rows.mjs';
 
@@ -70,15 +72,14 @@ async function saveState() {
 let failed = null;
 try {
   for (const [i, text] of messages.entries()) {
-    const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const r = await fetchRetry(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         chat_id: target, text, parse_mode: 'HTML',
         link_preview_options: { is_disabled: true },
         disable_notification: i > 0, // гук — толькі на першую частку
       }),
-      signal: AbortSignal.timeout(30_000),
-    });
+    }, { label: 'Telegram' });
     if (!r.ok) { failed = `HTTP ${r.status} ${await r.text()}`; break; }
     for (const id of ids[i]) {
       sent[id] = today;
@@ -87,7 +88,7 @@ try {
     }
   }
 } catch (e) {
-  failed = e.message;
+  failed = netError(e);
 } finally {
   await saveState(); // тое, што ўжо сышло, паўторна не пойдзе — і пры HTTP-памылцы, і пры сеткавым збоі
 }

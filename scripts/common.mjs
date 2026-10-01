@@ -1,6 +1,7 @@
 /**
  * Агульнае для скрыптоў абнаўлення (update*.mjs) і зборкі: шляхі, сеціва з таймаўтамі і праверкай паўнаты
- * спампаванага файла, чытанне JSON, запіс sourceError у мету і запуск main() толькі пры прамым выкліку.
+ * спампаванага файла, запыты да Telegram з паўторамі, чытанне JSON, запіс sourceError у мету і запуск main()
+ * толькі пры прамым выкліку.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -72,6 +73,32 @@ export async function downloadBuffer(url, { timeout = 180_000, minBytes = 10_000
   const size = buf.length >= 1e6 ? `${(buf.length / 1e6).toFixed(1)} MB` : `${(buf.length / 1e3).toFixed(0)} KB`;
   console.log(`Спампавана: ${url} (${size}, Last-Modified: ${res.headers.get('last-modified') || '?'})`);
   return { buf, res };
+}
+
+/** Тэкст сеткавай памылкі з прычынай: у «fetch failed» сама прычына (ECONNRESET, ENOTFOUND…) схаваная ў cause. */
+export const netError = (e) => (e?.cause?.code || e?.cause?.message ? `${e.message} (${e.cause.code || e.cause.message})` : String(e?.message || e));
+
+/**
+ * Запыт з паўторамі для Telegram Bot API: адзін сеткавы збой не мусіць валіць джоб. Паўтараюцца сеткавая памылка
+ * (fetch кідае — запыт да сервера не дайшоў), HTTP 429 і 5xx; таймаўт — не: адказу няма, але паведамленне магло
+ * сысці, і паўтор даў бы дубль у канале. Пасля апошняй спробы — тая ж памылка ці той жа адказ, што без паўтораў.
+ * У лог ідзе толькі label: адрас запыту змяшчае токен бота.
+ */
+export async function fetchRetry(url, init = {}, { retries = 3, timeout = 30_000, pause = 2000, label = 'Запыт', fetchImpl = fetch } = {}) {
+  for (let attempt = 1; ; attempt++) {
+    let res, err;
+    try {
+      res = await fetchImpl(url, { ...init, signal: AbortSignal.timeout(timeout) });
+      if (res.status !== 429 && res.status < 500) return res;
+    } catch (e) {
+      if (e.name === 'TimeoutError' || e.name === 'AbortError') throw e;
+      err = e;
+    }
+    if (attempt >= retries) { if (err) throw err; return res; }
+    console.warn(`${label}: спроба ${attempt}/${retries} не ўдалася (${err ? netError(err) : `HTTP ${res.status}`}), паўтараю…`);
+    await res?.body?.cancel().catch(() => {});
+    await new Promise((r) => setTimeout(r, pause * attempt));
+  }
 }
 
 /** Пазначыць збой у меце (сайт папярэдзіць, адмін атрымае алерт пры змене стану), базу не чапаць. */

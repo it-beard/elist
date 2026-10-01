@@ -12,7 +12,7 @@
  */
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { DATA_DIR, ROOT, readJson } from './common.mjs';
+import { DATA_DIR, ROOT, fetchRetry, readJson } from './common.mjs';
 import { esc, sourceMessages } from './alert-logic.mjs';
 
 const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_ADMIN_CHAT_ID;
@@ -21,11 +21,10 @@ const mode = process.argv[2];
 if (!token || !chat) { console.log('Адмін-чат Telegram не наладжаны — прапускаю.'); process.exit(0); }
 
 async function send(text) {
-  const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+  const r = await fetchRetry(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ chat_id: chat, text, parse_mode: 'HTML', link_preview_options: { is_disabled: true } }),
-    signal: AbortSignal.timeout(30_000),
-  });
+  }, { label: 'Telegram' });
   if (!r.ok) { console.error(`Telegram: HTTP ${r.status} ${await r.text()}`); process.exit(1); }
 }
 
