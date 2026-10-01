@@ -1,7 +1,7 @@
 {
   "updated": "2026-09-15",
   "checked": "2026-10-01",
-  "checkedAt": "2026-10-01T10:55:44.460Z",
+  "checkedAt": "2026-10-01T21:02:20.123Z",
   "sourceError": null,
   "sourcePage": "https://www.kgb.by/ru/perechen-inf-ru/",
   "sourceFile": "file:///Users/aliskseikartynnik/Documents/Programming_Projects/elist/rrrr.xlsx",
@@ -15,5 +15,6 @@
   },
   "total": 738,
   "lastAdded": null,
-  "lastAddedCount": 0
+  "lastAddedCount": 0,
+  "announcedPost": 79
 }
