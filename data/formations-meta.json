@@ -1,8 +1,8 @@
 {
   "updated": "2026-09-04",
-  "checked": "2026-09-30",
-  "checkedAt": "2026-09-30T10:27:54.791Z",
-  "sourceError": null,
+  "checked": "2026-10-01",
+  "checkedAt": "2026-10-01T10:55:23.059Z",
+  "sourceError": "fetch failed",
   "sourcePage": "https://www.mvd.gov.by/ru/news/8642",
   "sourceFile": "https://www.mvd.gov.by/uploads/news/8642/72b0a138a6d1df7214169df39179eacf9c9b371a.xlsx",
   "total": 377,
