@@ -1,11 +1,11 @@
 {
   "updated": "2026-10-01",
-  "checked": "2026-10-01",
-  "checkedAt": "2026-10-01T21:02:21.697Z",
+  "checked": "2026-10-02",
+  "checkedAt": "2026-10-02T10:29:23.461Z",
   "sourceError": null,
   "sourcePage": "https://mediazonaby.com/article/2026/08/26/wanted_all",
   "sourceFile": "https://s3.zona.media/infographics/wanted/data_bel.json.br",
-  "sourceDate": "2026-10-01",
+  "sourceDate": "2026-10-02",
   "parse": {
     "skipped": 0,
     "approx": 3031,
