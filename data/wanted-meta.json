@@ -1,7 +1,7 @@
 {
   "updated": "2026-10-02",
   "checked": "2026-10-05",
-  "checkedAt": "2026-10-05T11:25:32.995Z",
+  "checkedAt": "2026-10-05T22:38:11.101Z",
   "sourceError": null,
   "sourcePage": "https://mediazonaby.com/article/2026/08/26/wanted_all",
   "sourceFile": "https://s3.zona.media/infographics/wanted/data_bel.json.br",
@@ -10,7 +10,7 @@
     "skipped": 0,
     "approx": 3031,
     "out": 2638,
-    "fresh": 43
+    "fresh": 32
   },
   "total": 6801,
   "removedTotal": 2637,
