@@ -27,7 +27,7 @@
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { CACHE_DIR, DATA_DIR, FORCE, FormatError, UA, downloadBuffer, readJson, runMain, writeSourceError } from './common.mjs';
+import { CACHE_DIR, DATA_DIR, FORCE, FormatError, UA, downloadBuffer, netError, readJson, runMain, writeSourceError } from './common.mjs';
 import { readXlsxSheets, unescapeXml, xlsxModified } from './xlsx.mjs';
 import { mergeTerror, parseTerror } from './parse-terror.mjs';
 
@@ -217,12 +217,29 @@ async function checkChannel() {
   else console.log(announced ? `Адмін папярэджаны пра новую версію ${postDate(post)} (пост ${post.id}).` : `Новая версія ${postDate(post)} (пост ${post.id}), але адмін-чат не наладжаны — паведамленне не даслана.`);
 }
 
+// ---------- прамы адрас файла (TERROR_SOURCE) ----------
+
+/**
+ * Файл па прамым адрасе з паўторамі: гэты шлях запускаюць уручную, і адзін сеткавы збой раннера не мусіць каштаваць
+ * новага запуску. Таймаўт не паўтараецца — у кроку воркфлоў ліміт 5 хвілін. Пасля апошняй спробы — тая ж памылка.
+ */
+export async function downloadSource(url, { retries = 3, pause = 5000, download = downloadBuffer } = {}) {
+  for (let attempt = 1; ; attempt++) {
+    try { return (await download(url, { timeout: FILE_TIMEOUT })).buf; } catch (e) {
+      if (attempt >= retries || e.name === 'TimeoutError') throw e;
+      console.warn(`Спроба ${attempt}/${retries} не ўдалася (${url}): ${netError(e)}, паўтараю…`);
+      await new Promise((r) => setTimeout(r, pause * attempt));
+    }
+  }
+}
+
 // ---------- імпарт ----------
 
 /** Крыніца недаступная: база застаецца, сайт пакажа папярэджанне, адмін атрымае алерт пры змене стану. */
 async function unavailable(e) {
-  await writeSourceError(META_FILE, e.message, now);
-  console.warn(`Крыніца пераліку КДБ недаступная: ${e.message}. sourceError запісаны, база не зменена.`);
+  const reason = netError(e);
+  await writeSourceError(META_FILE, reason, now);
+  console.warn(`Крыніца пераліку КДБ недаступная: ${reason}. sourceError запісаны, база не зменена.`);
 }
 
 /** Разабраць буфер .xlsx, зліць з базай, запісаць базу і мету. Вяртае вынік зліцця з датай версіі. */
@@ -295,7 +312,7 @@ async function main() {
     let listDate = null;
     if (ENV_DATE) { listDate = parseListDate(ENV_DATE); if (!listDate) throw new Error(`Незразумелая дата версіі пераліку TERROR_DATE: ${ENV_DATE} (чакаецца «11.09.2026»)`); }
     let buf;
-    try { ({ buf } = await downloadBuffer(SOURCE_URL, { timeout: FILE_TIMEOUT })); } catch (e) { await unavailable(e); return; }
+    try { buf = await downloadSource(SOURCE_URL); } catch (e) { await unavailable(e); return; }
     await importFile(buf, { sourceUrl: SOURCE_URL, listDate });
     return;
   }

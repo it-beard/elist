@@ -4,7 +4,7 @@ import zlib from 'node:zlib';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { readXlsxSheets, xlsxModified, excelDate } from '../scripts/xlsx.mjs';
 import { birthText, isTerrorEdit, mergeTerror, parseTerror, splitTranslit, terrorId } from '../scripts/parse-terror.mjs';
-import { botInboxFiles, isFreshPost, parseChannelPreview, parseListDate, pickPost, postDate } from '../scripts/update-terror.mjs';
+import { botInboxFiles, downloadSource, isFreshPost, parseChannelPreview, parseListDate, pickPost, postDate } from '../scripts/update-terror.mjs';
 import { CHUNK, chunkRecord, dict, feed, foldTerror, indexRow, linkLists, publicMeta } from '../scripts/index-rows.mjs';
 import { ICON, NAME, RANK, buildDigest, digestHeader, entry, selectFresh, subheader } from '../scripts/digest.mjs';
 import { sourceMessages } from '../scripts/alert-logic.mjs';
@@ -228,6 +228,22 @@ describe('update-terror.mjs — дата версіі і выбар паста',
     expect(pickPost(posts).id).toBe(78);
     expect(pickPost([])).toBe(null);
     expect(pickPost(undefined)).toBe(null);
+  });
+  it('downloadSource: сеткавы збой паўтараецца, у лог ідзе прычына з cause; таймаўт і апошняя спроба — тая ж памылка', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const netFail = () => Object.assign(new TypeError('fetch failed'), { cause: { code: 'ECONNRESET' } });
+    const buf = Buffer.from('xlsx');
+    const flaky = vi.fn().mockRejectedValueOnce(netFail()).mockResolvedValueOnce({ buf });
+    expect(await downloadSource('https://x.by/list.xlsx', { pause: 0, download: flaky })).toBe(buf);
+    expect(flaky).toHaveBeenCalledTimes(2);
+    expect(warn).toHaveBeenCalledWith('Спроба 1/3 не ўдалася (https://x.by/list.xlsx): fetch failed (ECONNRESET), паўтараю…');
+    const dead = vi.fn().mockRejectedValue(netFail());
+    await expect(downloadSource('u', { pause: 0, download: dead })).rejects.toThrow('fetch failed');
+    expect(dead).toHaveBeenCalledTimes(3);
+    const slow = vi.fn().mockRejectedValue(Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' }));
+    await expect(downloadSource('u', { pause: 0, download: slow })).rejects.toThrow('timeout');
+    expect(slow).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
   });
   it('parseChannelPreview: пасты з публічнага прэв’ю канала (id, тэкст, файл, памер, дата), найноўшыя спачатку; чужы HTML — пуста', () => {
     const html = fs.readFileSync(new URL('./fixtures/kgb-channel.html', import.meta.url), 'utf8');
