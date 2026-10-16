@@ -1,13 +1,13 @@
 {
   "updated": "2026-10-06",
   "checked": "2026-10-16",
-  "checkedAt": "2026-10-16T09:00:56.015Z",
+  "checkedAt": "2026-10-16T19:33:31.928Z",
   "sourceError": null,
   "sourcePage": "https://www.kgb.by/ru/perechen-inf-ru/",
   "sourceFile": "https://github.com/itbeard/itbeard/raw/refs/heads/main/list.xlsx",
   "channel": "https://t.me/KGB_BY_channel",
   "sourceDate": "2026-09-29",
-  "announcedPost": 79,
+  "announcedPost": 80,
   "parse": {
     "total": 1470,
     "un": 736,
