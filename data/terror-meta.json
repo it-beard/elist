@@ -1,20 +1,20 @@
 {
-  "updated": "2026-10-06",
+  "updated": "2026-10-16",
   "checked": "2026-10-16",
-  "checkedAt": "2026-10-16T19:33:31.928Z",
+  "checkedAt": "2026-10-16T19:35:03.915Z",
   "sourceError": null,
   "sourcePage": "https://www.kgb.by/ru/perechen-inf-ru/",
-  "sourceFile": "https://github.com/itbeard/itbeard/raw/refs/heads/main/list.xlsx",
+  "sourceFile": "file:///home/runner/work/elist/elist/inbox/terror/2026-10-16.xlsx",
   "channel": "https://t.me/KGB_BY_channel",
-  "sourceDate": "2026-09-29",
+  "sourceDate": "2026-10-16",
   "announcedPost": 80,
   "parse": {
-    "total": 1470,
+    "total": 1476,
     "un": 736,
     "skipped": 0,
     "noBirth": 0
   },
-  "total": 734,
-  "lastAdded": "2026-10-06",
-  "lastAddedCount": 7
+  "total": 740,
+  "lastAdded": "2026-10-16",
+  "lastAddedCount": 9
 }
