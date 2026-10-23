@@ -1,8 +1,8 @@
 {
   "updated": "2026-09-04",
-  "checked": "2026-10-22",
-  "checkedAt": "2026-10-22T09:22:54.156Z",
-  "sourceError": null,
+  "checked": "2026-10-23",
+  "checkedAt": "2026-10-23T09:18:38.768Z",
+  "sourceError": "The operation was aborted due to timeout",
   "sourcePage": "https://www.mvd.gov.by/ru/news/8642",
   "sourceFile": "https://www.mvd.gov.by/uploads/news/8642/72b0a138a6d1df7214169df39179eacf9c9b371a.xlsx",
   "total": 377,
