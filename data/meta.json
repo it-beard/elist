@@ -1,12 +1,12 @@
 {
-  "updated": "2026-10-21",
+  "updated": "2026-10-23",
   "checked": "2026-10-23",
-  "checkedAt": "2026-10-23T09:18:35.875Z",
-  "sourceError": "mininform.gov.by: Не ўдалося атрымаць старонку: HTTP 403; zviazda.by: Не ўдалося атрымаць старонку: HTTP 403",
+  "checkedAt": "2026-10-23T19:57:26.855Z",
+  "sourceError": null,
   "fallback": false,
   "sourcePage": "https://mininform.gov.by/ru/respublikanskiy-spisok-ekstremistskikh-materialov-ru/",
-  "sourceFile": "https://mininform.gov.by/uploads/extrim/6ad77daa50e1b1.73574318_spisok-ekstremistskix-materialov.doc",
-  "total": 6166,
-  "lastAdded": "2026-10-20",
-  "lastAddedCount": 11
+  "sourceFile": "https://mininform.gov.by/uploads/extrim/6adb79efd2dcc5.71280194_spisok-ekstremistskix-materialov.doc",
+  "total": 6179,
+  "lastAdded": "2026-10-23",
+  "lastAddedCount": 14
 }
