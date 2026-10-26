@@ -24,13 +24,19 @@ export const LINKS = {
   repo: 'https://github.com/it-beard/elist',
 };
 
+/**
+ * Дапіска да папярэджання «не абнаўляецца з …»: дата апошняй спробы, калі яна не супадае з днём першага збою
+ * (шапка перадае пусты радок, і дапіскі няма).
+ */
+const lastTry = { be: (c) => (c ? ` (апошняя спроба ${c})` : ''), en: (c) => (c ? ` (last attempt ${c})` : '') };
+
 export const STRINGS = {
   be: {
     title: 'Пошук па экстрэмісцкіх спісах Беларусі',
     updated: 'праверана',
     updatedTipHint: 'Дата і час апошняй праверкі крыніц. Самі спісы змяняюцца толькі тады, калі ўлады публікуюць новыя рашэнні, а выбарка Медыязоны — калі яе абнаўляе рэдакцыя.',
     today: 'сёння', yesterday: 'учора', at: 'а',
-    sourceDown: (d) => `Крыніца спісу не адказвае з ${d}: база магла састарэць.`,
+    sourceDown: (d, c) => `Крыніца спісу не адказвае з ${d}${lastTry.be(c)}: база магла састарэць.`,
     offline: (d) => `Вы афлайн — паказваецца захаваная копія базы ад ${d}.`,
     theme: { system: 'Тэма: як у сістэме', light: 'Тэма: светлая', dark: 'Тэма: цёмная' },
     themeHint: 'націсніце, каб змяніць',
@@ -118,7 +124,7 @@ export const STRINGS = {
     crimeNote: 'Сярод вынікаў — запісы з пераліку «экстрэмісцкіх фарміраванняў» (МУС/КДБ), пазначаныя фіялетавай плашкай «Фарміраванне». За ўдзел у такім фарміраванні, садзейнічанне, данаты ці перадачу інфармацыі — крымінальная адказнасць (арт. 361-1 удзел, 361-2 фінансаванне, 361-4 садзейнічанне КК).',
     materialNote: 'Сярод вынікаў — запісы з Рэспубліканскага спісу экстрэмісцкіх матэрыялаў (рашэнні судоў), пазначаныя чырвонай плашкай «Матэрыял». Распаўсюд (рэпост, перасылка, публікацыя), выраб, захоўванне і перавозка такіх матэрыялаў — адміністрацыйнае парушэнне (арт. 19.11 КаАП): штраф да 20 базавых велічынь або арышт для фізічных асоб, для ІП — да 100, для арганізацый — да 500 БВ. На практыцы падставай для пратакола бываюць стары рэпост, захаваны файл, стыкер ці спасылка ў перапісцы. Сама падпіска на канал са спісу ў законе як парушэнне не названая, але пры праверцы тэлефона падпіскі і захаваныя матэрыялы разглядаюць як «захоўванне». Перад паездкай у Беларусь праваабаронцы раяць адпісацца, выдаліць чаты, файлы і кэш, а ў ідэале не везці прыладу з такой гісторыяй.',
     updatedMaterials: 'матэрыялы', formationsChecked: 'фарміраванні',
-    formationsDown: (d) => `Пералік фарміраванняў МУС не абнаўляецца з ${d}: крыніца не адказвае або спрацавала засцярога; гэтая частка базы магла састарэць.`,
+    formationsDown: (d, c) => `Пералік фарміраванняў МУС не абнаўляецца з ${d}${lastTry.be(c)}: крыніца не адказвае або спрацавала засцярога; гэтая частка базы магла састарэць.`,
     recTitleF: 'Запіс пераліку МУС/КДБ',
     recIncluded: 'Уключана ў пералік', recAddress: 'Адрас / рэсурс', recInfo: 'Даведка з пераліку', recLogo: 'Апісанне лагатыпа',
     // трэці спіс — фізічныя асобы (пералік МУС)
@@ -147,7 +153,7 @@ export const STRINGS = {
     terrorNote: 'Сярод вынікаў — людзі з пераліку «арганізацый і фізічных асоб, датычных да тэрарыстычнай дзейнасці», які вядзе КДБ; на сайце гэта той жа спіс асоб, з малінавай плашкай «тэрарыст · КДБ» (хто ёсць і ў пераліку МУС — на картцы пераліку МУС). Туды трапляюць людзі з прысудам па «тэрарыстычных» і сумежных артыкулах КК (289, 290-1–290-5, 293, 295, 359, а таксама 130 і 361) і тыя, каго па іх толькі абвінавацілі — яшчэ да суда, нярэдка завочна; замежнікі з санкцыйных пералікаў ААН з таго ж файла на сайце не паказваюцца. Наступствы: банкі і іншыя фінансавыя арганізацыі абавязаныя замарожваць сродкі і блакаваць аперацыі асоб з пераліку, а перадача такому чалавеку грошай ці маёмасці можа лічыцца фінансаваннем тэрарыстычнай дзейнасці (арт. 290-1 КК). Дат уключэння і выключэння пералік не публікуе.',
     terrorChecked: 'пералік КДБ',
     terrorSource: (d) => `версія пераліку ад ${d}`,
-    terrorDown: (d) => `Пералік КДБ (тэрарыстычная дзейнасць) не абнаўляецца з ${d}: крыніца не адказвае або спрацавала засцярога; гэтая частка базы магла састарэць.`,
+    terrorDown: (d, c) => `Пералік КДБ (тэрарыстычная дзейнасць) не абнаўляецца з ${d}${lastTry.be(c)}: крыніца не адказвае або спрацавала засцярога; гэтая частка базы магла састарэць.`,
     recTitleT: 'Запіс пераліку КДБ (тэрарыстычная дзейнасць)',
     recMerged: 'Гэты чалавек ёсць і ў пераліку фізічных асоб МУС: у выніках пошуку ён ідзе адной карткай пераліку МУС з пазнакай «тэрарыст · КДБ», а звесткі з абодвух пералікаў — на той старонцы.',
     recOpenPersons: 'Адкрыць запіс пераліку МУС',
@@ -162,7 +168,7 @@ export const STRINGS = {
     recStale: 'База абнавілася падчас сесіі — перазагрузіце старонку, каб убачыць гэты запіс.',
     personNote: 'Сярод вынікаў — запісы з пераліку фізічных асоб, «датычных да экстрэмісцкай дзейнасці» (МУС), пазначаныя бірузовай плашкай «Асоба». Як правіла, гэта людзі з прысудам, які ўступіў у сілу, па «экстрэмісцкіх» артыкулах КК (напрыклад, 342, 130, 368, 369, 361-х); радзей — асобы, справу якіх суд спыніў па нерэабілітавальных падставах ці якім прызначыў прымусовае лячэнне. Паводле закона «Аб супрацьдзеянні экстрэмізму» уключэнне ў пералік цягне за сабой абмежаванні — у прыватнасці, на педагагічную і выдавецкую дзейнасць, дзяржаўную і вайсковую службу, валоданне зброяй — да пагашэння ці зняцця судзімасці і яшчэ пяць гадоў пасля. Выключаюць з пераліку праз пяць гадоў пасля пагашэння (зняцця) судзімасці, пры адмене прысуду або смерці.',
     personsChecked: 'асобы',
-    personsDown: (d) => `Пералік фізічных асоб МУС не абнаўляецца з ${d}: крыніца не адказвае або спрацавала засцярога; гэтая частка базы магла састарэць.`,
+    personsDown: (d, c) => `Пералік фізічных асоб МУС не абнаўляецца з ${d}${lastTry.be(c)}: крыніца не адказвае або спрацавала засцярога; гэтая частка базы магла састарэць.`,
     recTitleP: 'Запіс пераліку фізічных асоб (МУС)',
     recNumPending: 'яшчэ не прысвоены — запіс з апошняга дапаўнення пераліку',
     recBirth: 'Дата нараджэння', recCitizenship: 'Грамадзянства', recArticles: 'Артыкулы КК у падставе', recIncludedP: 'Даты ўключэння ў пералік', recAddressP: 'Месцазнаходжанне (як у пераліку)', recNum: 'Нумар у пераліку',
@@ -183,7 +189,7 @@ export const STRINGS = {
     wantedNote: 'Сярод вынікаў — запісы з базы вышуку МУС РФ па беларусах, пазначаныя бурштынавай плашкай «Вышук РФ». Крыніца — штодзённая выбарка Медыязоны-Беларусь з расійскай базы (грамадзяне і ўраджэнцы Беларусі), а не афіцыйны спіс Беларусі. У расійскі вышук беларусы трапляюць па запыце беларускіх ведамстваў: чалавека шукаюць і ў Беларусі, і ў Расіі, а затрымаць і выдаць могуць у Расіі і ў краінах, якія з ёй супрацоўнічаюць (у прыватнасці, у СНД і АДКБ). Артыкул у базе не пазначаецца. Выключэнне з базы не азначае, што крымінальны пераслед спынены, а адсутнасць у базе — што ў Беларусі няма крымінальнай справы.',
     wantedChecked: 'вышук РФ',
     wantedSource: (d) => `даныя Медыязоны ад ${d}`,
-    wantedDown: (d) => `База вышуку РФ (Медыязона) не абнаўляецца з ${d}: крыніца не адказвае або спрацавала засцярога; гэтая частка базы магла састарэць.`,
+    wantedDown: (d, c) => `База вышуку РФ (Медыязона) не абнаўляецца з ${d}${lastTry.be(c)}: крыніца не адказвае або спрацавала засцярога; гэтая частка базы магла састарэць.`,
     recTitleW: 'Запіс базы вышуку РФ (паводле Медыязоны)',
     // «корак» у канцы карткі палёў: тэкст са спасылкай на гэты запіс у віджэце Медыязоны пасярэдзіне
     positionW1: 'Запіс з базы вышуку МУС РФ у ', positionWLink: 'штодзённай выбарцы Медыязоны-Беларусь', positionW2: ' (грамадзяне і ўраджэнцы Беларусі); нумароў у крыніцы няма. Гэта не афіцыйны спіс Беларусі.',
@@ -301,7 +307,7 @@ export const STRINGS = {
     updated: 'checked',
     updatedTipHint: 'Date and time the sources were last checked. The lists themselves only change when authorities publish new decisions, and Mediazona’s extract when its editors update it.',
     today: 'today', yesterday: 'yesterday', at: 'at',
-    sourceDown: (d) => `The list source has not responded since ${d}: the database may be stale.`,
+    sourceDown: (d, c) => `The list source has not responded since ${d}${lastTry.en(c)}: the database may be stale.`,
     offline: (d) => `You are offline — showing the saved copy of the database from ${d}.`,
     theme: { system: 'Theme: system', light: 'Theme: light', dark: 'Theme: dark' },
     themeHint: 'click to change',
@@ -385,7 +391,7 @@ export const STRINGS = {
     crimeNote: 'Some results come from the list of “extremist formations” (Interior Ministry / KGB), marked with a purple “Formation” label. Participation in such a formation, assistance, donations or passing information to it is a criminal offence (Criminal Code Art. 361-1 participation, 361-2 financing, 361-4 assistance).',
     materialNote: 'Some results come from the Republican list of extremist materials (court decisions), marked with a red “Material” label. Distribution (repost, forwarding, publishing), production, storage and transport of such materials is an administrative offence (Art. 19.11 of the Administrative Code): a fine of up to 20 base units or arrest for individuals, up to 100 for sole traders and 500 for organisations. In practice an old repost, a saved file, a sticker or a link in a chat has been enough for a charge. Merely subscribing to a listed channel is not named as an offence, but during phone checks subscriptions and saved materials are treated as “storage”. Before travelling to Belarus, rights defenders advise unsubscribing and deleting chats, files and caches — ideally not carrying a device with such history at all.',
     updatedMaterials: 'materials', formationsChecked: 'formations',
-    formationsDown: (d) => `The Interior Ministry list of formations has not been updated since ${d}: the source is down or a safety check stopped the update; that part of the database may be stale.`,
+    formationsDown: (d, c) => `The Interior Ministry list of formations has not been updated since ${d}${lastTry.en(c)}: the source is down or a safety check stopped the update; that part of the database may be stale.`,
     recTitleF: 'Interior Ministry / KGB list entry',
     recIncluded: 'Added to the list', recAddress: 'Address / resource', recInfo: 'Reference note from the list', recLogo: 'Logo description',
     personLabel: (art) => {
@@ -412,7 +418,7 @@ export const STRINGS = {
     terrorNote: 'Some results come from the list of “organisations and individuals involved in terrorist activity” kept by the KGB; on this site it is part of the same persons list, marked with a crimson “terrorist · KGB” label (people who are also on the Interior Ministry list are shown on their Interior Ministry card). It holds people convicted under “terrorism” and related articles of the Criminal Code (289, 290-1–290-5, 293, 295, 359, as well as 130 and 361) and people merely charged under them — before any trial, often in absentia; foreigners from UN sanctions lists in the same file are not shown. Consequences: banks and other financial institutions must freeze the assets and block the transactions of listed persons, and giving such a person money or property may count as financing terrorist activity (Art. 290-1 CC). The list publishes no dates of inclusion or removal.',
     terrorChecked: 'KGB list',
     terrorSource: (d) => `list version of ${d}`,
-    terrorDown: (d) => `The KGB list (terrorist activity) has not been updated since ${d}: the source is down or a safety check stopped the update; that part of the database may be stale.`,
+    terrorDown: (d, c) => `The KGB list (terrorist activity) has not been updated since ${d}${lastTry.en(c)}: the source is down or a safety check stopped the update; that part of the database may be stale.`,
     recTitleT: 'KGB list entry (terrorist activity)',
     recMerged: 'This person is also on the Interior Ministry list of individuals: in search results they appear as a single Interior Ministry card with the “terrorist · KGB” label, and that page holds the data from both lists.',
     recOpenPersons: 'Open the Interior Ministry list entry',
@@ -427,7 +433,7 @@ export const STRINGS = {
     recStale: 'The database was updated during this session — reload the page to see this entry.',
     personNote: 'Some results come from the Interior Ministry list of individuals “involved in extremist activity”, marked with a teal “Person” label. Usually these are people with a final conviction under “extremism” articles of the Criminal Code (e.g. 342, 130, 368, 369, 361-x); occasionally people whose case a court closed on non-rehabilitating grounds or who were sent for compulsory treatment. Under the Law on Countering Extremism, listing brings restrictions — in particular on teaching, publishing, state and military service and owning weapons — until the conviction is expunged or lifted and for five more years. A person is removed five years after expungement, if the verdict is quashed, or on death.',
     personsChecked: 'persons',
-    personsDown: (d) => `The Interior Ministry list of individuals has not been updated since ${d}: the source is down or a safety check stopped the update; that part of the database may be stale.`,
+    personsDown: (d, c) => `The Interior Ministry list of individuals has not been updated since ${d}${lastTry.en(c)}: the source is down or a safety check stopped the update; that part of the database may be stale.`,
     recTitleP: 'Interior Ministry persons list entry',
     recNumPending: 'not assigned yet — entry from the latest addition to the list',
     recBirth: 'Date of birth', recCitizenship: 'Citizenship', recArticles: 'Criminal Code articles in the grounds', recIncludedP: 'Dates of inclusion in the list', recAddressP: 'Location (as in the list)', recNum: 'Number in the list',
@@ -447,7 +453,7 @@ export const STRINGS = {
     wantedNote: 'Some results come from the Russian Interior Ministry wanted database of Belarusians, marked with an amber “RF wanted” label. The source is Mediazona Belarus’s daily extract from the Russian database (citizens and natives of Belarus), not an official Belarusian list. Belarusians end up on the Russian wanted list at the request of Belarusian agencies: the person is sought both in Belarus and in Russia, and can be detained and extradited in Russia and in countries that cooperate with it (in particular the CIS and CSTO). The database does not state the article. Removal from the database does not mean the criminal prosecution has ended, and absence from it does not mean there is no criminal case in Belarus.',
     wantedChecked: 'RF wanted',
     wantedSource: (d) => `Mediazona data of ${d}`,
-    wantedDown: (d) => `The RF wanted database (Mediazona) has not been updated since ${d}: the source is down or a safety check stopped the update; that part of the database may be stale.`,
+    wantedDown: (d, c) => `The RF wanted database (Mediazona) has not been updated since ${d}${lastTry.en(c)}: the source is down or a safety check stopped the update; that part of the database may be stale.`,
     recTitleW: 'RF wanted database entry (per Mediazona)',
     positionW1: 'Entry from the Russian Interior Ministry wanted database in ', positionWLink: 'Mediazona Belarus’s daily extract', positionW2: ' (citizens and natives of Belarus); the source has no numbers. This is not an official Belarusian list.',
     recYear: 'Year of birth', recNationality: 'Nationality (as in the database)', recRegion: 'Region of the requesting agency', recAgency: 'Who requested the search',

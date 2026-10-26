@@ -29,7 +29,7 @@ const META = {
   },
 };
 
-let ResultItem, RecordPage, Options, Facets, Header, listStamps, Consequences, StatsPage, WhatsNew, HelpDialog;
+let ResultItem, RecordPage, Options, Facets, Header, listStamps, downDates, Consequences, StatsPage, WhatsNew, HelpDialog;
 beforeAll(async () => {
   // SSR-рэндэр без браўзера: кампанентам патрэбныя location/history толькі для спасылак
   globalThis.location = { href: 'https://elist.test/#/r/p1', hash: '#/r/p1', origin: 'https://elist.test', pathname: '/' };
@@ -38,7 +38,7 @@ beforeAll(async () => {
   ({ default: RecordPage } = await import('../src/components/RecordPage.jsx'));
   ({ default: Options } = await import('../src/components/Options.jsx'));
   ({ default: Facets } = await import('../src/components/Facets.jsx'));
-  ({ default: Header, listStamps } = await import('../src/components/Header.jsx'));
+  ({ default: Header, listStamps, downDates } = await import('../src/components/Header.jsx'));
   ({ default: Consequences } = await import('../src/components/Consequences.jsx'));
   ({ default: StatsPage } = await import('../src/components/StatsPage.jsx'));
   ({ default: WhatsNew } = await import('../src/components/WhatsNew.jsx'));
@@ -180,6 +180,26 @@ describe('рэндэр кампанентаў для трох спісаў (SSR,
       expect(two.match(/<button/g)).toHaveLength(3);
       expect(two).toContain('6 043');
       expect(two).not.toContain(t.facet.p);
+    });
+    it(`${lang}: папярэджанне «не абнаўляецца» — з дня першага збою (failingSince) і з датай апошняй спробы, калі яна іншая`, () => {
+      // старая мета без failingSince — дата апошняй праверкі, як раней, і без дубля той жа даты
+      expect(downDates(META.persons)).toEqual(['05.09.2026', '']);
+      const persons = { ...META.persons, failingSince: '2026-09-03' };
+      expect(downDates(persons)).toEqual(['03.09.2026', '05.09.2026']);
+      expect(downDates({ ...persons, checked: '2026-09-03' })).toEqual(['03.09.2026', '']);
+      expect(downDates({ sourceError: 'x', checkedAt: '2026-09-05T14:04:18.967Z', failingSince: '2026-09-03' })).toEqual(['03.09.2026', '05.09.2026']);
+      const head = render(lang, <Header meta={{ ...META, persons }} online onHelp={() => { }} />);
+      const msg = t.personsDown('03.09.2026', '05.09.2026');
+      expect(head).toContain(msg);
+      expect(head).not.toContain(t.personsDown('05.09.2026'));
+      expect(msg).toContain('03.09.2026');
+      expect(msg).toContain('05.09.2026');
+      expect(t.personsDown('03.09.2026')).toBe(t.personsDown('03.09.2026', ''));
+      expect(t.personsDown('03.09.2026')).not.toContain('05.09.2026');
+      for (const k of ['sourceDown', 'formationsDown', 'terrorDown', 'wantedDown']) {
+        expect(t[k]('03.09.2026', '05.09.2026')).toContain('05.09.2026');
+        expect(t[k]('03.09.2026')).not.toContain('05.09.2026');
+      }
     });
     it(`${lang}: шапка з трыма датамі і папярэджаннем, наступствы, статыстыка`, () => {
       const head = render(lang, <Header meta={META} online onHelp={() => { }} />);

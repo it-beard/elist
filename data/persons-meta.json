@@ -3,6 +3,7 @@
   "checked": "2026-10-26",
   "checkedAt": "2026-10-26T10:04:44.796Z",
   "sourceError": "The operation was aborted due to timeout",
+  "failingSince": "2026-10-22",
   "sourcePage": "https://www.mvd.gov.by/ru/news/8642",
   "sourceFiles": [
     "https://www.mvd.gov.by/uploads/news/8642/96b5c07456ca3b274282ef783855883e0821b76e.doc",

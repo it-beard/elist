@@ -8,6 +8,17 @@ import LangToggle from './LangToggle.jsx';
 export const stampOf = (m) => m?.checkedAt || m?.checked || m?.updated || '';
 
 /**
+ * Даты для папярэджання «не абнаўляецца»: з якога дня крыніца не адказвае (failingSince — першы збой запар; старая мета
+ * без поля — дата апошняй праверкі, як раней) і дата апошняй спробы, калі яна іншая (у першы дзень збою яе няма чаго
+ * паўтараць). Чыстая функцыя.
+ */
+export function downDates(m) {
+  const since = m.failingSince || m.checked || m.updated || '';
+  const tried = m.checked || (m.checkedAt || '').slice(0, 10);
+  return [fmtDate(since), tried && tried !== since ? fmtDate(tried) : ''];
+}
+
+/**
  * Даты праверкі па спісах для шапкі: lists — усе, у якіх ёсць пазнака ({ key, label, iso, value, sub }),
  * latest — самая свежая з іх (у бачным радку), астатнія — у папове. Для вышуку РФ sub — дата файла Медыязоны
  * (sourceDate), для пераліку КДБ — дата версіі пераліку, асобным радком толькі ў папове: выбарка Медыязоны
@@ -102,12 +113,12 @@ export default function Header({ meta, online, onHelp }) {
           </span>
         ) : ' '}
       </p>
-      {meta?.sourceError && <p className="notice warn">{t.sourceDown(fmtDate(meta.checked || meta.updated))}</p>}
+      {meta?.sourceError && <p className="notice warn">{t.sourceDown(...downDates(meta))}</p>}
       {meta?.fallback && <p className="notice warn">{t.fallbackSrc}</p>}
-      {fm?.sourceError && <p className="notice warn">{t.formationsDown(fmtDate(fm.checked || fm.updated))}</p>}
-      {pm?.sourceError && <p className="notice warn">{t.personsDown(fmtDate(pm.checked || pm.updated))}</p>}
-      {tm?.sourceError && <p className="notice warn">{t.terrorDown(fmtDate(tm.checked || tm.updated))}</p>}
-      {wm?.sourceError && <p className="notice warn">{t.wantedDown(fmtDate(wm.checked || wm.updated))}</p>}
+      {fm?.sourceError && <p className="notice warn">{t.formationsDown(...downDates(fm))}</p>}
+      {pm?.sourceError && <p className="notice warn">{t.personsDown(...downDates(pm))}</p>}
+      {tm?.sourceError && <p className="notice warn">{t.terrorDown(...downDates(tm))}</p>}
+      {wm?.sourceError && <p className="notice warn">{t.wantedDown(...downDates(wm))}</p>}
       {stale && <p className="notice warn">{t.stale(updatedStr)}</p>}
       {!online && meta && <p className="notice">{t.offline(fmtDate(meta.updated))}</p>}
     </header>

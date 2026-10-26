@@ -101,10 +101,16 @@ export async function fetchRetry(url, init = {}, { retries = 3, timeout = 30_000
   }
 }
 
-/** Пазначыць збой у меце (сайт папярэдзіць, адмін атрымае алерт пры змене стану), базу не чапаць. */
+/**
+ * Пазначыць збой у меце (сайт папярэдзіць, адмін атрымае алерт пры змене стану), базу не чапаць. failingSince — дата
+ * першага збою запар, г.зн. з якога дня спіс не абнаўляецца (шапка паказвае яе, а не дату апошняй спробы): новы збой —
+ * сёння, паўторны — застаецца як была; удалае абнаўленне перапісвае мету нанова, без гэтага поля.
+ */
 export async function writeSourceError(metaFile, message, now = new Date().toISOString()) {
   const meta = await readJson(metaFile, {});
-  await fs.writeFile(metaFile, JSON.stringify({ ...meta, checked: now.slice(0, 10), checkedAt: now, sourceError: message }, null, 2));
+  const today = now.slice(0, 10);
+  const failingSince = meta.sourceError && meta.failingSince ? meta.failingSince : today;
+  await fs.writeFile(metaFile, JSON.stringify({ ...meta, checked: today, checkedAt: now, sourceError: message, failingSince }, null, 2));
 }
 
 /**

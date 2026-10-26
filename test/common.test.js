@@ -138,12 +138,22 @@ describe('readJson / writeSourceError / runMain / FormatError', () => {
     expect(await readJson('/няма/такога.json', { a: 1 })).toEqual({ a: 1 });
     expect(await readJson(new URL(import.meta.url).pathname, [])).toEqual([]);
   });
-  it('writeSourceError дапісвае sourceError/checked/checkedAt да існай меты', async () => {
+  it('writeSourceError дапісвае sourceError/checked/checkedAt/failingSince да існай меты; failingSince — дзень першага збою запар', async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'elist-'));
     const file = path.join(dir, 'meta.json');
     await fs.writeFile(file, JSON.stringify({ updated: '2026-09-01', total: 5, sourceError: null }));
     await writeSourceError(file, 'HTTP 503', '2026-09-06T10:00:00.000Z');
-    expect(JSON.parse(await fs.readFile(file, 'utf8'))).toEqual({ updated: '2026-09-01', total: 5, sourceError: 'HTTP 503', checked: '2026-09-06', checkedAt: '2026-09-06T10:00:00.000Z' });
+    expect(JSON.parse(await fs.readFile(file, 'utf8'))).toEqual({ updated: '2026-09-01', total: 5, sourceError: 'HTTP 503', checked: '2026-09-06', checkedAt: '2026-09-06T10:00:00.000Z', failingSince: '2026-09-06' });
+    // збой за збоем: тэкст памылкі і дата праверкі новыя, дзень першага збою застаецца
+    await writeSourceError(file, 'timeout', '2026-09-08T22:00:00.000Z');
+    expect(JSON.parse(await fs.readFile(file, 'utf8'))).toMatchObject({ sourceError: 'timeout', checked: '2026-09-08', checkedAt: '2026-09-08T22:00:00.000Z', failingSince: '2026-09-06' });
+    // старая мета са збоем, але без failingSince — раней за сёння нічога не вядома; пасля ўдачы (sourceError: null) — нанова
+    await fs.writeFile(file, JSON.stringify({ sourceError: 'x', checked: '2026-09-08' }));
+    await writeSourceError(file, 'y', '2026-09-09T10:00:00.000Z');
+    expect(JSON.parse(await fs.readFile(file, 'utf8'))).toMatchObject({ failingSince: '2026-09-09' });
+    await fs.writeFile(file, JSON.stringify({ sourceError: null, failingSince: '2026-09-06' }));
+    await writeSourceError(file, 'z', '2026-09-10T10:00:00.000Z');
+    expect(JSON.parse(await fs.readFile(file, 'utf8'))).toMatchObject({ sourceError: 'z', failingSince: '2026-09-10' });
     await writeSourceError(path.join(dir, 'new.json'), 'x');
     expect(JSON.parse(await fs.readFile(path.join(dir, 'new.json'), 'utf8'))).toMatchObject({ sourceError: 'x' });
     await fs.rm(dir, { recursive: true, force: true });
