@@ -1,16 +1,16 @@
 {
   "updated": "2026-10-16",
   "checked": "2026-11-11",
-  "checkedAt": "2026-11-11T11:52:28.132Z",
+  "checkedAt": "2026-11-11T12:59:55.603Z",
   "sourceError": null,
   "sourcePage": "https://www.kgb.by/ru/perechen-inf-ru/",
-  "sourceFile": "file:///home/runner/work/elist/elist/inbox/terror/2026-10-16.xlsx",
+  "sourceFile": "file:///home/runner/work/elist/elist/inbox/terror/Перечень.xlsx 10.11.2026.xlsx",
   "channel": "https://t.me/KGB_BY_channel",
-  "sourceDate": "2026-10-16",
+  "sourceDate": "2026-11-10",
   "announcedPost": 81,
   "parse": {
-    "total": 1476,
-    "un": 736,
+    "total": 1473,
+    "un": 733,
     "skipped": 0,
     "noBirth": 0
   },
