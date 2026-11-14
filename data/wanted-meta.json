@@ -1,19 +1,19 @@
 {
-  "updated": "2026-11-13",
+  "updated": "2026-11-14",
   "checked": "2026-11-14",
-  "checkedAt": "2026-11-14T11:27:49.268Z",
+  "checkedAt": "2026-11-14T20:45:42.426Z",
   "sourceError": null,
   "sourcePage": "https://mediazonaby.com/article/2026/08/26/wanted_all",
   "sourceFile": "https://s3.zona.media/infographics/wanted/data_bel.json.br",
-  "sourceDate": "2026-11-13",
+  "sourceDate": "2026-11-14",
   "parse": {
     "skipped": 0,
     "approx": 3025,
-    "out": 2862,
+    "out": 2863,
     "fresh": 8
   },
-  "total": 6776,
-  "removedTotal": 2863,
+  "total": 6775,
+  "removedTotal": 2864,
   "approx": 601,
   "lastAdded": "2026-11-13",
   "lastAddedCount": 2
